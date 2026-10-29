@@ -1,0 +1,10 @@
+[package]
+name = "astroarch-build"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+description = "Aides de build.rs partagées (CXX-Qt + traductions Qt) pour les applis AstroArch"
+
+# Crate utilisé uniquement comme [build-dependencies] par les autres crates.
+[dependencies]
+cxx-qt-build = { workspace = true }

@@ -1,0 +1,19 @@
+[package]
+name = "astroarch-software-installer"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+description = "AstroArch software installer (100 % Rust, CXX-Qt 0.10)"
+license = "GPL-3.0-or-later"
+
+[dependencies]
+cxx = { workspace = true }
+cxx-qt = { workspace = true }
+cxx-qt-lib = { workspace = true }
+cxx-qt-lib-extras = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = "0.8"
+
+[build-dependencies]
+astroarch-build = { workspace = true }

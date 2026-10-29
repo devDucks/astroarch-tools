@@ -1,0 +1,18 @@
+[package]
+name = "astroarch-locale-module"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+description = "Module de configuration langue / emplacement / clavier pour AstroArch"
+
+[dependencies]
+cxx = { workspace = true }
+cxx-qt = { workspace = true }
+cxx-qt-lib = { workspace = true }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[build-dependencies]
+astroarch-build = { workspace = true }

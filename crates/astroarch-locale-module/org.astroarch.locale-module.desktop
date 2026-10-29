@@ -1,0 +1,24 @@
+[Desktop Entry]
+Categories=System;Utility;
+Comment[en_US]=Configure AstroArch locales
+Comment=Configure AstroArch locales
+Comment[fr]=Configure les locales AstroArch
+Exec=astroarch-locale-module
+GenericName[en_US]=Configure AstroArch locales
+GenericName=
+Icon=/home/astronaut/.astroarch/assets/icons/novnc-16x16.png
+MimeType=
+Name[en_US]=AstroArch Locale
+Name=AstroArch Locale
+Name[de]=Konfiguriere die lokalen AstroArch-Einstellungen
+Name[es]=Configura las locales AstroArch
+Name[fr]=Configure les locales AstroArch
+Name[it]=Configura le locale AstroArch
+Path=
+StartupNotify=true
+StartupWMClass=org.astroarch.locale-module
+Terminal=false
+TerminalOptions=
+Type=Application
+X-KDE-SubstituteUID=false
+X-KDE-Username=

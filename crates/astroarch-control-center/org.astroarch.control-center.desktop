@@ -1,0 +1,24 @@
+[Desktop Entry]
+Categories=System;Settings;
+Comment[en_US]=Maintain and configure the AstroArch system
+Comment=Maintain and configure the AstroArch system
+Comment[fr]=Maintenir et configurer le système AstroArch
+Exec=astroarch-control-center
+GenericName[en_US]=
+GenericName=
+Icon=/home/astronaut/.astroarch/assets/icons/novnc-16x16.png
+MimeType=
+Name[en_US]=AstroArch Control Center
+Name=AstroArch Control Center
+Name[de]=AstroArch-Kontrollzentrum
+Name[es]=Centro de control de AstroArch
+Name[fr]=Centre de contrôle AstroArch
+Name[it]=Centro di controllo AstroArch
+Path=
+StartupNotify=true
+StartupWMClass=org.astroarch.control-center
+Terminal=false
+TerminalOptions=
+Type=Application
+X-KDE-SubstituteUID=false
+X-KDE-Username=

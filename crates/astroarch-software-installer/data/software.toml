@@ -1,0 +1,74 @@
+# Liste des logiciels proposés par astroarch-software-installer.
+#
+# Chaque [[package]] décrit un logiciel :
+#   name         (obligatoire) nom exact du paquet pacman
+#   title        (facultatif)  titre affiché ; sinon on affiche `name`
+#   description  (facultatif)  texte de secours, en anglais. La description du
+#                              dépôt (pacman -Si) est utilisée en priorité ;
+#                              ce texte ne sert que si le dépôt n'en donne pas.
+#   category     (facultatif)  regroupement affiché dans le filtre
+#   aur          (facultatif)  true = paquet de l'AUR, installé avec paru (la description
+#                              du dépôt n'est pas disponible : celle du fichier est utilisée)
+#
+# Exemple de contenu : à adapter.
+
+[[package]]
+name = "stellarium"
+title = "Stellarium"
+description = "A 3D planetarium for your computer."
+category = "Astronomy"
+
+[[package]]
+name = "siril"
+title = "Siril"
+description = "Astronomical image processing tool."
+category = "Astronomy"
+
+[[package]]
+name = "gimp"
+title = "GIMP"
+description = "GNU Image Manipulation Program."
+category = "Imaging"
+
+[[package]]
+name = "darktable"
+title = "darktable"
+description = "Photography workflow application and raw developer."
+category = "Imaging"
+
+[[package]]
+name = "vlc"
+title = "VLC"
+description = "Multi-platform multimedia player."
+category = "Tools"
+
+[[package]]
+name = "htop"
+title = "htop"
+description = "Interactive process viewer."
+category = "Tools"
+
+[[package]]
+name = "kdf"
+title = "KDiskFree"
+description = "Displays information about hard disks and other storage devices."
+category = "Tools"
+
+[[package]]
+name = "print-managerp"
+title = "Print Manager"
+description = "Tool for managing print jobs and printers."
+category = "Tools"
+
+[[package]]
+name = "kweather"
+title = "Kweather"
+description = "A convergent weather application for Plasma."
+category = "Tools"
+
+#[[package]]
+#name = "aladin"
+#title = "aladin"
+#description = "Real-time satellite tracking and orbit prediction."
+#category = "Astronomy"
+#aur = true
