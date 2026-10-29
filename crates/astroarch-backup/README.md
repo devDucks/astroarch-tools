@@ -1,190 +1,124 @@
 # astroarch-backup
 
-Assistant de sauvegarde AstroArch. Les sauvegardes sont stockées dans un
-**fichier image btrfs préalloué** (`astroarch-backup.btrfs`) pour les protéger
-de la corruption et des erreurs de manipulation.
+AstroArch backup assistant. Backups are stored in a
+**pre-allocated Btrfs image file** (`astroarch-backup.btrfs`) to protect them
+from corruption and accidental mishandling.
 
-**100 % Rust** (interface en QML) : plus aucun fichier C++. Compilation avec Cargo seul.
+**100% Rust** (with a QML interface): no remaining C++ files. Compiled using only Cargo.
 
-## Compiler et installer
+## Build and install
 
-    cargo build --release
-    sudo ./install.sh              # PREFIX=/usr par défaut
+cargo build --release
+sudo ./install.sh              # Defaults to PREFIX=/usr
 
-Prérequis : Qt 6 (Quick Controls 2), `qt6-tools` (pour `lrelease`, qui compile les
-traductions ; sans lui l'interface reste en anglais), `rsync`, `btrfs-progs`, `polkit`.
-Sans installation, l'appli retrouve `scripts/astroarch-backup-helper.sh` à côté de
-`target/` (variable `ASTROARCH_BACKUP_HELPER` pour forcer un chemin).
+Prerequisites: Qt 6 (Quick Controls 2), `qt6-tools` (for `lrelease`, which compiles
+translations; without it, the interface remains in English), `rsync`, `btrfs-progs`, `polkit`.
+If not installed, the application locates `scripts/astroarch-backup-helper.sh`
+relative to the `target/` directory (use the `ASTROARCH_BACKUP_HELPER` variable
+to specify a custom path).
 
-## Déroulement de l'assistant
+## Wizard Workflow
 
-1. **Dossiers à exclure** — une fenêtre externe affiche l'arborescence de
-   votre dossier personnel et, s'il existe, du dossier de données partagé
-   `/srv/astro-data` (sous-dossiers compris, avec leur taille, dossiers cachés en
-   option). Case cochée = dossier exclu avec tout son contenu. Les derniers dossiers exclus sont
-   mémorisés et proposés à nouveau. Quelques dossiers indispensables ne peuvent pas être
-   exclus (🔒) : `Desktop`, `.astroarch`, `.config`, `.local` et `.oh-my-zsh` du dossier
-   personnel, avec leur contenu (le helper les refuse aussi). Si `/srv/astro-data`
-   est un autre système de fichiers monté, rsync (`-x`) ne le sauvegarde de toute
-   façon pas.
-2. **Analyse** — mesure de ce qui sera sauvegardé (tout le système `/` moins les
-   exclusions), puis test de l'espace disponible dans `/var/backups`.
-3. **Emplacement**
-   - Disque principal : **`/var/backups`, imposé** (FHS, non modifiable). Si la
-     place suffit, l'utilisateur choisit entre « Enregistrer sur le disque
-     principal » et « Utiliser un disque externe ».
-   - Si la place ne suffit pas : disque externe **obligatoire**.
-4. **Disque externe** — liste (mise à jour automatiquement) de tous les
-   systèmes de fichiers qui ne sont pas sur le disque du système, avec bouton
-   « Monter » (udisks) pour ceux qui ne sont pas montés. Pour un disque utilisable
-   avec assez de place, l'appli demande confirmation de la création de
-   `<disque>/astroarch/backups`. Pas assez de place : un autre disque est demandé.
-   FAT32 est refusé (limite de 4 Go par fichier).
-5. **Prêt** — récapitulatif et **nombre de sauvegardes à conserver** (1 à 50,
-   mémorisé), puis lancement.
+1. **Folders to Exclude** — An external window displays the directory tree of your home folder and, if present, the shared data directory `/srv/astro-data` (including subfolders and their sizes; hidden folders can also be shown). Checking a box excludes that folder and all its contents. Previously excluded folders are remembered and suggested again. Certain essential folders cannot be excluded (🔒): `Desktop`, `.astroarch`, `.config`, `.local`, and `.oh-my-zsh` within the home folder, along with their contents (the helper will also reject these). If `/srv/astro-data` is a separate mounted file system, `rsync` (using the `-x` flag) will not back it up in any case.
+2. **Analysis** — Calculates the data to be backed up (the entire `/` system, minus any exclusions) and checks the available space in `/var/backups`.
+3. **Location**
+- Main disk: **`/var/backups` (fixed)** (per FHS standards; cannot be changed). If there is sufficient space, the user can choose between "Save to main disk" and "Use an external disk." 
+- If there is insufficient space: an external disk is **required**.
+4. **External Disk** — Displays a list (automatically updated) of all file systems not located on the system disk, with a "Mount" button (via `udisks`) for those that are not currently mounted. For a suitable disk with enough available space, the application will ask for confirmation to create the directory `<disk>/astroarch/backups`. If there is not enough space, you will be prompted to select a different disk. FAT32-formatted drives are not supported (due to the 4 GB file size limit). 5. **Ready** — summary and **number of backups to keep** (1 to 50,
+saved), then start.
 
-**Quitter** est possible à tout moment (bouton, croix de la fenêtre). Pendant une
-sauvegarde, quitter l'annule : le helper termine son nettoyage de lui-même et
-les sauvegardes précédentes ne sont jamais touchées.
+You can **quit** at any time (using the button or the window's close icon). If you quit while a backup is in progress, the process is cancelled: the helper automatically completes its cleanup, and existing backups remain untouched.
 
-## Restauration complète du système
+## Full System Restore
 
-Depuis la première page : « Restaurer une sauvegarde... » → emplacement des sauvegardes
-(disque principal ou disque externe) → choix du snapshot → avertissement + confirmation
-(saisir `RESTORE`) → restauration **sur le système en marche**, sans autre système.
+From the main page: "Restore a backup..." → select backup location
+(main disk or external drive) → choose snapshot → warning + confirmation
+(enter `RESTORE`) → restoration performed **on the running system**, without requiring a separate system.
 
-Principe (« takeover » léger, helper `restore`) :
+Principle (lightweight "takeover" using a `restore` helper):
 
-1. **Vérifications sans rien modifier** : image, snapshot (il doit contenir `/boot`),
-   **PARTUUID/UUID** (le `root=` du `cmdline.txt` du snapshot doit être celui de la racine
-   actuelle, sinon le Raspberry Pi ne démarrerait plus : refus) et disques cités par le
-   `fstab` du snapshot (présents, sauf `nofail`/`noauto`).
-2. **Sauvegarde de sécurité** de l'état actuel (case cochée par défaut) : un snapshot de
-   plus, sans rotation, pour pouvoir annuler la restauration en la restaurant à son tour.
-3. Les outils (bash, rsync, mount, losetup...) sont copiés **avec leurs bibliothèques**
-   dans la RAM (`/run/astroarch-restore/root`, un chroot) : ils ne risquent pas d'être
-   cassés quand les fichiers du disque changent. Un test les lance avant tout changement.
-4. Un service systemd temporaire arrête le bureau et presque tous les services
-   (`systemctl isolate`), puis exécute dans ce chroot : `rsync --delete-after` du snapshot
-   vers la racine, puis du `boot/` du snapshot vers `/boot`.
-5. Redémarrage immédiat (sysrq). La progression s'affiche en mode texte (tty1).
+1. **Checks (non-destructive)**: verify the image and snapshot (must include `/boot`),
+check **PARTUUID/UUID** (the `root=` parameter in the snapshot's `cmdline.txt` must match the current root partition; otherwise, the Raspberry Pi would fail to boot, so the operation is blocked), and ensure all disks referenced in the snapshot's `fstab` are present (unless marked `nofail` or `noauto`).
+2. **Safety backup** of the current state (enabled by default): creates an additional snapshot—excluded from the rotation policy—allowing the restore operation itself to be undone.
+3. Essential tools (bash, rsync, mount, losetup, etc.) are copied—**along with their required libraries**—into RAM (`/run/astroarch-restore/root`, acting as a chroot environment). This ensures they remain functional even as files on the disk are modified. A preliminary test runs these tools before any changes are made.
+4. A temporary systemd service stops the desktop environment and nearly all other services (`systemctl isolate`), then executes the following within the chroot: `rsync --delete-after` to sync the snapshot to the root partition, followed by syncing the snapshot's `boot/` directory to the system's `/boot` partition.
+5. Immediate reboot (via sysrq). Progress is displayed in text mode (tty1).
 
-Conséquences, annoncées à l'utilisateur :
-- Tout ce qui a changé depuis le snapshot est perdu (fichiers, paquets, mises à jour,
-  réglages) : c'est voulu, pour annuler une mise à jour ratée.
-- Les dossiers exclus des sauvegardes sont **vidés** (ils existent, vides, dans le snapshot).
-  Les disques montés à part (ex. `/srv/astro-data`), `/var/backups` et le contenu de
-  `/dev`, `/proc`, `/sys`, `/run`, `/tmp`, `/mnt`, `/media` ne sont jamais touchés.
-- Une coupure de courant ou un arrêt manuel pendant la restauration peut rendre le
-  système inutilisable : risque assumé par l'utilisateur (avertissement avant de commencer).
-- Seuls les snapshots faits **avec** la copie de `/boot` peuvent être restaurés.
-- Le journal est copié dans `/var/backups/astroarch-restore-<date>.log` quand les
-  sauvegardes sont sur le disque principal.
+Consequences (communicated to the user):
+- Any changes made since the snapshot was taken—including new files, installed packages, updates, and configuration settings—will be lost. This is intentional, as it allows for rolling back a failed update. - Directories excluded from backups are **emptied** (they remain, but empty, within the snapshot). 
+Separately mounted drives (e.g., `/srv/astro-data`), `/var/backups`, and the contents of
+`/dev`, `/proc`, `/sys`, `/run`, `/tmp`, `/mnt`, and `/media` are never affected.
+- A power failure or manual shutdown during the restoration process may render the
+system unusable; this risk is assumed by the user (a warning is provided before starting).
+- Only snapshots created **with** a copy of `/boot` can be restored.
+- The log is copied to `/var/backups/astroarch-restore-<date>.log` when
+backups are stored on the main disk.
+## How it provides protection
 
-## Comment ça protège
+- **Btrfs image**: Uses checksums for all data and a copy-on-write mechanism.
+- **Read-only snapshots** (`snapshots/YYYY-MM-DD_HHMMSS`) are created only after a successful `rsync` operation; an interrupted, failed, or canceled backup will never affect existing snapshots. Only the last *N* snapshots are retained (where *N* is configurable).
+- **Verification** (`btrfs scrub`) is performed after every backup; older snapshots are deleted only if the verification succeeds.
+- **When not in use**, the image is unmounted and set to be immutable (`chattr +i`); even the `root` user must remove this attribute before any changes can be made.
+- **Boot partitions**: `rsync` runs with the `-x` flag (staying within a single file system), so the `/boot` partition (FAT32) is not traversed. Boot partitions mounted separately—such as `/boot`, `/boot/efi`, or `/boot/firmware`—are copied in a second pass into directories like `work/boot`. Consequently, they are included in every snapshot and factored into disk space calculations. If `/boot` is part of the root partition (`/`), it is already included. Since the FAT file system does not support ACLs or extended attributes, these are not copied for those partitions.
+- `rsync` is executed with `--inplace --no-whole-file`, ensuring that when a file is modified, only the changed blocks are rewritten (otherwise, each snapshot would store a complete copy of the file).
+- **Limitation**: When using the `single` data profile, Btrfs can *detect* corruption but cannot *repair* it (refer to `DATA_PROFILE` in the helper script; using `dup` allows for repairs, but it doubles the required disk space). Furthermore, an image stored on the primary disk does not provide protection against a failure of that disk.
+- **Prerequisites**: Requires `btrfs-progs` and the `btrfs` kernel module.
 
-- **Image btrfs** : checksums sur toutes les données, copy-on-write.
-- **Snapshots en lecture seule** (`snapshots/AAAA-MM-JJ_HHMMSS`) créés seulement
-  après un rsync réussi : une sauvegarde interrompue, échouée ou annulée ne
-  touche jamais aux précédentes. Seuls les N derniers sont gardés (N réglable).
-- **Vérification** (`btrfs scrub`) après chaque sauvegarde ; les anciens
-  snapshots ne sont supprimés que si elle réussit.
-- **Hors sauvegarde** l'image est démontée et immuable (`chattr +i`) : même root
-  doit d'abord retirer l'attribut.
-- **Partition de démarrage** : rsync tourne avec `-x` (une seule partition), donc
-  `/boot` (FAT32) n'est pas traversé. Les partitions de démarrage montées à part
-  (`/boot`, `/boot/efi`, `/boot/firmware`) sont copiées dans une seconde passe,
-  dans `work/boot` (etc.), donc présentes dans chaque snapshot ; elles comptent
-  aussi dans la mesure d'espace. Un `/boot` qui fait partie de `/` est déjà inclus.
-  Comme la FAT n'a ni ACL ni attributs étendus, ils ne sont pas copiés pour elle.
-- rsync copie avec `--inplace --no-whole-file` : un fichier modifié ne réécrit
-  que ses blocs changés (sinon chaque snapshot garderait une copie complète).
-- Limite : en profil de données `single`, btrfs *détecte* la corruption mais ne
-  la *répare* pas (voir `DATA_PROFILE` dans le helper : `dup` répare, mais
-  double la place nécessaire). Une image sur le disque principal ne protège pas
-  d'une panne de ce disque.
-- Prérequis : `btrfs-progs` et le module noyau `btrfs`.
+## Image file size
 
-## Taille du fichier image
-
-- À la création : données (dossiers exclus déduits) + 20 % + 2 Gio (minimum
-  4 Gio), sans compter la compression zstd.
-- Ensuite la taille suit l'usage RÉEL : avant chaque copie, le helper mesure ce
-  qu'il reste à ajouter (rsync à blanc) et n'agrandit l'image que si la place
-  libre interne (compression comprise) ne suffit pas.
-- **Réduction automatique** : après une sauvegarde réussie et vérifiée, si le
-  fichier a au moins 1 Gio ET 15 % de marge en trop, il est réduit à
-  « utilisé + 15 % + 1 Gio », puis revérifié. Un échec de la réduction ne fait
-  jamais échouer la sauvegarde.
-- Les anciens snapshots gardent les anciennes versions des fichiers modifiés :
-  l'espace utilisé monte jusqu'à N snapshots puis se stabilise.
+- At creation: data (excluding excluded directories) + 20% + 2 GiB (minimum 4 GiB), not accounting for zstd compression.
+- Thereafter, the size tracks ACTUAL usage: before each copy operation, the helper calculates the amount of data to be added (via a dry-run `rsync`) and expands the image only if the available internal free space (factoring in compression) is insufficient.
+- **Automatic shrinking**: following a successful and verified backup, if the file is at least 1 GiB in size AND has an excess margin of 15% or more, it is shrunk to "used space + 15% + 1 GiB" and then re-verified. A failure during the shrinking process will never cause the backup itself to fail.
+- Older snapshots retain previous versions of modified files: the total space used increases as snapshots accumulate, up to a certain number (N), after which it stabilizes.
 
 ## Structure
 
 ```
-Cargo.toml           dépendances Rust (cxx-qt 0.10, serde, serde_json, thiserror)
-build.rs             bridge cxx-qt + module QML + compilation des traductions (lrelease)
-install.sh           installation (binaire, helper, polkit, lanceur)
-org.astroarch.backup.desktop   lanceur (icône, nom de l'application)
+Cargo.toml           Rust dependencies (cxx-qt 0.10, serde, serde_json, thiserror)
+build.rs             cxx-qt bridge + QML module + translation compilation (lrelease)
+install.sh           installation (binary, helper, polkit, launcher)
+org.astroarch.backup.desktop   launcher (icon, application name)
 src/
-  main.rs            démarrage : QGuiApplication + chargement de Main.qml
-  bridge.rs          QObject BackupManager exposé à QML (lance le helper)
-  storage.rs         contrôles de l'emplacement, évaluation de l'espace, helper
-  media.rs           détection des disques externes (lsblk) et montage (udisks)
-  disk_analysis.rs   mesure de la taille à sauvegarder (via le helper)
-  config.rs          configuration (dernier emplacement, rétention)
+main.rs            startup: QGuiApplication + loading Main.qml
+bridge.rs          BackupManager QObject exposed to QML (invokes the helper)
+storage.rs         location checks, space estimation, helper interaction
+media.rs           external drive detection (lsblk) and mounting (udisks)
+disk_analysis.rs   calculating the size of data to back up (via the helper)
+config.rs          configuration (last location, retention policy)
 scripts/
-  astroarch-backup-helper.sh  SEUL code exécuté en root (pkexec)
-  org.astroarch.backup.policy action polkit (mot de passe gardé quelques minutes)
+astroarch-backup-helper.sh  the ONLY code executed as root (via pkexec)
+org.astroarch.backup.policy Polkit action (password remains valid for a few minutes)
 qml/
-  Main.qml               assistant (5 écrans) et dialogues
-  FolderTreeWindow.qml   fenêtre externe : arborescence avec cases à cocher
+Main.qml               wizard (5 screens) and dialogs
+FolderTreeWindow.qml   external window: directory tree with checkboxes
 translations/
-  qml_fr.ts, qml_it.ts, qml_es.ts, qml_de.ts
+qml_fr.ts, qml_it.ts, qml_es.ts, qml_de.ts
 ```
 
 ## Helper root
 
 `astroarch-backup-helper backup|measure|shrink|explain|mount|umount|usage|prune|snapshots|restore ...`
-valide tous ses arguments (il construit lui-même la commande rsync : l'appli ne
-lui passe jamais d'options rsync). Les dossiers exclus sont des chemins absolus
-situés dans le dossier personnel de l'appelant ou dans `/srv/astro-data`, sans `..`
-ni motif rsync.
-`/var/backups` n'est jamais sauvegardé (une image peut y vivre). L'annulation
-passe par un fichier-drapeau (le helper tourne en root, l'appli ne peut pas le
-tuer). Protocole de sortie et codes d'erreur : voir l'en-tête du script.
+It validates all its arguments (it constructs the `rsync` command itself; the application never passes `rsync` options to it). Excluded directories must be absolute paths located within the caller's home directory or under `/srv/astro-data`, containing neither `..` nor `rsync` patterns.
+`/var/backups` is never backed up (an image may reside there). Cancellation is handled via a flag file (since the helper runs as root, the application cannot simply kill the process). For the output protocol and error codes, refer to the script header.
 
-Le helper est installé à un chemin fixe (`/usr/lib/astroarch-backup/`) : le
-fichier polkit y fait référence.
+The helper is installed at a fixed path (`/usr/lib/astroarch-backup/`), which is referenced by the Polkit file.
 
-## Voir ce qui est sauvegardé
+## Viewing the contents of the backup
 
-L'image n'est pas visible tant qu'elle est démontée. Pour regarder dedans (le
-dossier est `/var/backups` ou `<disque>/astroarch/backups`) :
+The image is not visible while it is unmounted. To inspect the contents (the directory is `/var/backups` or `<disk>/astroarch/backups`):
 
-    H=/usr/lib/astroarch-backup/astroarch-backup-helper   # ou scripts/astroarch-backup-helper.sh
-    pkexec $H explain --dest /var/backups [--exclude CHEMIN]...   # ce que la mesure compte, par taille
-    pkexec $H mount   --dest /var/backups      # montage LECTURE SEULE sur /run/astroarch-backup/browse
-    ls /run/astroarch-backup/browse/snapshots  # un dossier par sauvegarde
-    pkexec $H umount  --dest /var/backups
-    pkexec $H usage   --dest /var/backups      # place utilisée + part de chaque snapshot
-    pkexec $H prune   --dest /var/backups --keep 2   # ne garder que 2 snapshots (IRRÉVERSIBLE), puis réduit le fichier
-    pkexec $H shrink  --dest /var/backups      # réduire à la demande
+H=/usr/lib/astroarch-backup/astroarch-backup-helper   # or scripts/astroarch-backup-helper.sh
+pkexec $H explain --dest /var/backups [--exclude PATH]...   # shows what takes up space, sorted by size
+pkexec $H mount   --dest /var/backups      # mounts in READ-ONLY mode at /run/astroarch-backup/browse
+ls /run/astroarch-backup/browse/snapshots  # one directory per backup
+pkexec $H umount  --dest /var/backups
+pkexec $H usage   --dest /var/backups      # space used + share of each snapshot
+pkexec $H prune   --dest /var/backups --keep 2   # keep only 2 snapshots (IRREVERSIBLE), then shrink the file
+pkexec $H shrink  --dest /var/backups      # shrink on demand
 
-Pendant qu'elle est montée pour la consulter, une sauvegarde ou une réduction
-est refusée (il faut d'abord `umount`).
+While a backup is mounted for inspection, any new backup or shrinking operation will be rejected (you must `umount` first).
 
-## Traductions
+## Translations
 
-Les textes sont écrits en anglais dans les .qml avec `qsTr("...")`. Aucun code
-n'est nécessaire pour les charger : `QQmlApplicationEngine` charge tout seul
-`qml_<langue>.qm` depuis le dossier `i18n` voisin de `Main.qml`. `build.rs` compile
-`translations/qml_<langue>.ts` avec `lrelease` et les place à cet endroit. La langue
-suit celle du système (LANG), repli sur l'anglais.
-Mise à jour : `lupdate qml/*.qml -ts translations/qml_fr.ts` (idem pour it, es, de).
-
-## Pas encore fait
-
-- Restauration depuis un snapshot (monter l'image en lecture seule puis copier).
-- Ce mécanisme n'a pas pu être testé sur un Raspberry Pi : essayez-le d'abord sur une
-  copie ou un disque de rechange.
+Text in the `.qml` files is written in English using `qsTr("...")`. No extra code is required to load it: `QQmlApplicationEngine` automatically loads the appropriate `qml_<language>.qm` file from the `i18n` directory located next to `Main.qml`. The `build.rs` script uses `lrelease` to compile the `translations/qml_<language>.ts` files and place them in that directory. The language defaults to the system language (`LANG`), with English as a fallback.
+To update: `lupdate qml/*.qml -ts translations/qml_fr.ts` (repeat for `it`, `es`, `de`).

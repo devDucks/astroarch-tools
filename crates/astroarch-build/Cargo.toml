@@ -5,6 +5,6 @@ edition.workspace = true
 publish.workspace = true
 description = "Aides de build.rs partagées (CXX-Qt + traductions Qt) pour les applis AstroArch"
 
-# Crate utilisé uniquement comme [build-dependencies] par les autres crates.
+# Crate used only as [build-dependencies] by other crates
 [dependencies]
 cxx-qt-build = { workspace = true }

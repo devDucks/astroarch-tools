@@ -1,4 +1,4 @@
-// Traductions : i18n/*.ts -> .qm -> ressources Qt « :/i18n/ » (chargées par src/translator.rs)
+// Translations: i18n/*.ts -> .qm -> Qt resources " :/i18n/ " (loaded by src/translator.rs)
 fn main() {
     astroarch_build::build_qml_app(
         "AstroArchSoftwareInstaller",

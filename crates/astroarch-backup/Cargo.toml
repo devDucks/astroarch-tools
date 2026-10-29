@@ -3,7 +3,7 @@ name = "astroarch-backup"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
-description = "Assistant de sauvegarde (rsync + btrfs) pour AstroArch"
+description = "Backup wizard (rsync + btrfs) for AstroArch"
 
 [dependencies]
 cxx = { workspace = true }
