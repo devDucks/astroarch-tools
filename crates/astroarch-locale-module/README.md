@@ -26,7 +26,8 @@ qml/                      Main, LanguagePage, LocationPage, KeyboardPage, WorldM
 translations/qml_<langue>.ts   fr, it, es, de + en
 gen_map.py, map-source/   Regenerates country outlines for WorldMapView.qml
 (uses Natural Earth data, public domain)
-## Traductions
+
+## Translations
 
 Text strings are written using `qsTr()` in QML. The `build.rs` script compiles each `translations/qml_<language>.ts` file into a `.qm` file and places it in `qrc:/qt/qml/AstroArchLocaleModule/qml/i18n/`, from where `QQmlApplicationEngine` loads them automatically (based on the system language at startup).
 
@@ -34,6 +35,6 @@ Changing the language at runtime is handled in QML via `Qt.uiLanguage` (see `Mai
 
 To add a language: create a `translations/qml_xx.ts` file (by copying an existing `.ts` file and translating its contents), then add `"xx"` to the `translatedLanguages` list in `Main.qml`.
 
-## Pré-remplissage et application des choix
+## Pre-filling and application of choices
 
 Upon launch, the system language is set, followed by country, keyboard layout, and language—determined based on the IP address, provided a network connection is available. Selecting "Finish" triggers an authorization request (via `pkexec`), then enables the locale in `/etc/locale.gen`, runs `locale-gen`, applies the settings using `localectl set-locale` and `localectl set-x11-keymap`, and updates `~/.config/plasma-localerc`. You must log out and log back in for the new language to take effect in applications that are already open (a full system reboot is not required).
