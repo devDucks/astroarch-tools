@@ -1,0 +1,24 @@
+[Desktop Entry]
+Categories=System;Utility;
+Comment[en_US]=Manage AstroArch system services
+Comment=Manage AstroArch system services
+Comment[fr]=Gérer les services système d'AstroArch
+Exec=astroarch-sys-manager
+GenericName[en_US]=
+GenericName=
+Icon=/home/astronaut/.astroarch/assets/icons/novnc-16x16.png
+MimeType=
+Name[en_US]=AstroArch Services
+Name=AstroArch Services
+Name[de]=AstroArch-Dienste
+Name[es]=Servicios de AstroArch
+Name[fr]=Services AstroArch
+Name[it]=Servizi AstroArch
+Path=
+StartupNotify=true
+StartupWMClass=org.astroarch.sys-manager
+Terminal=false
+TerminalOptions=
+Type=Application
+X-KDE-SubstituteUID=false
+X-KDE-Username=

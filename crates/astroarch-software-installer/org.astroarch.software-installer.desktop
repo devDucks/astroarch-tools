@@ -1,0 +1,24 @@
+[Desktop Entry]
+Categories=System;Settings;
+Comment[en_US]=Install or remove software on AstroArch
+Comment=Install or remove software on AstroArch
+Comment[fr]=Installer ou désinstaller des logiciels sur AstroArch
+Exec=astroarch-software-installer
+GenericName[en_US]=
+GenericName=
+Icon=/home/astronaut/.astroarch/assets/icons/novnc-16x16.png
+MimeType=
+Name[en_US]=Software installer
+Name=Software installer
+Name[de]=Software-Installer
+Name[es]=Instalador de software
+Name[fr]=Installateur de logiciels
+Name[it]=Installatore di software
+Path=
+StartupNotify=true
+StartupWMClass=org.astroarch.software-installer
+Terminal=false
+TerminalOptions=
+Type=Application
+X-KDE-SubstituteUID=false
+X-KDE-Username=

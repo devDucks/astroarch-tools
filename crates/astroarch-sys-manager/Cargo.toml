@@ -1,0 +1,15 @@
+[package]
+name = "astroarch-sys-manager"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+description = "Gestion des services système d'AstroArch"
+
+[dependencies]
+cxx = { workspace = true }
+cxx-qt = { workspace = true }
+cxx-qt-lib = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+
+[build-dependencies]
+astroarch-build = { workspace = true }

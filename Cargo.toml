@@ -1,0 +1,25 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2021"
+publish = false
+
+# Versions communes à tous les crates : on les change ici, une seule fois.
+[workspace.dependencies]
+cxx = "1.0"
+cxx-qt = "0.10"
+cxx-qt-lib = { version = "0.10", features = ["qt_full"] }
+cxx-qt-lib-extras = "0.10"
+# link_qt_object_files : requis par cxx-qt 0.10 pour que les objets
+# d'initialisation Qt soient inclus dans le binaire (build 100 % cargo).
+cxx-qt-build = { version = "0.10", features = ["link_qt_object_files"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+tokio = "1"
+
+# Crate interne (build.rs partagé)
+astroarch-build = { path = "crates/astroarch-build" }
