@@ -3,7 +3,7 @@ name = "astroarch-control-center"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
-description = "Centre de contrôle AstroArch : lanceur des outils du système"
+description = "AstroArch Control Center: System Tool Launcher"
 
 [dependencies]
 cxx = { workspace = true }

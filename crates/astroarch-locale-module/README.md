@@ -1,52 +1,40 @@
 # astroarch-locale-module
 
-Module de configuration langue / emplacement / clavier d'AstroArch.
-Application **100 % Rust** (Rust + cxx-qt 0.10 + QML), compilée avec `cargo` seul :
-plus de CMake, de `main.cpp` ni de `translator_manager`.
+AstroArch language/location/keyboard configuration module.
+**100% Rust** application (Rust + cxx-qt 0.10 + QML), compiled with `cargo` alone:
+no more CMake, `main.cpp` or `translator_manager`.
 
-## Compiler et lancer
+## Compile and launch 
 
-    cargo build --release
-    ./target/release/astroarch-locale-module
+cargo build --release 
+./target/release/astroarch-locale-module
 
-Prérequis : Qt 6 (Qml, Quick, QuickControls2, Shapes), et l'outil `lrelease`
-(paquet Qt Linguist) pour compiler les traductions. Sans `lrelease`, la
-compilation continue avec un avertissement et l'interface reste en anglais.
-`build.rs` cherche `lrelease` via la variable `LRELEASE`, puis `qmake6 -query`.
+Prerequisites: Qt 6 (Qml, Quick, QuickControls2, Shapes), and the `lrelease` tool
+(Qt Linguist package) to compile the translations. Without `lrelease`, the
+compilation continues with a warning and the interface remains in English.
+`build.rs` searches for `lrelease` via the `LRELEASE` variable, then `qmake6 -query`.
 
 ## Structure
 
-    Cargo.toml, build.rs      build.rs déclare le module QML et compile translations/*.ts
-    src/main.rs               QGuiApplication + QQmlApplicationEngine, rien d'autre
-    src/bridge.rs             QObject LocaleBridge exposé à QML (cxx-qt)
-    src/locale_gen.rs         locale.gen, noms de langues/pays, persist_locale (pkexec)
-    src/keyboard.rs           layouts xkb, test en direct (setxkbmap sous X11, kxkbrc + D-Bus sous Wayland), localectl (persistance)
-    src/geolocation.rs        pays/fuseau via l'IP (ip-api.com)
-    qml/                      Main, LanguagePage, LocationPage, KeyboardPage, WorldMapView
-    translations/qml_<langue>.ts   fr, it, es, de + en
-    gen_map.py, map-source/   régénère les contours de pays de WorldMapView.qml
-                              (données Natural Earth, domaine public)
+Cargo.toml, build.rs      build.rs declares the QML module and compiles translations/*.ts
+src/main.rs               QGuiApplication + QQmlApplicationEngine, nothing else
+src/bridge.rs             LocaleBridge QObject exposed to QML (via cxx-qt)
+src/locale_gen.rs         locale.gen, language/country names, persist_locale (using pkexec)
+src/keyboard.rs           XKB layouts, live testing (setxkbmap on X11; kxkbrc + D-Bus on Wayland), localectl (for persistence)
+src/geolocation.rs        Country/timezone detection via IP (ip-api.com)
+qml/                      Main, LanguagePage, LocationPage, KeyboardPage, WorldMapView
+translations/qml_<langue>.ts   fr, it, es, de + en
+gen_map.py, map-source/   Regenerates country outlines for WorldMapView.qml
+(uses Natural Earth data, public domain)
 
-## Traductions
+## Translations
 
-Les textes sont écrits avec `qsTr()` dans le QML. `build.rs` compile chaque
-`translations/qml_<langue>.ts` en `.qm` et les place dans
-`qrc:/qt/qml/AstroArchLocaleModule/qml/i18n/`, où `QQmlApplicationEngine` les charge
-tout seul (langue du système au démarrage).
+Text strings are written using `qsTr()` in QML. The `build.rs` script compiles each `translations/qml_<language>.ts` file into a `.qm` file and places it in `qrc:/qt/qml/AstroArchLocaleModule/qml/i18n/`, from where `QQmlApplicationEngine` loads them automatically (based on the system language at startup).
 
-Le changement de langue en cours d'exécution se fait en QML avec `Qt.uiLanguage`
-(voir `Main.qml`) : Qt charge `qml_<langue>.qm` et réévalue tous les `qsTr()`.
-`qml_en.ts` (textes sources) permet de revenir à l'anglais ; toute langue sans
-fichier `.ts` retombe sur `en`.
+Changing the language at runtime is handled in QML via `Qt.uiLanguage` (see `Main.qml`): Qt loads the corresponding `qml_<language>.qm` file and re-evaluates all `qsTr()` calls. The `qml_en.ts` file (containing the source strings) allows for switching back to English; for any language lacking a corresponding `.ts` file, the system defaults to English (`en`).
 
-Ajouter une langue : créer `translations/qml_xx.ts` (copie d'un autre `.ts`,
-traduire), puis ajouter `"xx"` à `translatedLanguages` dans `Main.qml`.
+To add a language: create a `translations/qml_xx.ts` file (by copying an existing `.ts` file and translating its contents), then add `"xx"` to the `translatedLanguages` list in `Main.qml`.
 
-## Pré-remplissage et application des choix
+## Pre-filling and application of choices
 
-Au lancement : langue du système, puis pays/clavier/langue selon l'IP si le
-réseau est disponible. « Finish » demande une autorisation (pkexec) puis active
-la locale dans `/etc/locale.gen`, lance `locale-gen`, applique `localectl
-set-locale` et `localectl set-x11-keymap`, et met à jour `~/.config/plasma-localerc`.
-Il faut fermer puis rouvrir la session pour que la nouvelle langue s'applique
-aux applications déjà ouvertes (pas besoin de redémarrer).
+Upon launch, the system language is set, followed by country, keyboard layout, and language—determined based on the IP address, provided a network connection is available. Selecting "Finish" triggers an authorization request (via `pkexec`), then enables the locale in `/etc/locale.gen`, runs `locale-gen`, applies the settings using `localectl set-locale` and `localectl set-x11-keymap`, and updates `~/.config/plasma-localerc`. You must log out and log back in for the new language to take effect in applications that are already open (a full system reboot is not required).

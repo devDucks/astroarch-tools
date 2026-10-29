@@ -1,26 +1,10 @@
-//! Aides partagées pour les `build.rs` des applis AstroArch (CXX-Qt 0.10).
-//!
-//! Avant : chaque appli embarquait sa propre copie de `find_lrelease()` et de la
-//! compilation des traductions. Maintenant, un `build.rs` tient en quelques lignes :
-//!
-//! ```no_run
-//! fn main() {
-//!     let uri = "AstroArchBackup";
-//!     astroarch_build::build_qml_app(
-//!         uri,
-//!         &["qml/Main.qml"],
-//!         &["src/bridge.rs"],
-//!         astroarch_build::qml_i18n_qrc(uri),
-//!     );
-//! }
-//! ```
 
 use cxx_qt_build::{CxxQtBuilder, QmlModule};
 use std::path::PathBuf;
 use std::process::Command;
 
-/// Cherche l'outil Qt `lrelease` : variable LRELEASE, puis le dossier des binaires Qt
-/// indiqué par qmake (variable QMAKE, qmake6, qmake-qt6, qmake), puis les noms usuels.
+/// Searches for the Qt `lrelease` tool: first via the LRELEASE variable, then by checking the Qt binaries directory
+/// as indicated by qmake (using the QMAKE variable, or by trying `qmake6`, `qmake-qt6`, or `qmake`), and finally by checking standard names.
 pub fn find_lrelease() -> Option<PathBuf> {
     if let Some(p) = std::env::var_os("LRELEASE") {
         return Some(PathBuf::from(p));
@@ -65,10 +49,10 @@ pub fn find_lrelease() -> Option<PathBuf> {
     })
 }
 
-/// Compile chaque `<ts_dir>/*.ts` en `<stem>.qm` (dans OUT_DIR) et écrit un fichier .qrc
-/// qui les place sous `qrc_prefix` (`<file alias="x.qm">x.qm</file>`).
-/// Renvoie `None` si `lrelease` est introuvable ou si rien n'a pu être compilé :
-/// la compilation continue et l'interface reste alors en anglais.
+/// Compiles each `<ts_dir>/*.ts` file into `<stem>.qm` (within OUT_DIR) and generates a `.qrc` file
+/// that includes them under `qrc_prefix` (`<file alias="x.qm">x.qm</file>`)
+/// Returns `None` if `lrelease` cannot be found or if no files could be compiled;
+/// in such cases, the build process continues, and the interface will remain in English
 pub fn translations_qrc(ts_dir: &str, qrc_prefix: &str) -> Option<PathBuf> {
     println!("cargo:rerun-if-changed={ts_dir}");
     let out_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR"));
@@ -112,7 +96,7 @@ pub fn translations_qrc(ts_dir: &str, qrc_prefix: &str) -> Option<PathBuf> {
         return None;
     }
 
-    // Nom de .qrc unique par préfixe (plusieurs appels possibles dans un même build.rs)
+    // Unique .qrc name per prefix (multiple calls possible within a single build.rs)
     let qrc = out_dir.join("translations.qrc");
     let content = format!(
         "<RCC>\n  <qresource prefix=\"{qrc_prefix}\">\n{files}  </qresource>\n</RCC>\n"
@@ -121,17 +105,17 @@ pub fn translations_qrc(ts_dir: &str, qrc_prefix: &str) -> Option<PathBuf> {
     Some(qrc)
 }
 
-/// Traductions `translations/qml_<langue>.ts` placées là où `QQmlApplicationEngine`
-/// les cherche automatiquement : `qrc:/qt/qml/<URI>/qml/i18n/qml_<langue>.qm`
-/// (à côté de Main.qml, au démarrage puis à chaque changement de `Qt.uiLanguage`).
+/// Translations `translations/qml_<language>.ts` placed where `QQmlApplicationEngine`
+/// automatically looks for them: `qrc:/qt/qml/<URI>/qml/i18n/qml_<language>.qm`
+/// (alongside Main.qml; loaded at startup and subsequently whenever `Qt.uiLanguage` changes).
 pub fn qml_i18n_qrc(module_uri: &str) -> Option<PathBuf> {
-    // Les points de l'URI deviennent des « / » dans le chemin qrc (com.astroarch.x -> com/astroarch/x)
+    // The dots in the URI become "/" in the qrc path (com.astroarch.x -> com/astroarch/x)
     let path = module_uri.replace('.', "/");
     translations_qrc("translations", &format!("/qt/qml/{path}/qml/i18n"))
 }
 
-/// Déclare un module QML + les objets Rust (`#[cxx_qt::bridge]`) et lance la génération
-/// CXX-Qt. Les fichiers .qml et .rs sont donnés relativement à la racine du crate.
+/// Declares a QML module + Rust objects (`#[cxx_qt::bridge]`) and triggers CXX-Qt
+/// code generation. The .qml and .rs files are specified relative to the crate root.
 pub fn build_qml_app(
     module_uri: &str,
     qml_files: &[&str],
@@ -145,7 +129,7 @@ pub fn build_qml_app(
     )
     .qt_module("Qml")
     .qt_module("Quick")
-    // Nos fichiers .qml utilisent QtQuick.Controls = QuickControls2
+    // Our .qml files use QtQuick.Controls = QuickControls2
     .qt_module("QuickControls2")
     .files(rust_files.iter().copied());
 

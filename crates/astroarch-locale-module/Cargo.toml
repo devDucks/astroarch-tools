@@ -3,7 +3,7 @@ name = "astroarch-locale-module"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
-description = "Module de configuration langue / emplacement / clavier pour AstroArch"
+description = "Language / location / keyboard configuration module for AstroArch"
 
 [dependencies]
 cxx = { workspace = true }
