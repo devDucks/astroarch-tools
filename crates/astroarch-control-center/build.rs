@@ -4,7 +4,7 @@ fn main() {
     let uri = "AstroArchControlCenter";
     astroarch_build::build_qml_app_with_qrcs(
         uri,
-        &["qml/Main.qml", "qml/CardButton.qml", "qml/SoftwareList.qml", "qml/KioskSetup.qml", "qml/DataBackupView.qml", "qml/SelectionList.qml", "qml/TickBox.qml", "qml/StorageView.qml", "qml/ServicesView.qml", "qml/RowsBox.qml"],
+        &["qml/Main.qml", "qml/CardButton.qml", "qml/SoftwareList.qml", "qml/KioskSetup.qml", "qml/DataBackupView.qml", "qml/SelectionList.qml", "qml/TickBox.qml", "qml/StorageView.qml", "qml/ServicesView.qml", "qml/ShareForm.qml", "qml/CardField.qml", "qml/RowsBox.qml"],
         // data_backup.rs: the Data backup page (logic in crates/astroarch-backup);
         // system_backup.rs: link to the backup tool's bridge.rs (BackupManager)
         // software_manager.rs: PackageManager of the software installer (see src/main.rs)
