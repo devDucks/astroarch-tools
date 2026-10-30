@@ -275,13 +275,19 @@ mod tests {
             .join("setup.json")
     }
 
+    /// Written by a shell, not by this process: a test on another thread that forks
+    /// while the file is open for writing would keep it open in its child, and running
+    /// the script then fails with "Text file busy" (ETXTBSY)
     fn script(name: &str, body: &str) -> PathBuf {
         let path = temp_file(name).with_file_name("probe.sh");
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-        std::fs::write(&path, format!("#!/bin/sh\n{body}\n")).unwrap();
-        let mut perm = std::fs::metadata(&path).unwrap().permissions();
-        std::os::unix::fs::PermissionsExt::set_mode(&mut perm, 0o755);
-        std::fs::set_permissions(&path, perm).unwrap();
+        let written = Command::new("sh")
+            .args(["-c", "printf '%s' \"$1\" > \"$2\" && chmod 755 \"$2\"", "sh"])
+            .arg(format!("#!/bin/sh\n{body}\n"))
+            .arg(&path)
+            .status()
+            .unwrap();
+        assert!(written.success());
         path
     }
 
