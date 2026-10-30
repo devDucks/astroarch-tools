@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/astroarch-control-center">
+    <file>images/astroarch-logo-white.svg</file>
+    <file>images/sh2_308-only_stars.jpg</file>
+  </qresource>
+</RCC>
