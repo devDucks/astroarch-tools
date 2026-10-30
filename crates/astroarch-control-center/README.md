@@ -6,8 +6,8 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 ## What it shows
 
 - **One list of pages** (`pages` in `qml/Main.qml`): network and remote access, language
-  and time zone, passwords, update, location, equipment, software, Astro monitor, how
-  to connect.
+  and time zone, passwords, update, location, equipment, software, services, Astro
+  monitor, how to connect.
 - **While the setup is shown**, the pages are grouped as Essentials, Recommended,
   Optional and More, with a status each (to do, done, set up later, not needed, on hold)
   and "Set up later" / "Continue". "I'm done, hide setup" keeps every page, grouped by
@@ -26,6 +26,7 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 | `src/setup_state.rs` | Runs the probes in the background (with a timeout); keeps the user's choices in `~/.config/astroarch/setup.json` |
 | `src/launcher.rs` | Starts the tools (GUI or in a terminal), never twice, and tells when they exit so the page is read again |
 | `qml/SoftwareList.qml`, `src/software_manager.rs` | The More software page: the software installer's list and code (`software_manager.rs` is a link to its `manager.rs`) |
+| `qml/ServicesView.qml`, `src/service_manager.rs` | The Services page: Bluetooth, file transfer (FTP) and USB power, read and switched by astroarch-sys-manager's code (`service_manager.rs` is a link to its `bridge.rs`); its state is polled only while the page is shown |
 
 To add a page or a row: add it to `pages`; if it needs a value from the system, add a
 case to the probe script. Nothing to change in Rust.
