@@ -105,6 +105,9 @@ policies:
 texts in the QML:
 
     lupdate qml -ts translations/qml_fr.ts translations/qml_de.ts translations/qml_es.ts translations/qml_it.ts
+    lupdate -pluralonly qml -ts translations/qml_en.ts
+
+`qml_en.ts` holds only the English plurals (`%n profile(s)` → "1 profile", "2 profiles").
 
 ## Images
 
