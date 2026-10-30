@@ -15,6 +15,9 @@ ColumnLayout {
     property var excluded: ({})       // key -> true
     property var sizes: ({})          // key -> bytes
     property var openRows: ({})       // item id -> subfolders shown
+    // What a row not there says (the Restore page: not in the backup)
+    property string missingText: qsTr("Not on this system yet")
+    property string childMissingText: qsTr("Not set up yet")
     // A tick changed: the new exclusions (the owner keeps them)
     signal edited(var excluded)
 
@@ -43,7 +46,9 @@ ColumnLayout {
         QT_TR_NOOP("The kiosk has its own KStars, INDI and PHD2 settings, separate from the desktop."),
         QT_TR_NOOP("KStars profiles and settings"), QT_TR_NOOP("PHD2 profiles and dark library"),
         QT_TR_NOOP("Desktop and app settings"), QT_TR_NOOP("Pictures"), QT_TR_NOOP("Cache"),
-        QT_TR_NOOP("Rebuilt automatically by the apps."), QT_TR_NOOP("Your home")
+        QT_TR_NOOP("Rebuilt automatically by the apps."), QT_TR_NOOP("Your home"),
+        // Note of the Restore page (src/restore.rs)
+        QT_TR_NOOP("Shared with the main desktop here: restored with it.")
     ]
 
     function fmt(bytes) {
@@ -141,7 +146,7 @@ ColumnLayout {
     }
     function itemNote(item) {
         if (!item.exists)
-            return qsTr("Not on this system yet")
+            return list.missingText
         if (item.locked)
             return qsTr("Needed by AstroArch: always included")
         if (list.isForced(item)) {
@@ -367,7 +372,7 @@ ColumnLayout {
                                         Label {
                                             Layout.fillWidth: true
                                             visible: !sub.modelData.exists || sub.modelData.note !== ""
-                                            text: !sub.modelData.exists ? qsTr("Not set up yet") : list.text(sub.modelData.note)
+                                            text: !sub.modelData.exists ? list.childMissingText : list.text(sub.modelData.note)
                                             color: "#5d6d7e"
                                             font: Kirigami.Theme.smallFont
                                             wrapMode: Text.Wrap

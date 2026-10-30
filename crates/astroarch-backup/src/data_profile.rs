@@ -365,6 +365,15 @@ pub fn rsync_exclude(path: &Path) -> String {
 /// Rows of the selection list for the Control Center page: groups, items, children (fixed
 /// or the real subfolders), with what exists. Sizes come later (see `sizes`)
 pub fn rows(catalog: &Catalog, homes: &Homes) -> Value {
+    rows_in(catalog, homes, &|p: &Path, _: Kind| p.to_path_buf())
+}
+
+/// Where a path of the catalog is found: on this system, or in a backup to restore from
+/// (the Control Center's restore page). `homes` are those of the system the paths come from
+pub type Locate<'a> = &'a dyn Fn(&Path, Kind) -> PathBuf;
+
+/// `rows`, with what exists and the subfolders read where `locate` says
+pub fn rows_in(catalog: &Catalog, homes: &Homes, locate: Locate) -> Value {
     let display = |p: &PathBuf| -> String {
         let s = p.to_string_lossy().to_string();
         let home = homes.home.to_string_lossy().to_string();
@@ -388,19 +397,22 @@ pub fn rows(catalog: &Catalog, homes: &Homes) -> Value {
                         .iter()
                         .filter_map(|c| {
                             let cp = homes.expand_all(&c.paths)?;
+                            let kind = c.kind.unwrap_or(item.kind);
                             Some(json!({
                                 "key": format!("{}/{}", item.id, c.id),
                                 "name": c.name,
                                 "paths": cp.iter().map(display).collect::<Vec<_>>(),
-                                "exists": cp.iter().any(|p| p.exists()),
+                                "exists": cp.iter().any(|p| present(&locate(p, kind))),
                                 "note": c.note,
                             }))
                         })
                         .collect();
                     if item.subfolders {
                         if let Some(base) = paths.first() {
-                            children = subfolders(base)
+                            let found = locate(base, item.kind);
+                            children = subfolders(&found)
                                 .into_iter()
+                                .filter_map(|f| f.file_name().map(|n| base.join(n)))
                                 .map(|p| {
                                     let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
                                     json!({ "key": p.to_string_lossy(), "name": name,
@@ -413,7 +425,7 @@ pub fn rows(catalog: &Catalog, homes: &Homes) -> Value {
                         "id": item.id,
                         "name": item.name,
                         "paths": paths.iter().map(display).collect::<Vec<_>>(),
-                        "exists": paths.iter().any(|p| p.exists()),
+                        "exists": paths.iter().any(|p| present(&locate(p, item.kind))),
                         "essential": item.essential,
                         "warn": item.warn,
                         "hint": item.hint,
@@ -428,6 +440,15 @@ pub fn rows(catalog: &Catalog, homes: &Homes) -> Value {
         .filter(|g| g["items"].as_array().is_some_and(|a| !a.is_empty()))
         .collect();
     Value::Array(groups)
+}
+
+/// There, as a file, a folder or a link; also what this user may not look into (the kiosk
+/// user's files, an old disk read by the restore helper as root)
+pub fn present(path: &Path) -> bool {
+    match std::fs::symlink_metadata(path) {
+        Ok(_) => true,
+        Err(e) => e.kind() == std::io::ErrorKind::PermissionDenied,
+    }
 }
 
 /// Real subfolders (not links), sorted without regard to case
@@ -463,21 +484,31 @@ pub fn size_of(paths: &[PathBuf]) -> u64 {
 
 /// (key, paths) of every row, for the sizes shown in the list
 pub fn size_keys(catalog: &Catalog, homes: &Homes) -> Vec<(String, Vec<PathBuf>)> {
+    size_keys_in(catalog, homes, &|p: &Path, _: Kind| p.to_path_buf())
+}
+
+/// `size_keys` with the keys of `rows_in` and the paths where `locate` finds them
+pub fn size_keys_in(catalog: &Catalog, homes: &Homes, locate: Locate) -> Vec<(String, Vec<PathBuf>)> {
     let mut out = Vec::new();
     for item in &catalog.item {
         let Some(paths) = homes.expand_all(&item.paths) else { continue };
+        let found = |list: &[PathBuf], kind: Kind| -> Vec<PathBuf> { list.iter().map(|p| locate(p, kind)).collect() };
         if item.subfolders {
-            for p in paths.first().map(|b| subfolders(b)).unwrap_or_default() {
-                out.push((p.to_string_lossy().to_string(), vec![p]));
+            if let Some(base) = paths.first() {
+                for f in subfolders(&locate(base, item.kind)) {
+                    if let Some(name) = f.file_name() {
+                        out.push((base.join(name).to_string_lossy().to_string(), vec![f]));
+                    }
+                }
             }
             // Loose files at the top: the item's own size minus its subfolders (QML adds)
-            out.push((item.id.clone(), paths));
+            out.push((item.id.clone(), found(&paths, item.kind)));
         } else if item.child.is_empty() {
-            out.push((item.id.clone(), paths));
+            out.push((item.id.clone(), found(&paths, item.kind)));
         } else {
             for c in &item.child {
                 if let Some(cp) = homes.expand_all(&c.paths) {
-                    out.push((format!("{}/{}", item.id, c.id), cp));
+                    out.push((format!("{}/{}", item.id, c.id), found(&cp, c.kind.unwrap_or(item.kind))));
                 }
             }
         }

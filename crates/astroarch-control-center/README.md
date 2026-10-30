@@ -7,7 +7,7 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 
 - **One list of pages** (`pages` in `qml/Main.qml`): network and remote access, language
   and time zone, passwords, update, location, equipment, data backup, kiosk, image
-  storage, software, services, Astro monitor, how to connect.
+  storage, software, services, restore, Astro monitor, how to connect.
 - **While the setup is shown**, the pages are grouped as Essentials, Recommended,
   Optional and More, with a status each (to do, done, set up later, not needed, on hold)
   and "Set up later" / "Continue". "I'm done, hide setup" keeps every page, grouped by
@@ -30,6 +30,7 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 | `qml/SoftwareList.qml`, `src/software_manager.rs` | The More software page: the software installer's list and code (`software_manager.rs` is a link to its `manager.rs`) |
 | `qml/ServicesView.qml`, `src/service_manager.rs` | The Services page: Bluetooth, file transfer (FTP) and USB power, read and switched by astroarch-sys-manager's code (`service_manager.rs` is a link to its `bridge.rs`); its state is polled only while the page is shown |
 | `qml/StorageView.qml`, `src/storage_manager.rs` | Image storage page: moves the shared folder `/srv/astro-data` to a drive and back. The drive list is the backup tool's (`media.rs`, `storage.rs` of astroarch-backup, compiled in) |
+| `qml/RestoreView.qml`, `src/restore.rs` | The Restore page: KStars, INDI, PHD2 profiles and settings (and images) from a data backup snapshot, an old AstroArch disk or AstroMonitor. What it offers is the data backup's catalog and plan (`data_profile.rs`, read in the backup instead of the system); the places and the network folder form are the Data backup page's (`DataBackup`, `ShareForm.qml`) |
 | `scripts/astroarch-restore-helper.sh` | The Restore page's code run as root (pkexec, `scripts/org.astroarch.control-center.restore.policy`): mounts an old disk read-only, and copies: read as root only from a read-only mount made by root (the old disk), anything else as the main user; the user (or its kiosk user) writes; what was there is moved aside to `~/.local/share/astroarch/restore-DATE` and can be put back. Installed as `/usr/lib/astroarch-control-center/astroarch-restore-helper` |
 | `scripts/astroarch-storage-helper.sh` | The Image storage page's code run as root (pkexec, `scripts/org.astroarch.control-center.storage.policy`): copies the folder, writes its `/etc/fstab` entry and udev rule. Installed as `/usr/lib/astroarch-control-center/astroarch-storage-helper`, the policy in `/usr/share/polkit-1/actions` |
 
