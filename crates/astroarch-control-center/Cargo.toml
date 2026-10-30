@@ -13,6 +13,8 @@ serde_json = { workspace = true }
 # For the software installer's code (src/main.rs)
 serde = { workspace = true }
 toml = "0.8"
+# For astroarch-sys-manager's ServiceManager (src/service_manager.rs)
+tokio = { workspace = true, features = ["full"] }
 
 [build-dependencies]
 astroarch-build = { workspace = true }

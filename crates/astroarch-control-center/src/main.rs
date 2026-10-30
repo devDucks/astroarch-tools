@@ -11,6 +11,9 @@ mod setup_state;
 mod backend;
 mod software_manager;
 
+// The Services page: astroarch-sys-manager's ServiceManager (a link to its bridge.rs)
+mod service_manager;
+
 fn main() {
     // `--version` / `-V` : affiche la version du workspace (Cargo.toml) puis quitte
     if std::env::args().any(|a| a == "--version" || a == "-V") {

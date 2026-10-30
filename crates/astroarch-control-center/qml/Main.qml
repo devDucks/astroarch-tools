@@ -34,7 +34,9 @@ ApplicationWindow {
     //           the row's probe that show it, "on" or "off|missing"; tool: its name in
     //           messages when the label is not), or kind "keep" (stores the row's choice
     //           "kept") / "copy"
-    //   view:   "software" shows the programs of the software installer in the page
+    //   view:   "software" shows the programs of the software installer in the page,
+    //           "services" the services of astroarch-sys-manager (ServicesView.qml)
+    //   probes: probes the view reads, run with those of the rows
     readonly property var pages: [
         {
             id: "network", setup: "essential", topic: "system", detect: "network-ok",
@@ -135,6 +137,16 @@ ApplicationWindow {
             title: qsTr("More software"),
             intro: qsTr("Programs you can add. Installing or removing one asks for your password."),
             view: "software",
+            rows: []
+        },
+        {
+            id: "services", setup: "optional", topic: "software",
+            title: qsTr("Services"),
+            intro: qsTr("Devices and services you can switch on. Each one runs in a terminal, which may ask for your password."),
+            // The state and the commands of astroarch-sys-manager (ServicesView.qml); the
+            // GPS is on the Location page
+            view: "services",
+            probes: ["plugins-dir", "usb-current"],
             rows: []
         },
         {
@@ -314,6 +326,8 @@ ApplicationWindow {
                 names.add(p.detect)
             if (p.hold && (holdDue || root.probes[p.hold] === undefined))
                 names.add(p.hold)
+            for (const n of (p.probes || []))
+                names.add(n)
             for (const r of p.rows) {
                 if (r.probe)
                     names.add(r.probe)
@@ -1038,6 +1052,15 @@ ApplicationWindow {
                                 onVisibleChanged: if (visible) active = true
                                 Component.onCompleted: if (visible) active = true
                                 sourceComponent: SoftwareList {}
+                            }
+                            // The services: their state is polled while the page is open
+                            Loader {
+                                Layout.fillWidth: true
+                                visible: card.page.view === "services"
+                                active: visible
+                                sourceComponent: ServicesView {
+                                    probes: root.probes
+                                }
                             }
 
                             Kirigami.InlineMessage {

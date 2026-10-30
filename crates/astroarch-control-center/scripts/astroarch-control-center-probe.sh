@@ -278,6 +278,20 @@ case ${1:-} in
         grep -q '\.astroarch/plugins' "$HOME/.zshrc" 2>/dev/null ;;
     gps)
         service_state gpsd ;;
+    # The plugins folder of the main user's AstroArch repository (Services page)
+    plugins-dir)
+        dir=$(main_home)/.astroarch/plugins
+        [[ -d $dir ]] || exit 1
+        echo "$dir" ;;
+    # Full current on the USB ports: "none" on anything but a Raspberry Pi 5
+    usb-current)
+        if ! grep -qa 'Raspberry Pi 5' /proc/device-tree/model 2>/dev/null; then
+            echo none
+        elif grep -q '^usb_max_current_enable=1' /boot/config.txt 2>/dev/null; then
+            echo on
+        else
+            echo off
+        fi ;;
 
     *)
         echo "unknown probe: ${1:-}" >&2
