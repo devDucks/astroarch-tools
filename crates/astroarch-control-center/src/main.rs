@@ -11,15 +11,28 @@ mod setup_state;
 mod backend;
 mod software_manager;
 
-// The drives of the Image storage page (storage_manager.rs): the backup tool's list,
-// compiled in from crates/astroarch-backup (the same files, not a copy)
+// The "Data and settings" backup of the backup tool, in the Data backup page: its catalog,
+// plan and drive list are compiled in from crates/astroarch-backup (the same files, not a
+// copy); data_backup.rs is the page's QObject. The Image storage page uses its drive list
+// too (storage_manager.rs)
+#[path = "../../astroarch-backup/src/data_profile.rs"]
+mod data_profile;
 #[allow(dead_code)]
 #[path = "../../astroarch-backup/src/media.rs"]
 mod media;
 #[path = "../../astroarch-backup/src/storage.rs"]
 mod storage;
-// The drives offered: the backup tool's list without another system's disk
+#[path = "../../astroarch-backup/src/config.rs"]
+mod config;
+#[path = "../../astroarch-backup/src/disk_analysis.rs"]
+mod disk_analysis;
+// The drives both pages offer: the backup tool's list without another system's disk
 mod drives;
+mod data_backup;
+// The system profile: the backup tool's BackupManager (a link to its bridge.rs, whose
+// QML signal names are camelCase)
+#[allow(non_snake_case)]
+mod system_backup;
 mod storage_manager;
 // The Services page: astroarch-sys-manager's ServiceManager (a link to its bridge.rs)
 mod service_manager;

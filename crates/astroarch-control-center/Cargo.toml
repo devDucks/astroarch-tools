@@ -15,6 +15,8 @@ serde = { workspace = true }
 toml = "0.8"
 # For astroarch-sys-manager's ServiceManager (src/service_manager.rs)
 tokio = { workspace = true, features = ["full"] }
+# For the backup tool's code (src/main.rs: data and system profiles)
+thiserror = { workspace = true }
 
 [build-dependencies]
 astroarch-build = { workspace = true }
