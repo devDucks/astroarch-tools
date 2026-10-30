@@ -14,7 +14,10 @@ ApplicationWindow {
     // Fits the official 800x480 Raspberry Pi touchscreen
     minimumWidth: 760
     minimumHeight: 460
-    visible: true
+    // --autostart (the login autostart of the image): the window opens only while the
+    // setup is shown; once the user hid it, the Control Center quits at once
+    readonly property bool autostart: Qt.application.arguments.indexOf("--autostart") >= 0
+    visible: !autostart
     title: qsTr("AstroArch Control Center")
     color: Kirigami.Theme.backgroundColor
 
@@ -646,6 +649,11 @@ ApplicationWindow {
 
     Component.onCompleted: {
         setup.load()
+        if (root.autostart && setup.hidden) {
+            Qt.callLater(Qt.quit)
+            return
+        }
+        root.visible = true
         root.runProbes()
         // --page ID opens on that page (a desktop launcher of one page, e.g. --page kiosk)
         const args = Qt.application.arguments
