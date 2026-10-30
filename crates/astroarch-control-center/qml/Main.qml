@@ -36,6 +36,7 @@ ApplicationWindow {
     //           "kept") / "copy"
     //   view:   "software" shows the programs of the software installer in the page,
     //           "kiosk" the kiosk profiles and apps (KioskSetup.qml),
+    //           "storage" moves the image folder to a drive and back,
     //           "services" the services of astroarch-sys-manager (ServicesView.qml)
     //   probes: probes the view reads, run with those of the rows
     readonly property var pages: [
@@ -142,6 +143,19 @@ ApplicationWindow {
             rows: []
         },
         {
+            id: "storage", setup: "optional", topic: "data",
+            title: qsTr("Image storage"),
+            intro: qsTr("One folder shared by the main user and the kiosk user, so that both can save their images, sequences and targets in it."),
+            // Moving it to a drive and back: StorageView.qml
+            view: "storage",
+            rows: [
+                { label: qsTr("Folder"), probe: "astro-data", format: "folder", missing: qsTr("Not found"),
+                  sub: qsTr("Also ~/astro-data in each home"), actions: [] },
+                { label: qsTr("Kept on"), probe: "astro-data-place", format: "place", actions: [] },
+                { label: qsTr("Space"), probe: "astro-data", format: "space", actions: [] }
+            ]
+        },
+        {
             id: "software", setup: "optional", topic: "software",
             title: qsTr("More software"),
             intro: qsTr("Programs you can add. Installing or removing one asks for your password."),
@@ -205,6 +219,7 @@ ApplicationWindow {
     readonly property var topicGroups: [
         { id: "system", title: qsTr("System") },
         { id: "observing", title: qsTr("Observing") },
+        { id: "data", title: qsTr("Data") },
         { id: "software", title: qsTr("Software and services") },
         { id: "connect", title: qsTr("Connection") }
     ]
@@ -415,6 +430,25 @@ ApplicationWindow {
             const parts = v.split("|")
             return qsTr("%n profile(s) · e.g. %1", "", parseInt(parts[0])).arg(parts[1])
         }
+        // The image folder: "path|used KiB|free KiB" and "internal" / "drive|name|type" /
+        // "missing|name|type"
+        case "folder":
+            return v.split("|")[0]
+        case "space": {
+            const parts = v.split("|")
+            const used = parseInt(parts[1]), free = parseInt(parts[2])
+            if (root.probeOk("astro-data-place") && root.probes["astro-data-place"].value.startsWith("missing"))
+                return qsTr("Unknown while the drive is not connected")
+            const freeText = isNaN(free) ? "" : qsTr("%1 free").arg(Qt.locale().formattedDataSize(free * 1024))
+            return isNaN(used) ? freeText
+                 : [qsTr("%1 used").arg(Qt.locale().formattedDataSize(used * 1024)), freeText].filter(t => t).join(" · ")
+        }
+        case "place": {
+            const parts = v.split("|")
+            return parts[0] === "internal" ? qsTr("Internal disk")
+                 : parts[0] === "drive" ? qsTr("Drive “%1” · %2").arg(parts[1]).arg(root.fsName(parts[2]))
+                 : qsTr("Drive “%1” · not connected").arg(parts[1])
+        }
         case "version":
             return "AstroArch " + v
         case "web":
@@ -423,6 +457,11 @@ ApplicationWindow {
             return "smb://" + v + "/astro-data"
         }
         return v
+    }
+
+    // File system names as the drive's own tools show them
+    function fsName(type) {
+        return ({ exfat: "exFAT", vfat: "FAT32", ntfs: "NTFS", btrfs: "Btrfs", xfs: "XFS", f2fs: "F2FS" })[type] || type
     }
 
     // What the "detected" line of a page says
@@ -1081,6 +1120,19 @@ ApplicationWindow {
                                 active: visible
                                 sourceComponent: ServicesView {
                                     probes: root.probes
+                                }
+                            }
+                            // Kept once opened too: a copy goes on while another page is shown
+                            Loader {
+                                Layout.fillWidth: true
+                                visible: card.page.view === "storage"
+                                active: false
+                                onVisibleChanged: if (visible) active = true
+                                Component.onCompleted: if (visible) active = true
+                                sourceComponent: StorageView {
+                                    probes: root.probes
+                                    fsName: root.fsName
+                                    onSystemChanged: root.runProbes()
                                 }
                             }
 
