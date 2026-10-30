@@ -35,6 +35,7 @@ ApplicationWindow {
     //           messages when the label is not), or kind "keep" (stores the row's choice
     //           "kept") / "copy"
     //   view:   "software" shows the programs of the software installer in the page,
+    //           "kiosk" the kiosk profiles and apps (KioskSetup.qml),
     //           "services" the services of astroarch-sys-manager (ServicesView.qml)
     //   probes: probes the view reads, run with those of the rows
     readonly property var pages: [
@@ -133,6 +134,14 @@ ApplicationWindow {
             ]
         },
         {
+            id: "kiosk", setup: "optional", topic: "observing",
+            title: qsTr("Kiosk"),
+            intro: qsTr("A lighter second desktop for the field: it opens only the one or two imaging programs you use, and can reopen them if they close. Reach it by remote desktop on port 3390, next to the main desktop."),
+            view: "kiosk",
+            probes: ["kiosk-setup", "kiosk-profiles", "kiosk-apps", "kiosk-busy"],
+            rows: []
+        },
+        {
             id: "software", setup: "optional", topic: "software",
             title: qsTr("More software"),
             intro: qsTr("Programs you can add. Installing or removing one asks for your password."),
@@ -217,6 +226,16 @@ ApplicationWindow {
     property double lastHoldRun: 0      // the hold probe asks a server: at most every 5 min,
                                         // counted from its last answer
     property date now: new Date()       // for the local time next to the time zone
+
+    // The view of the page shows its own primary button now (its property ownsPrimary, e.g.
+    // the kiosk's "Apply"): the footer's is then not highlighted, and Enter alone does nothing
+    readonly property bool viewOwnsPrimary: {
+        const children = pageContent.children
+        for (let i = 0; i < children.length; i++)
+            if (children[i].visible && children[i].item && children[i].item.ownsPrimary === true)
+                return true
+        return false
+    }
 
     readonly property var choices: {
         try {
@@ -496,7 +515,7 @@ ApplicationWindow {
     Component.onCompleted: {
         setup.load()
         root.runProbes()
-        // --page ID opens on that page (e.g. a desktop launcher of one page)
+        // --page ID opens on that page (a desktop launcher of one page, e.g. --page kiosk)
         const args = Qt.application.arguments
         const asked = args.indexOf("--page") >= 0 ? args[args.indexOf("--page") + 1] : ""
         if (root.pages.some(p => p.id === asked)) {
@@ -522,7 +541,8 @@ ApplicationWindow {
     }
 
     // Enter = the focused text field's own Enter, else the focused button, else the primary
-    // button of the page; Esc = "Set up later"
+    // button of the page, unless its view shows its own (never "Apply" without a click);
+    // Esc = "Set up later"
     Shortcut {
         sequences: ["Return", "Enter"]
         // Held down, it would go through several steps
@@ -535,7 +555,7 @@ ApplicationWindow {
                 focused.accepted()
             else if (focused && focused.visible && typeof focused.clicked === "function" && focused.enabled !== false)
                 focused.clicked()
-            else if (footer.visible && footer.primaryAction)
+            else if (footer.visible && footer.primaryAction && !root.viewOwnsPrimary)
                 footer.primaryAction()
         }
     }
@@ -867,6 +887,7 @@ ApplicationWindow {
                         ScrollBar.vertical.policy: contentHeight > availableHeight ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded
 
                         ColumnLayout {
+                            id: pageContent
                             width: pageScroll.contentWidth
                             spacing: 14
 
@@ -1063,6 +1084,22 @@ ApplicationWindow {
                                 }
                             }
 
+                            // Kept once opened, like the software list: a change being applied
+                            // still reports back when another page is shown
+                            Loader {
+                                id: kioskView
+                                Layout.fillWidth: true
+                                visible: card.page.view === "kiosk"
+                                active: false
+                                onVisibleChanged: if (visible) active = true
+                                Component.onCompleted: if (visible) active = true
+                                sourceComponent: KioskSetup {
+                                    probes: root.probes
+                                    toolLauncher: launcher
+                                    setupState: setup
+                                }
+                            }
+
                             Kirigami.InlineMessage {
                                 Layout.fillWidth: true
                                 visible: root.message !== ""
@@ -1107,7 +1144,7 @@ ApplicationWindow {
                         }
                         CardButton {
                             visible: footer.primaryAction !== null
-                            highlighted: true
+                            highlighted: !root.viewOwnsPrimary
                             text: card.page.id === "summary" ? qsTr("Finish")
                                   : (card.status === "done" ? qsTr("Next step")
                                   : (card.page.setup === "optional" ? qsTr("Done") : (card.page.primary || qsTr("Continue"))))

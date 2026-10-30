@@ -75,6 +75,21 @@ service_state() {
     fi
 }
 
+# The kiosk user and the program that reads and changes its setup
+KIOSK_USER=${ASTROARCH_KIOSK_USER:-$MAIN_USER-kiosk}
+KIOSK_HELPER=/usr/lib/astroarch/astroarch-kiosk-setup
+
+kiosk_status() {
+    local helper=$KIOSK_HELPER
+    if [[ -n ${ASTROARCH_KIOSK_SETUP:-} ]]; then
+        $ASTROARCH_KIOSK_SETUP status "$1"
+        return
+    fi
+    [[ -x $helper ]] || helper=$(main_home)/.astroarch/scripts/astroarch-kiosk-setup.sh
+    [[ -f $helper ]] || return 1
+    bash "$helper" status "$1"
+}
+
 # Value of KEY in [GROUP] of an ini-style FILE
 ini_value() {
     awk -F= -v group="[$2]" -v key="$3" '
@@ -292,6 +307,34 @@ case ${1:-} in
         else
             echo off
         fi ;;
+
+    # ------------------------------------------------------------------ kiosk
+    # astroarch-kiosk-setup (scripts/ of the astroarch repository) reads and changes the
+    # kiosk. kiosk-setup prints the command that changes it, as root through pkexec:
+    # the helper installed where its polkit action expects it ($ASTROARCH_KIOSK_SETUP
+    # replaces the whole command, for tests)
+    kiosk-setup)
+        if [[ -n ${ASTROARCH_KIOSK_SETUP:-} ]]; then
+            echo "$ASTROARCH_KIOSK_SETUP"
+        elif [[ -x $KIOSK_HELPER ]] && command -v pkexec >/dev/null; then
+            echo "pkexec $KIOSK_HELPER"
+        else
+            exit 1
+        fi ;;
+    # Reading needs no root: the installed helper, else the one in the repository
+    # "shared", "separate", "separate own" (with profiles of its own) or "mixed"
+    kiosk-profiles)
+        kiosk_status profiles ;;
+    # JSON array: id, name, installed, desktop, menu, start, watch, shared
+    kiosk-apps)
+        kiosk_status apps ;;
+    # KStars or PHD2 open in the kiosk (the profiles cannot change meanwhile)
+    kiosk-busy)
+        open=()
+        pgrep -u "$KIOSK_USER" -x kstars >/dev/null && open+=(KStars)
+        pgrep -u "$KIOSK_USER" -x phd2.bin >/dev/null && open+=(PHD2)
+        ((${#open[@]})) || exit 1
+        (IFS=,; echo "${open[*]}" | sed 's/,/, /g') ;;
 
     *)
         echo "unknown probe: ${1:-}" >&2
