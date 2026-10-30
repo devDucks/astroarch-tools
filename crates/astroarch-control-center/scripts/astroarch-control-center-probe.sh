@@ -308,6 +308,27 @@ case ${1:-} in
             echo off
         fi ;;
 
+    # -------------------------------------------------------------- data
+    # The folder shared by the main user and the kiosk user. ASTRO_DATA_DIR: tests only
+    # "path|used KiB|free KiB" (used empty when it takes too long to measure)
+    astro-data)
+        dir=${ASTRO_DATA_DIR:-/srv/astro-data}
+        [[ -d $dir ]] || exit 1
+        size=$(timeout 3 du -skL "$dir/" 2>/dev/null | cut -f1)
+        free=$(df -Pk "$dir/" 2>/dev/null | awk 'NR == 2 { print $4 }')
+        echo "$dir|$size|$free" ;;
+    # Where it is kept: "internal", or "drive|name|type" / "missing|name|type" when it is
+    # on a drive (connected or not). Set by astroarch-storage-helper: an /etc/fstab entry
+    # for the folder, under a "# astroarch-storage: name" line
+    astro-data-place)
+        dir=${ASTRO_DATA_DIR:-/srv/astro-data}
+        entry=$(awk -v d="$dir" '$1 !~ /^#/ && $2 == d { print; exit }' /etc/fstab)
+        [[ -n $entry ]] || { echo internal; exit 0; }
+        name=$(sed -n 's/^# astroarch-storage: //p' /etc/fstab | head -n1)
+        type=$(awk '{ print $3 }' <<< "$entry")
+        [[ $type == ntfs3 ]] && type=ntfs
+        if mountpoint -q "$dir"; then echo "drive|$name|$type"; else echo "missing|$name|$type"; fi ;;
+
     # ------------------------------------------------------------------ kiosk
     # astroarch-kiosk-setup (scripts/ of the astroarch repository) reads and changes the
     # kiosk. kiosk-setup prints the command that changes it, as root through pkexec:

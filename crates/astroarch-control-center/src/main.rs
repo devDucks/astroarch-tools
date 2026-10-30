@@ -11,6 +11,16 @@ mod setup_state;
 mod backend;
 mod software_manager;
 
+// The drives of the Image storage page (storage_manager.rs): the backup tool's list,
+// compiled in from crates/astroarch-backup (the same files, not a copy)
+#[allow(dead_code)]
+#[path = "../../astroarch-backup/src/media.rs"]
+mod media;
+#[path = "../../astroarch-backup/src/storage.rs"]
+mod storage;
+// The drives offered: the backup tool's list without another system's disk
+mod drives;
+mod storage_manager;
 // The Services page: astroarch-sys-manager's ServiceManager (a link to its bridge.rs)
 mod service_manager;
 

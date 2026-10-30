@@ -6,12 +6,12 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 ## What it shows
 
 - **One list of pages** (`pages` in `qml/Main.qml`): network and remote access, language
-  and time zone, passwords, update, location, equipment, kiosk, software, services,
-  Astro monitor, how to connect.
+  and time zone, passwords, update, location, equipment, kiosk, image storage,
+  software, services, Astro monitor, how to connect.
 - **While the setup is shown**, the pages are grouped as Essentials, Recommended,
   Optional and More, with a status each (to do, done, set up later, not needed, on hold)
   and "Set up later" / "Continue". "I'm done, hide setup" keeps every page, grouped by
-  topic instead (System, Observing, Software and services, Connection).
+  topic instead (System, Observing, Data, Software and services, Connection).
 - **Each page shows the current values** read from the system, one per row, with the
   buttons that change them (Plasma settings modules, the other AstroArch tools, KStars,
   PHD2...). A page whose state can be read (network, location, equipment) is done as soon
@@ -28,6 +28,7 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 | `qml/KioskSetup.qml` | The Kiosk page: profiles shared with the main desktop or separate, the apps the kiosk opens. Reads the kiosk with the `kiosk-*` probes and changes it with `pkexec /usr/lib/astroarch/astroarch-kiosk-setup apply …`, the helper of the astroarch repository (`scripts/astroarch-kiosk-setup.sh`, installed by `scripts/install-kiosk-setup.sh` with its polkit action); the apps are the lines of its `configs/kiosk/apps.list` |
 | `qml/SoftwareList.qml`, `src/software_manager.rs` | The More software page: the software installer's list and code (`software_manager.rs` is a link to its `manager.rs`) |
 | `qml/ServicesView.qml`, `src/service_manager.rs` | The Services page: Bluetooth, file transfer (FTP) and USB power, read and switched by astroarch-sys-manager's code (`service_manager.rs` is a link to its `bridge.rs`); its state is polled only while the page is shown |
+| `qml/StorageView.qml`, `src/storage_manager.rs` | Image storage page: moves the shared folder `/srv/astro-data` to a drive and back. The drive list is the backup tool's (`media.rs`, `storage.rs` of astroarch-backup, compiled in) |
 | `scripts/astroarch-storage-helper.sh` | The Image storage page's code run as root (pkexec, `scripts/org.astroarch.control-center.storage.policy`): copies the folder, writes its `/etc/fstab` entry and udev rule. Installed as `/usr/lib/astroarch-control-center/astroarch-storage-helper`, the policy in `/usr/share/polkit-1/actions` |
 
 To add a page or a row: add it to `pages`; if it needs a value from the system, add a
