@@ -84,6 +84,7 @@ ASTROARCH_KIOSK_USER=u-kiosk ASTRO_DATA_DIR=/some/folder scripts/astroarch-resto
     cargo build --release -p astroarch-control-center
     target/release/astroarch-control-center
     target/release/astroarch-control-center --page kiosk    # opens on one page (its id in `pages`)
+    target/release/astroarch-control-center --autostart     # at login: opens only while the setup is shown
 
 Requirements: Qt 6 (Quick, Quick Controls 2), Kirigami, `qt6-tools` (lrelease, for the
 translations). The probes use `nmcli`, `sqlite3`, `timedatectl`, `curl`, `smbclient` and
