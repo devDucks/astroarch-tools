@@ -80,6 +80,13 @@ fn catalog_path() -> Option<PathBuf> {
         .iter()
         .map(PathBuf::from)
         .find(|p| p.is_file())
+        // Development build, started from anywhere: this crate's list. The Control Center
+        // compiles this file too, hence the path through the crates folder
+        .or_else(|| {
+            let p = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../astroarch-software-installer/data/software.toml");
+            p.is_file().then_some(p)
+        })
 }
 
 fn pacman_stdout(args: &[&str]) -> Result<String, String> {
