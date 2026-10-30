@@ -122,6 +122,14 @@ case ${1:-} in
         echo "${line%%$'\t'*}" ;;
     host)
         echo "$(hostname).local" ;;
+    # Settings of the setup file of the boot partition applied at the first boot
+    # (scripts/astroarch-prefill.sh in the astroarch repository), comma separated:
+    # "hostname,wifi,language". The record holds item names only, no values
+    prefill)
+        items=$(grep -v '^#' "${ASTROARCH_PREFILL_RECORD:-/var/lib/astroarch/prefill-applied}" 2>/dev/null \
+            | grep -E '^[a-z_]+$' | paste -sd, -)
+        [[ -n $items ]] || exit 1
+        echo "$items" ;;
 
     # -------------------------------------------------------------- passwords
     # "default", "changed", or "none" (no such password for this user); no answer
