@@ -10,6 +10,9 @@ cxx = { workspace = true }
 cxx-qt = { workspace = true }
 cxx-qt-lib = { workspace = true }
 serde_json = { workspace = true }
+# For the software installer's code (src/main.rs)
+serde = { workspace = true }
+toml = "0.8"
 
 [build-dependencies]
 astroarch-build = { workspace = true }

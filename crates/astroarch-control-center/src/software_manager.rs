@@ -1,0 +1,1 @@
+../../astroarch-software-installer/src/manager.rs
