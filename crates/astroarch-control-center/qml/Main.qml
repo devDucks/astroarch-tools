@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import org.kde.kirigami as Kirigami
+import org.kde.i18n.localeData
 import AstroArchControlCenter
 
 ApplicationWindow {
@@ -26,10 +27,13 @@ ApplicationWindow {
     //           "already done on this system"; detected: what to say then
     //   hold:   probe whose success puts the step on hold
     //   rows:   label, value (fixed text) or probe (+ format, see formatValue), actions;
+    //           suggestion: shown only while its probe finds one and the page is not done;
     //           choice: key of a per-row choice ("kept"). A page whose rows all have one
     //           is done once each row is changed on the system, kept, or not there for
     //           this user (see rowState); hideWhen: { probe, value } hides the row
-    //   action: command (+ terminal: true; needs: probe that must succeed, the button is
+    //   action: command ("%v": the value of the row's probe, up to a "|"; + terminal: true;
+    //           busy: what to say while a command without a window runs; failed: what to
+    //           say when it ends with an error; needs: probe that must succeed, the button is
     //           hidden when it is the row's own probe, as the row says why; when: values of
     //           the row's probe that show it, "on" or "off|missing"; tool: its name in
     //           messages when the label is not), or kind "keep" (stores the row's choice
@@ -64,7 +68,7 @@ ApplicationWindow {
         {
             id: "language", setup: "essential", topic: "system",
             title: qsTr("Language and time zone"),
-            intro: qsTr("Check these three: they are what the system uses now."),
+            intro: qsTr("Check language, keyboard and time zone: they are what the system uses now."),
             primary: qsTr("These are right"),
             rows: [
                 { label: qsTr("Language"), probe: "language", format: "locale", prefill: "language",
@@ -73,8 +77,17 @@ ApplicationWindow {
                 { label: qsTr("Keyboard"), probe: "keyboard", format: "keyboard", prefill: "keyboard",
                   actions: [ { label: qsTr("Change…"), command: "astroarch-locale-module --page keyboard",
                                tool: qsTr("Language and keyboard") } ] },
+                // The module without --page starts from the country of the network
+                { label: qsTr("Country of your network"), probe: "country-suggest", format: "country", suggestion: true,
+                  sub: qsTr("Language and keyboard can follow it: you check them before they are applied"),
+                  actions: [ { label: qsTr("Choose…"), command: "astroarch-locale-module",
+                               tool: qsTr("Language and keyboard") } ] },
                 { label: qsTr("Time zone"), probe: "timezone", format: "timezone", prefill: "timezone",
-                  actions: [ { label: qsTr("Change…"), command: "kcmshell6 kcm_clock", tool: qsTr("Date and time") } ] }
+                  actions: [ { label: qsTr("Change…"), command: "kcmshell6 kcm_clock", tool: qsTr("Date and time") } ] },
+                { label: qsTr("Time zone of your network"), probe: "timezone-suggest", format: "timezone", suggestion: true,
+                  actions: [ { label: qsTr("Use"), command: "timedatectl set-timezone %v",
+                               busy: qsTr("Setting the time zone…"),
+                               failed: qsTr("The time zone could not be set.") } ] }
             ]
         },
         {
@@ -271,6 +284,7 @@ ApplicationWindow {
     property double lastHoldRun: 0      // the hold probe asks a server: at most every 5 min,
                                         // counted from its last answer
     property date now: new Date()       // for the local time next to the time zone
+    property var failedText: null       // { command, text } of the action started last
 
     // The view of the page shows its own primary button now (its property ownsPrimary, e.g.
     // the kiosk's "Apply"): the footer's is then not highlighted, and Enter alone does nothing
@@ -356,7 +370,9 @@ ApplicationWindow {
         const rows = page.rows.filter(r => r.prefill)
         return !page.detect && rows.length > 0 && rows.every(r => !r.choice && root.prefilled(r))
     }
-    function rowShown(row) {
+    function rowShown(row, page) {
+        if (row.suggestion && (!root.probeOk(row.probe) || root.statusOf(page) === "done"))
+            return false
         const when = row.hideWhen
         return !when || !root.probeOk(when.probe) || root.probes[when.probe].value !== when.value
     }
@@ -433,9 +449,10 @@ ApplicationWindow {
         names.add("hotspot-uuid")
         names.add("prefill")
         root.lastRun = nowMs
-        // The first page does not wait for the hold probe: it asks a server
+        // The first page does not wait for the hold probe and the suggestions: they ask a server
         if (root.firstRunNames.length === 0)
-            root.firstRunNames = Array.from(names).filter(n => !root.pages.some(p => p.hold === n))
+            root.firstRunNames = Array.from(names).filter(n => !root.pages.some(
+                p => p.hold === n || p.rows.some(r => r.suggestion && r.probe === n)))
         setup.run_probes(JSON.stringify(Array.from(names)))
     }
 
@@ -464,6 +481,12 @@ ApplicationWindow {
                  : (root.choices[row.choice] === "kept" ? qsTr("Default kept") : row.value)
         case "keyboard":
             return v === "default" ? qsTr("System default") : v
+        case "country": {
+            // "IT|Italy": the name in the language of the session (KDE's list of
+            // countries), else as the geoip service gives it
+            const parts = v.split("|")
+            return Country.fromAlpha2(parts[0]).name || parts[1]
+        }
         case "service":
             return ({ on: qsTr("On"), off: qsTr("Off"), missing: qsTr("Not installed") })[v] || v
         case "timezone": {
@@ -530,10 +553,12 @@ ApplicationWindow {
         return page.detected === "network" ? qsTr("Connected to a network") : (page.detected || "")
     }
 
-    function actionCommand(action) {
+    function actionCommand(action, row) {
         // Network settings opened on the hotspot connection itself
         if (action.hotspot && root.probeOk("hotspot-uuid"))
             return action.command + " --args Uuid=" + root.probes["hotspot-uuid"].value
+        if (action.command.includes("%v"))
+            return action.command.replace("%v", root.probeOk(row.probe) ? root.probes[row.probe].value.split("|")[0] : "")
         return action.command
     }
 
@@ -566,10 +591,13 @@ ApplicationWindow {
             root.message = qsTr("Copied %1.").arg(clipboard.text)
             return
         }
-        const command = root.actionCommand(action)
+        const command = root.actionCommand(action, row)
         const result = launcher.launch(command, !!action.terminal)
         const name = action.tool || action.label.replace("…", "")
-        if (result === "started") {
+        root.failedText = result === "started" && action.failed ? { command: command, text: action.failed } : null
+        if (result === "started" && action.busy) {
+            root.message = action.busy
+        } else if (result === "started") {
             root.message = qsTr("“%1” is open in its own window. When you have finished, come back here: this page updates by itself.").arg(name)
         } else if (result === "running") {
             root.message = qsTr("“%1” is already open.").arg(name)
@@ -589,8 +617,9 @@ ApplicationWindow {
     Launcher {
         id: launcher
         // A tool was closed: what it changed is read again
-        onFinished: (command) => {
-            root.message = ""
+        onFinished: (command, ok) => {
+            const failed = root.failedText
+            root.message = !ok && failed && failed.command === command ? failed.text : ""
             root.runProbes()
         }
     }
@@ -1103,7 +1132,7 @@ ApplicationWindow {
 
                                             // Hidden, not filtered out: a new list at each probe would
                                             // rebuild the rows and lose the keyboard focus
-                                            visible: root.rowShown(modelData)
+                                            visible: root.rowShown(modelData, card.page)
                                             Layout.fillWidth: true
                                             spacing: 0
 
