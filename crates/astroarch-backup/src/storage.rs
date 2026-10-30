@@ -227,7 +227,8 @@ pub fn helper_path() -> Option<PathBuf> {
     }
     if let Ok(exe) = std::env::current_exe() {
         if let Some(dir) = exe.parent() {
-            for rel in ["scripts", "../scripts", "../../scripts"] {
+            // The last one: the Control Center built in the same workspace (target/release)
+            for rel in ["scripts", "../scripts", "../../scripts", "../../crates/astroarch-backup/scripts"] {
                 let candidate = dir.join(rel).join(DEV_HELPER_NAME);
                 if candidate.is_file() {
                     // pkexec requires an absolute path
