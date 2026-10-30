@@ -119,9 +119,13 @@ setup buttons ("Set up later", "Continue"...), a smaller window titled with the 
 The page's own actions and views work as usual; the setup state is not changed. The menu
 entries of the other tools use it: `--page services` (astroarch-sys-manager),
 `--page software` (astroarch-software-installer), `--page backup` (astroarch-backup),
-`--page language` (astroarch-locale-module). They share the Control Center's app id, so
-on Wayland the task manager shows each of these windows as "Control Center": one app,
-on purpose.
+`--page language` (astroarch-locale-module). With --single on one of those pages the
+window takes that menu entry's app id (src/main.rs), so the task manager shows it with
+its own name and icon.
+
+Icons: `org.astroarch.<tool>` from the icon theme. They live in devDucks/astroarch-assets
+(`AstroArch icons/control-center_icons/`), and the package installs the full drawings as
+`scalable` and the simplified `sm_` ones for 16, 22 and 32 px.
 
 Requirements: Qt 6 (Quick, Quick Controls 2), Kirigami, `qt6-tools` (lrelease, for the
 translations). The probes use `nmcli`, `sqlite3`, `timedatectl`, `curl`, `smbclient` and
