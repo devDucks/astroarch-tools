@@ -34,6 +34,7 @@ ApplicationWindow {
     //           the row's probe that show it, "on" or "off|missing"; tool: its name in
     //           messages when the label is not), or kind "keep" (stores the row's choice
     //           "kept") / "copy"
+    //   view:   "software" shows the programs of the software installer in the page
     readonly property var pages: [
         {
             id: "network", setup: "essential", topic: "system", detect: "network-ok",
@@ -130,6 +131,13 @@ ApplicationWindow {
             ]
         },
         {
+            id: "software", setup: "optional", topic: "software",
+            title: qsTr("More software"),
+            intro: qsTr("Programs you can add. Installing or removing one asks for your password."),
+            view: "software",
+            rows: []
+        },
+        {
             id: "monitor", setup: "", topic: "observing",
             title: qsTr("Astro monitor"),
             intro: qsTr("A companion for the night: it watches the imaging session and keeps a copy of your profiles. It runs in a terminal."),
@@ -170,11 +178,13 @@ ApplicationWindow {
     readonly property var setupGroups: [
         { id: "essential", title: qsTr("Essentials", "setup group") },
         { id: "recommended", title: qsTr("Recommended", "setup group") },
+        { id: "optional", title: qsTr("Optional", "setup group") },
         { id: "", title: qsTr("More", "setup group") }
     ]
     readonly property var topicGroups: [
         { id: "system", title: qsTr("System") },
         { id: "observing", title: qsTr("Observing") },
+        { id: "software", title: qsTr("Software and services") },
         { id: "connect", title: qsTr("Connection") }
     ]
     readonly property var levels: ({
@@ -1017,6 +1027,17 @@ ApplicationWindow {
                                         }
                                     }
                                 }
+                            }
+
+                            // Kept once opened: an install goes on while another page is shown
+                            Loader {
+                                id: softwareList
+                                Layout.fillWidth: true
+                                visible: card.page.view === "software"
+                                active: false
+                                onVisibleChanged: if (visible) active = true
+                                Component.onCompleted: if (visible) active = true
+                                sourceComponent: SoftwareList {}
                             }
 
                             Kirigami.InlineMessage {

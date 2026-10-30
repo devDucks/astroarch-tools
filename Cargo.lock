@@ -42,7 +42,9 @@ dependencies = [
  "cxx",
  "cxx-qt",
  "cxx-qt-lib",
+ "serde",
  "serde_json",
+ "toml",
 ]
 
 [[package]]
