@@ -8,7 +8,6 @@
 
 use std::collections::HashMap;
 use std::process::{Command, Stdio};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 
 #[derive(Debug, Clone)]
@@ -131,17 +130,18 @@ fn other(msg: impl Into<String>) -> std::io::Error {
 // KDE Plasma / Wayland : kxkbrc + D-Bus
 // ---------------------------------------------------------------------------
 
-/// Values of the `[Layout]` group of ~/.config/kxkbrc, saved before the first live change
-/// so that they can be restored if the user quits without applying.
+/// The session layout, saved before the first live change so that it can be put back if
+/// the user leaves without applying: the whole `[Layout]` group of ~/.config/kxkbrc that a
+/// live change writes (Wayland), or the X server's keymap (X11, `setxkbmap -query`).
+/// Several layouts and their switch option are kept as they were.
 #[derive(Debug, Clone)]
-struct KxkbSnapshot {
-    use_flag: String,
-    layout_list: String,
-    variant_list: String,
+enum LiveSnapshot {
+    Kxkb { use_flag: String, layout_list: String, variant_list: String, display_names: String },
+    X11 { model: String, layout: String, variant: String, options: String },
 }
 
-static LIVE_BACKUP: Mutex<Option<KxkbSnapshot>> = Mutex::new(None);
-static PERSISTED: AtomicBool = AtomicBool::new(false);
+/// Taken by the first live change, dropped when the layout is put back or applied
+static LIVE_BACKUP: Mutex<Option<LiveSnapshot>> = Mutex::new(None);
 
 fn kxkb_read(key: &str) -> String {
     Command::new("kreadconfig6")
@@ -267,31 +267,87 @@ pub fn current_layout() -> Option<(String, String)> {
     (!layout.is_empty() && layout != "(unset)").then(|| (layout, field("X11 Variant:")))
 }
 
-fn kxkb_save_backup_once() {
+/// The X server's keymap now (`setxkbmap -query`)
+fn x11_query() -> Option<LiveSnapshot> {
+    let out = Command::new("setxkbmap").arg("-query").output().ok().filter(|o| o.status.success())?;
+    parse_x11_query(&String::from_utf8_lossy(&out.stdout))
+}
+
+/// "rules: evdev / model: pc105 / layout: us,it / variant: , / options: grp:alt_shift_toggle"
+fn parse_x11_query(text: &str) -> Option<LiveSnapshot> {
+    let field = |name: &str| {
+        text.lines()
+            .find_map(|l| l.trim().strip_prefix(name))
+            .map(|v| v.trim().to_string())
+            .unwrap_or_default()
+    };
+    let layout = field("layout:");
+    (!layout.is_empty()).then(|| LiveSnapshot::X11 {
+        model: field("model:"),
+        layout,
+        variant: field("variant:"),
+        options: field("options:"),
+    })
+}
+
+fn save_live_backup_once() {
     if let Ok(mut guard) = LIVE_BACKUP.lock() {
         if guard.is_none() {
-            *guard = Some(KxkbSnapshot {
-                use_flag: kxkb_read("Use"),
-                layout_list: kxkb_read("LayoutList"),
-                variant_list: kxkb_read("VariantList"),
-            });
+            *guard = if is_wayland_session() {
+                Some(LiveSnapshot::Kxkb {
+                    use_flag: kxkb_read("Use"),
+                    layout_list: kxkb_read("LayoutList"),
+                    variant_list: kxkb_read("VariantList"),
+                    display_names: kxkb_read("DisplayNames"),
+                })
+            } else {
+                x11_query()
+            };
         }
     }
 }
 
-/// Wayland: puts back the session layout saved before the live tests, unless the
-/// configuration has been persisted in the meantime. To be called when the window closes.
-pub fn restore_live_layout() {
-    if !is_wayland_session() || PERSISTED.load(Ordering::SeqCst) {
-        return;
+/// The layout now applied is the one to keep: nothing to put back any more
+fn forget_live_backup() {
+    if let Ok(mut guard) = LIVE_BACKUP.lock() {
+        *guard = None;
     }
+}
+
+/// Puts back the session layout saved before the live tests, when a layout was tried and
+/// not applied since (otherwise nothing to do). To be called when the user leaves without
+/// applying: Cancel, the window closing.
+pub fn restore_live_layout() {
     let snapshot = LIVE_BACKUP.lock().ok().and_then(|mut g| g.take());
-    if let Some(b) = snapshot {
-        let use_flag = if b.use_flag.is_empty() { "false" } else { b.use_flag.as_str() };
-        let _ = kxkb_write("Use", use_flag)
-            .and_then(|_| kxkb_write("LayoutList", &b.layout_list))
-            .and_then(|_| kxkb_write("VariantList", &b.variant_list))
-            .and_then(|_| kxkb_reload());
+    match snapshot {
+        Some(LiveSnapshot::Kxkb { use_flag, layout_list, variant_list, display_names }) => {
+            let use_flag = if use_flag.is_empty() { "false" } else { use_flag.as_str() };
+            // Same order as kxkb_apply: never a layout with the variant of another one
+            let result = kxkb_write("Use", use_flag)
+                .and_then(|_| kxkb_write("VariantList", ""))
+                .and_then(|_| kxkb_write("LayoutList", &layout_list))
+                .and_then(|_| kxkb_write("DisplayNames", &display_names))
+                .and_then(|_| kxkb_write("VariantList", &variant_list))
+                .and_then(|_| kxkb_reload());
+            if let Err(e) = result {
+                eprintln!("[keyboard] Wayland: the session layout could not be put back: {e}");
+            }
+        }
+        Some(LiveSnapshot::X11 { model, layout, variant, options }) => {
+            let mut cmd = Command::new("setxkbmap");
+            if !model.is_empty() {
+                cmd.args(["-model", model.as_str()]);
+            }
+            // "-option ''" clears the options before they are set again
+            cmd.args(["-layout", layout.as_str(), "-variant", variant.as_str(), "-option", ""]);
+            for option in options.split(',').filter(|o| !o.is_empty()) {
+                cmd.args(["-option", option]);
+            }
+            if !cmd.status().is_ok_and(|s| s.success()) {
+                eprintln!("[keyboard] setxkbmap: the session layout could not be put back ({layout})");
+            }
+        }
+        None => {}
     }
 }
 
@@ -333,16 +389,22 @@ fn run_setxkbmap(layout: &str, variant: Option<&str>, quiet: bool) -> std::io::R
     Ok(())
 }
 
-/// Applies a keyboard layout right away, so that the user can test it.
-/// - Wayland (Plasma): kxkbrc + `org.kde.keyboard.reloadConfig` (the original values are
-///   saved and put back by `restore_live_layout` if the user quits without applying).
-///   If the test area is an X11 client running under Xwayland (QT_QPA_PLATFORM=xcb), the
-///   Xwayland keymap is set as well with `setxkbmap` (silenced).
-/// - X11: `setxkbmap`.
-/// Not a persistent system configuration: `persist_layout` handles that.
-/// Every failure is printed on stderr (run the application from a terminal to see it).
+/// Applies a keyboard layout right away, so that the user can test it. The session layout
+/// is saved first (once) and put back by `restore_live_layout` if the user leaves without
+/// applying. Not a persistent system configuration: `persist_layout` handles that.
 pub fn apply_layout_live(layout: &str, variant: Option<&str>) -> std::io::Result<()> {
     let variant = valid_variant(layout, variant);
+    save_live_backup_once();
+    set_session_layout(layout, variant)
+}
+
+/// The layout of the session:
+/// - Wayland (Plasma): kxkbrc + `org.kde.keyboard.reloadConfig`. If the test area is an X11
+///   client running under Xwayland (QT_QPA_PLATFORM=xcb), the Xwayland keymap is set as
+///   well with `setxkbmap` (silenced).
+/// - X11: `setxkbmap`.
+/// Every failure is printed on stderr (run the application from a terminal to see it).
+fn set_session_layout(layout: &str, variant: Option<&str>) -> std::io::Result<()> {
     if !is_wayland_session() {
         return run_setxkbmap(layout, variant, false).map_err(|e| {
             eprintln!("[keyboard] setxkbmap ({layout}): {e}");
@@ -350,7 +412,6 @@ pub fn apply_layout_live(layout: &str, variant: Option<&str>) -> std::io::Result
         });
     }
 
-    kxkb_save_backup_once();
     let kde = kxkb_apply(layout, variant);
     match &kde {
         Ok(()) => eprintln!("[keyboard] Wayland: kxkbrc + reloadConfig OK ({layout} {variant:?})"),
@@ -372,17 +433,13 @@ pub fn apply_layout_live(layout: &str, variant: Option<&str>) -> std::io::Result
     kde.or(xwayland)
 }
 
-/// Writes the final configuration using localectl (persists in
-/// /etc/vconsole.conf and /etc/X11/xorg.conf.d/00-keyboard.conf).
-/// Requires the appropriate permissions (polkit / root).
-/// On Wayland, the Plasma session layout (kxkbrc) is also written: this is what KWin reads.
+/// Writes the final configuration: first the system one with localectl (persists in
+/// /etc/vconsole.conf and /etc/X11/xorg.conf.d/00-keyboard.conf; polkit may ask for a
+/// password), then, only once it is written, the layout of the session (on Wayland the
+/// Plasma one in kxkbrc, which KWin reads at the next login too). A refused or failed
+/// localectl changes nothing.
 pub fn persist_layout(layout: &str, variant: Option<&str>) -> std::io::Result<()> {
     let variant = valid_variant(layout, variant);
-    if is_wayland_session() {
-        kxkb_apply(layout, variant)?;
-        PERSISTED.store(true, Ordering::SeqCst);
-    }
-
     let mut cmd = Command::new("localectl");
     cmd.arg("set-x11-keymap").arg(layout);
     if let Some(v) = variant {
@@ -392,5 +449,33 @@ pub fn persist_layout(layout: &str, variant: Option<&str>) -> std::io::Result<()
     if !status.success() {
         return Err(other("localectl set-x11-keymap a échoué (droits insuffisants ?)"));
     }
-    Ok(())
+
+    let session = set_session_layout(layout, variant);
+    // The session uses the applied layout now: a layout tried before is not put back
+    forget_live_backup();
+    match session {
+        // kxkbrc is the layout of the next Plasma sessions
+        Err(e) if is_wayland_session() => Err(e),
+        _ => Ok(()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn x11_keymap_is_kept_whole() {
+        let query = "rules:      evdev\nmodel:      pc105\nlayout:     us,it\nvariant:    ,\noptions:    grp:alt_shift_toggle,compose:ralt\n";
+        match parse_x11_query(query) {
+            Some(LiveSnapshot::X11 { model, layout, variant, options }) => {
+                assert_eq!(model, "pc105");
+                assert_eq!(layout, "us,it");
+                assert_eq!(variant, ",");
+                assert_eq!(options, "grp:alt_shift_toggle,compose:ralt");
+            }
+            other => panic!("unexpected {other:?}"),
+        }
+        assert!(parse_x11_query("rules: evdev\nmodel: pc105\n").is_none());
+    }
 }

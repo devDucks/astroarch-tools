@@ -13,9 +13,13 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
   and "Set up later" / "Continue". "I'm done, hide setup" keeps every page, grouped by
   topic instead (System, Observing, Data, Software and services, Connection).
 - **Each page shows the current values** read from the system, one per row, with the
-  buttons that change them (Plasma settings modules, the other AstroArch tools, KStars,
-  PHD2...). A page whose state can be read (network, location, equipment) is done as soon
+  buttons that change them (Plasma settings modules, KStars, PHD2..., or a view of the page
+  itself). A page whose state can be read (network, location, equipment) is done as soon
   as the system says so.
+- **One look for each task**: the tools of the other crates (services, software, backup,
+  language and keyboard) are pages of this window, built from their own code. Their menu
+  entries open the Control Center on that page alone (`--page ID --single`), so a task
+  never looks different depending on where it was started.
 
 ## How it works
 
@@ -28,6 +32,7 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 | `qml/KioskSetup.qml` | The Kiosk page: profiles shared with the main desktop or separate, the apps the kiosk opens. Reads the kiosk with the `kiosk-*` probes and changes it with `pkexec /usr/lib/astroarch/astroarch-kiosk-setup apply …`, the helper of the astroarch repository (`scripts/astroarch-kiosk-setup.sh`, installed by `scripts/install-kiosk-setup.sh` with its polkit action); the apps are the lines of its `configs/kiosk/apps.list` |
 | `qml/DataBackupView.qml`, `qml/SelectionList.qml`, `src/data_backup.rs` | The Data backup page: both profiles of the backup tool (SelectionList: the tick list both use). Its logic is compiled in from `crates/astroarch-backup` (`data_profile.rs`, `media.rs`, `storage.rs`, `config.rs`; `src/system_backup.rs` is a link to its `bridge.rs`): the same files, not a copy |
 | `qml/SoftwareList.qml`, `src/software_manager.rs` | The More software page: the software installer's list and code (`software_manager.rs` is a link to its `manager.rs`) |
+| `qml/LanguageView.qml`, `qml/PickList.qml`, `src/locale_bridge.rs` | The Language page's "Change…" and "Choose…": a wizard Country → Language → Keyboard → Apply with astroarch-locale-module's code (`locale_bridge.rs` is a link to its `bridge.rs`; `geolocation.rs`, `keyboard.rs`, `locale_gen.rs` are compiled in from that crate). See "Language view" below |
 | `qml/ServicesView.qml`, `src/service_manager.rs` | The Services page: Bluetooth, file transfer (FTP) and USB power, read and switched by astroarch-sys-manager's code (`service_manager.rs` is a link to its `bridge.rs`); its state is polled only while the page is shown |
 | `qml/StorageView.qml`, `src/storage_manager.rs` | Image storage page: moves the shared folder `/srv/astro-data` to a drive and back. The drive list is the backup tool's (`media.rs`, `storage.rs` of astroarch-backup, compiled in) |
 | `qml/RestoreView.qml`, `src/restore.rs` | The Restore page: KStars, INDI, PHD2 profiles and settings (and images) from a data backup snapshot, a system backup snapshot, an old AstroArch disk or AstroMonitor. What it offers is the data backup's catalog and plan (`data_profile.rs`, read in the backup instead of the system); the places and the network folder form are the Data backup page's (`DataBackup`, `ShareForm.qml`) |
@@ -37,6 +42,28 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 To add a page or a row: add it to `pages`; if it needs a value from the system, add a
 case to the probe script. Nothing to change in Rust. To offer something new in the data
 backup: an entry in `crates/astroarch-backup/data/data-profile.toml`.
+
+### Language view
+
+The rows of the Language page start one wizard at the step they name: Language and
+Keyboard "Change…" at those steps, "Country of your network" at the first step with that
+country chosen (the probe `country-suggest` finds it only while language, keyboard and time
+zone are still the image defaults; the view makes no lookup of its own). A country chooses
+its language and keyboard layout (the locale module's `set_country`), checked in the next
+steps. The lists are those of the module: the locales of `/etc/locale.gen`, the layouts and
+variants of `/usr/share/X11/xkb/rules/base.lst`.
+
+Nothing changes before **Apply**, which is the module's `persist_configuration`: first the
+locale enabled in `/etc/locale.gen`, `locale-gen` and `localectl set-locale` in one
+`pkexec`, and `~/.config/plasma-localerc`; only if that worked, `localectl set-x11-keymap`
+(polkit), then the session layout (`kxkbrc` on Wayland). A refused password changes no
+keyboard. The keyboard step's test field uses the session layout; **Try this layout** sets
+the chosen one in the session only (`setxkbmap` on X11, `kxkbrc` on Wayland). The module
+saved the whole session layout first (several layouts, their switch option, kxkbrc's
+display names) and puts it back on Cancel, when another page is shown, when Apply fails,
+or when the window closes. The module's own IP lookup is its cargo feature `geoip`
+(reqwest), off here: the country comes from the probe. The time
+zone rows stay as they were (KDE's clock settings, and "Use" for the zone of the network).
 
 ### Image storage on a drive
 
@@ -85,6 +112,16 @@ ASTROARCH_KIOSK_USER=u-kiosk ASTRO_DATA_DIR=/some/folder scripts/astroarch-resto
     target/release/astroarch-control-center
     target/release/astroarch-control-center --page kiosk    # opens on one page (its id in `pages`)
     target/release/astroarch-control-center --autostart     # at login: opens only while the setup is shown
+    target/release/astroarch-control-center --page services --single   # that page alone
+
+`--single` (with `--page`) shows only that page: no side panel, no setup progress and no
+setup buttons ("Set up later", "Continue"...), a smaller window titled with the page.
+The page's own actions and views work as usual; the setup state is not changed. The menu
+entries of the other tools use it: `--page services` (astroarch-sys-manager),
+`--page software` (astroarch-software-installer), `--page backup` (astroarch-backup),
+`--page language` (astroarch-locale-module). They share the Control Center's app id, so
+on Wayland the task manager shows each of these windows as "Control Center": one app,
+on purpose.
 
 Requirements: Qt 6 (Quick, Quick Controls 2), Kirigami, `qt6-tools` (lrelease, for the
 translations). The probes use `nmcli`, `sqlite3`, `timedatectl`, `curl`, `smbclient` and

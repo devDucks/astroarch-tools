@@ -38,6 +38,15 @@ mod storage_manager;
 mod service_manager;
 // The Restore page: the same catalog and plan as the data backup, read in a backup
 mod restore;
+// The Language page: astroarch-locale-module's LocaleBridge (a link to its bridge.rs) and
+// the modules it uses, compiled in from that crate
+#[path = "../../astroarch-locale-module/src/geolocation.rs"]
+mod geolocation;
+#[path = "../../astroarch-locale-module/src/keyboard.rs"]
+mod keyboard;
+#[path = "../../astroarch-locale-module/src/locale_gen.rs"]
+mod locale_gen;
+mod locale_bridge;
 
 fn main() {
     // `--version` / `-V` : affiche la version du workspace (Cargo.toml) puis quitte

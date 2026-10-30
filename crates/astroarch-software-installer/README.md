@@ -2,6 +2,11 @@
 
 A 100% Rust application (using CXX-Qt 0.10, Qt6/QML, and the KDE style) for AstroArch. It displays a list of software—read from a TOML file—with an install/uninstall toggle for each item, accompanied by a brief description. The project is built exclusively using `cargo` (no CMake or C++ source files).
 
+**Menu entry**: `org.astroarch.software-installer.desktop` now opens the More software page
+of the AstroArch Control Center (`astroarch-control-center --page software --single`), which
+shows this list with this crate's code (`manager.rs`, `backend.rs`). The standalone binary
+still builds.
+
 ## Directory Structure
 
 ```

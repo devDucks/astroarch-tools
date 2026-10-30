@@ -8,6 +8,9 @@
 //! The service is KDE's geoip, over https (the one Calamares used). Its "ubiquity"
 //! answer is a short XML document: <CountryCode>IT</CountryCode>…<TimeZone>Europe/Rome</TimeZone>
 
+// Without the "geoip" feature (reqwest) only the parsing is compiled
+#![cfg_attr(not(feature = "geoip"), allow(dead_code))]
+
 use std::time::Duration;
 
 #[derive(Debug, Clone)]
@@ -41,6 +44,7 @@ fn parse(xml: &str) -> Option<GeoInfo> {
 /// Attempts IP detection. Returns `None` if there is no network connection or an error occurs —
 /// this is a silent, expected failure (not a bug); the caller should
 /// simply fall back to the default values (English)
+#[cfg(feature = "geoip")]
 pub async fn detect_geolocation() -> Option<GeoInfo> {
     let client = reqwest::Client::builder().timeout(TIMEOUT).build().ok()?;
 
@@ -56,6 +60,7 @@ pub async fn detect_geolocation() -> Option<GeoInfo> {
 /// attempting a lightweight request with a short timeout. Used to
 /// decide whether to attempt geolocation or to switch directly to
 /// “English by default” mode
+#[cfg(feature = "geoip")]
 pub async fn has_internet() -> bool {
     let client = match reqwest::Client::builder()
         .timeout(Duration::from_secs(2))
