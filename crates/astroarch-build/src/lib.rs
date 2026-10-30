@@ -122,6 +122,17 @@ pub fn build_qml_app(
     rust_files: &[&str],
     qrc: Option<PathBuf>,
 ) {
+    build_qml_app_with_qrcs(module_uri, qml_files, rust_files, qrc);
+}
+
+/// Like `build_qml_app`, with several .qrc files (translations, images...).
+/// A relative path is relative to the crate root.
+pub fn build_qml_app_with_qrcs(
+    module_uri: &str,
+    qml_files: &[&str],
+    rust_files: &[&str],
+    qrcs: impl IntoIterator<Item = PathBuf>,
+) {
     println!("cargo:rerun-if-changed=build.rs");
 
     let mut builder = CxxQtBuilder::new_qml_module(
@@ -133,7 +144,8 @@ pub fn build_qml_app(
     .qt_module("QuickControls2")
     .files(rust_files.iter().copied());
 
-    if let Some(qrc) = qrc {
+    // .qrc() already declares rerun-if-changed for the .qrc and the files it lists
+    for qrc in qrcs {
         builder = builder.qrc(qrc);
     }
 
