@@ -5,7 +5,9 @@ import org.kde.kirigami as Kirigami
 import AstroArchControlCenter
 
 // The Restore page: KStars/Ekos, INDI and PHD2 profiles and settings (and images) brought
-// back from a data backup, an old AstroArch disk or AstroMonitor. What can be restored is
+// back from a data backup, a system backup (a snapshot of the backup tool's image, mounted
+// read-only by its BackupManager; even one of another architecture), an old AstroArch disk
+// or AstroMonitor. What can be restored is
 // the catalog of the data backup (the same tick list, SelectionList); the logic is
 // RestoreManager (src/restore.rs), the copy its root helper. A wizard of three steps in
 // the card, as the Data backup page
@@ -30,7 +32,7 @@ ColumnLayout {
     // ------------------------------------------------------------------ state
     property string mode: "start"          // "start" | "wizard"
     property int step: 1                   // 1 where from, 2 what, 3 restore
-    property string kind: ""               // "backup" | "disk" | "astromonitor"
+    property string kind: ""               // "backup" | "system" | "disk" | "astromonitor"
     property var source: null              // the spec RestoreManager takes, once chosen
     property var about: ({})               // RestoreManager.describe(source)
     property var places: []                // backup: places with backups (DataBackup.destinations)
@@ -38,6 +40,12 @@ ColumnLayout {
     property var chosenSystem: null        // backup: {id, folder, snapshots, ...}
     property string snapshot: ""
     property var disks: []
+    // system: the places with a system backup (as the Data backup page's System profile
+    // finds them), the one opened (mounted read-only) and its snapshots
+    property var sysPlaces: []
+    property string sysDest: ""
+    property bool sysLoading: false
+    property var sysSnapshots: []
     property bool shareForm: false
     property var groups: []
     property var excluded: ({})
@@ -64,19 +72,28 @@ ColumnLayout {
     function when(seconds) {
         return Qt.locale().toString(new Date(seconds * 1000), Locale.ShortFormat)
     }
-    // snapshot-20261029-220554 (.0001) -> the date of the snapshot
+    // snapshot-20261029-220554 (.0001), or 2026-10-29_220554 (system backup) -> its date
     function snapshotText(name) {
         if (name === "current")
             return qsTr("Latest copy (Syncthing)")
         const m = /^snapshot-(\d{4})(\d\d)(\d\d)-(\d\d)(\d\d)(\d\d)/.exec(name)
+                  || /^(\d{4})-(\d\d)-(\d\d)_(\d\d)(\d\d)(\d\d)$/.exec(name)
         return m ? Qt.locale().toString(new Date(m[1], m[2] - 1, m[3], m[4], m[5], m[6]), Locale.ShortFormat) : name
+    }
+    // The system a snapshot of the system backup comes from (its architecture)
+    function archNote(snap) {
+        const name = ({ aarch64: qsTr("Raspberry Pi"), x86_64: qsTr("PC"), arm: qsTr("32-bit ARM") })[snap.arch] || snap.arch
+        if (snap.foreign)
+            return qsTr("From a %1 system (%2): settings and data only").arg(name).arg(snap.arch)
+        return snap.arch && snap.arch !== "unknown" ? qsTr("From a %1 system (%2), like this one").arg(name).arg(snap.arch) : ""
     }
     function appNames(list) {
         return list.split(",").filter(a => a).map(a => ({ kstars: "KStars", "phd2.bin": "PHD2", indiserver: qsTr("INDI server") })[a] || a).join(", ")
     }
     function labelText(label) {
         const parts = (label || "").split("|")
-        return ({ backup: qsTr("a data backup"), disk: qsTr("an old AstroArch disk"), astromonitor: "AstroMonitor" })[parts[0]] || parts[0]
+        return ({ backup: qsTr("a data backup"), system: qsTr("a system backup"), disk: qsTr("an old AstroArch disk"),
+                  astromonitor: "AstroMonitor" })[parts[0]] || parts[0]
     }
     function errorText(code, detail) {
         return ({
@@ -104,6 +121,7 @@ ColumnLayout {
         view.about = {}
         view.chosenSystem = null
         view.snapshot = ""
+        view.sysSnapshots = []
         view.result = null
         view.shareForm = false
         view.say("")
@@ -117,6 +135,8 @@ ColumnLayout {
         // An old disk stays open only while the page uses it
         if (view.kind === "disk" && view.source)
             restore.unmountDisk()
+        // The system backup too: while it is mounted, no system backup can be made
+        view.releaseSystem()
         view.mode = "start"
         view.kind = ""
         view.source = null
@@ -134,7 +154,50 @@ ColumnLayout {
             view.places = all.filter(p => (found[p.path] || []).length > 0 || ["not_mounted", "automount"].includes(p.state))
         } else if (view.kind === "disk") {
             view.disks = JSON.parse(restore.disks())
+        } else if (view.kind === "system") {
+            // Where the Data backup page's System profile puts it: its saved place
+            // (~/.backup_dest), this disk, the drives with an astroarch/backups folder
+            const media = JSON.parse(dataBackend.offeredDrives(systemBackup.list_media()))
+            const list = []
+            for (const path of ["/var/backups", JSON.parse(dataBackend.systemConfig()).dest || ""]) {
+                if (path !== "" && !list.some(p => p.path === path) && !media.some(m => m.destination === path)
+                        && systemBackup.has_backup(path))
+                    list.push({ kind: path === "/var/backups" ? "internal" : "folder", path: path, label: "", state: "" })
+            }
+            for (const m of media) {
+                if (m.hasBackup || m.state === "not_mounted")
+                    list.push({ kind: "usb", path: m.destination, label: m.label, device: m.device, state: m.state })
+            }
+            // The one opened stays listed, even while its drive is read again
+            if (view.sysDest !== "" && !list.some(p => p.path === view.sysDest))
+                list.push({ kind: "folder", path: view.sysDest, label: "", state: "" })
+            view.sysPlaces = list
         }
+    }
+    // Opens a system backup read-only (the backup tool's helper: a password) and lists
+    // its snapshots
+    function openSystem(path) {
+        view.say("")
+        view.source = null
+        view.snapshot = ""
+        view.sysSnapshots = []
+        view.sysDest = path
+        view.sysLoading = true
+        systemBackup.browse(path)
+    }
+    function releaseSystem() {
+        if (view.sysDest !== "")
+            systemBackup.release()
+        view.sysDest = ""
+        view.sysSnapshots = []
+        view.sysLoading = false
+    }
+    function chooseSystemSnapshot(snap) {
+        view.say("")
+        view.snapshot = snap.name
+        view.openSource({ kind: "system", root: snap.root, name: view.snapshotText(snap.name) })
+        if (!view.about.found)
+            view.say(qsTr("No AstroArch home folder was found in this backup."), true)
     }
     function chooseSnapshot(system, name) {
         view.chosenSystem = system
@@ -191,6 +254,9 @@ ColumnLayout {
         onFinished: (action, code, detail) => {
             if (action === "unmount")
                 return
+            // The page was left during the restore: the system backup is released now
+            if (action === "restore" && view.kind === "system" && !view.visible)
+                Qt.callLater(view.leave)
             if (code !== "") {
                 view.say(view.errorText(code, detail), true)
                 // A restore cut short may have set files aside already: they are listed
@@ -220,6 +286,33 @@ ColumnLayout {
         }
         property string diskName: ""
     }
+    // The system backup: the backup tool's own BackupManager (its bridge.rs) finds, mounts
+    // read-only and lists it
+    BackupManager {
+        id: systemBackup
+        onSnapshotsListed: (json, error) => {
+            view.sysLoading = false
+            if (view.kind !== "system" || view.sysDest === "")
+                return
+            if (error !== "") {
+                view.releaseSystem()
+                view.say(qsTr("The system backup could not be opened: %1").arg(error), true)
+                return
+            }
+            view.sysSnapshots = JSON.parse(json).filter(s => s.root !== "")
+            if (view.sysSnapshots.length === 0)
+                view.say(qsTr("This system backup holds no snapshot yet."), true)
+        }
+        onMediaMounted: (device, mountpoint, error) => {
+            if (error !== "")
+                view.say(qsTr("Could not mount the drive: %1").arg(error), true)
+            view.refreshPlaces()
+        }
+    }
+    // Another page shown: the system backup is released (during a restore, which reads it,
+    // when it finishes: onFinished)
+    onVisibleChanged: if (!visible && view.kind === "system" && !restore.busy) view.leave()
+
     // The places of the data backup, and how to connect a network folder: the Data backup
     // page's own code
     DataBackup {
@@ -354,6 +447,8 @@ ColumnLayout {
             model: [
                 { id: "backup", icon: "document-save", title: qsTr("A data backup"),
                   sub: qsTr("Made by the Control Center, on a USB drive, a network folder or this disk") },
+                { id: "system", icon: "drive-harddisk", title: qsTr("A system backup"),
+                  sub: qsTr("The whole system, saved by the AstroArch backup tool, even on another kind of computer. Only its profiles, settings and images are restored here, never its system.") },
                 { id: "disk", icon: "drive-removable-media", title: qsTr("An old AstroArch disk"),
                   sub: qsTr("The SD card or drive of your previous AstroArch, plugged in. It is only read, never changed.") },
                 { id: "astromonitor", icon: "folder-cloud", title: "AstroMonitor",
@@ -600,6 +695,85 @@ ColumnLayout {
             }
         }
 
+        // ---- Step 1, system backup: its places, the one opened, its snapshots
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: view.step === 1 && view.kind === "system"
+            spacing: 10
+            Label {
+                Layout.fillWidth: true
+                text: qsTr("Plug in the drive of the system backup if it is on one, open the backup (read-only: nothing in it is changed), then choose the date to go back to.")
+                color: "#34495e"
+                wrapMode: Text.Wrap
+            }
+            Label {
+                Layout.fillWidth: true
+                visible: view.sysPlaces.length === 0
+                text: qsTr("No system backup found yet. The list follows the drives you plug in.")
+                color: "#5d6d7e"
+                wrapMode: Text.Wrap
+            }
+            RowsBox {
+                visible: view.sysPlaces.length > 0
+                Repeater {
+                    model: view.sysPlaces
+                    ColumnLayout {
+                        id: sysPlace
+                        required property var modelData
+                        required property int index
+                        readonly property bool open: view.sysDest !== "" && view.sysDest === modelData.path
+                        Layout.fillWidth: true
+                        spacing: 0
+                        Separator { visible: sysPlace.index > 0 }
+                        ChoiceRow {
+                            icon: ({ internal: "drive-harddisk", usb: "drive-removable-media-usb" })[sysPlace.modelData.kind] || "folder"
+                            title: ({ internal: qsTr("This disk"), usb: qsTr("USB drive %1").arg(sysPlace.modelData.label), folder: qsTr("Folder") })[sysPlace.modelData.kind]
+                            detail: sysPlace.modelData.path
+                            note: sysPlace.modelData.state === "not_mounted" ? qsTr("Not mounted")
+                                : sysPlace.open && view.sysLoading ? qsTr("Reading the backup… Your password is asked.")
+                                : sysPlace.open ? qsTr("%n snapshot(s)", "", view.sysSnapshots.length)
+                                : qsTr("System backup")
+                            noteColor: sysPlace.modelData.state === "not_mounted" ? "#5d6d7e" : "#1e7a45"
+                            CardButton {
+                                visible: sysPlace.modelData.state === "not_mounted"
+                                enabled: !systemBackup.isRunning
+                                text: qsTr("Mount")
+                                onClicked: systemBackup.mount_media(sysPlace.modelData.device)
+                            }
+                            CardButton {
+                                visible: sysPlace.modelData.state !== "not_mounted" && !sysPlace.open
+                                enabled: !view.sysLoading && !restore.busy
+                                text: qsTr("Open read-only")
+                                Accessible.name: text + " · " + sysPlace.modelData.path
+                                onClicked: view.openSystem(sysPlace.modelData.path)
+                            }
+                        }
+                        // Its snapshots, newest first: any of them, whatever system it was made on
+                        Repeater {
+                            model: sysPlace.open ? view.sysSnapshots : []
+                            ChoiceRow {
+                                id: sysSnap
+                                required property var modelData
+                                Layout.leftMargin: 36
+                                icon: "computer"
+                                chosen: view.snapshot === modelData.name && !!view.source
+                                title: view.snapshotText(modelData.name)
+                                note: view.archNote(modelData)
+                                noteColor: modelData.foreign ? "#9a5b00" : "#5d6d7e"
+                                CardButton {
+                                    visible: !sysSnap.chosen
+                                    enabled: !restore.busy
+                                    text: qsTr("Choose")
+                                    Accessible.name: text + " · " + sysSnap.title
+                                    onClicked: view.chooseSystemSnapshot(sysSnap.modelData)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // ---- Step 1, old disk: its partitions, opened read-only
         ColumnLayout {
             Layout.fillWidth: true
@@ -709,6 +883,7 @@ ColumnLayout {
             Label {
                 Layout.fillWidth: true
                 text: view.kind === "backup" ? qsTr("From the backup of %1, as it was on %2.").arg(view.chosenSystem ? view.chosenSystem.id : "").arg(view.snapshotText(view.snapshot))
+                    : view.kind === "system" ? qsTr("From the system backup, as it was on %1.").arg(view.snapshotText(view.snapshot))
                     : view.kind === "disk" ? qsTr("From the disk %1.").arg(restore.diskName)
                     : qsTr("From your AstroMonitor backup.")
                 color: "#34495e"

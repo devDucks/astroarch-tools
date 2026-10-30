@@ -2,6 +2,45 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de">
 <context>
+    <name>FolderTreeWindow</name>
+    <message>
+        <source>Select the folders to exclude</source>
+        <translation>Auszuschließende Ordner auswählen</translation>
+    </message>
+    <message>
+        <source>Shared data folder</source>
+        <translation>Gemeinsamer Datenordner</translation>
+    </message>
+    <message>
+        <source>Your home folder</source>
+        <translation>Ihr Home-Ordner</translation>
+    </message>
+    <message>
+        <source>Check the folders you do NOT want to back up</source>
+        <translation>Wählen Sie die Ordner aus, die Sie NICHT sichern möchten</translation>
+    </message>
+    <message>
+        <source>🔒 Folders required by the system cannot be excluded.</source>
+        <translation>🔒 Vom System benötigte Ordner können nicht ausgeschlossen werden.</translation>
+    </message>
+    <message>
+        <source>Show hidden folders</source>
+        <translation>Versteckte Ordner anzeigen</translation>
+    </message>
+    <message>
+        <source>Select none</source>
+        <translation>Auswahl aufheben</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Abbrechen</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+</context>
+<context>
     <name>Main</name>
     <message>
         <source>AstroArch Backup Assistant</source>
@@ -104,6 +143,30 @@ Free some space, or untick the safety backup.</source>
 Geben Sie Speicherplatz frei oder deaktivieren Sie die Sicherheitskopie.</translation>
     </message>
     <message>
+        <source>Raspberry Pi</source>
+        <translation>Raspberry Pi</translation>
+    </message>
+    <message>
+        <source>PC</source>
+        <translation>PC</translation>
+    </message>
+    <message>
+        <source>32-bit ARM</source>
+        <translation>32-Bit-ARM</translation>
+    </message>
+    <message>
+        <source>From a %1 system (%2): settings and data only</source>
+        <translation>Von einem %1-System (%2): nur Einstellungen und Daten</translation>
+    </message>
+    <message>
+        <source>The system of this backup cannot be recognized: settings and data only</source>
+        <translation>Das System dieser Sicherung kann nicht erkannt werden: nur Einstellungen und Daten</translation>
+    </message>
+    <message>
+        <source>The whole system cannot be restored here. Its KStars, INDI and PHD2 settings and its images can: in the AstroArch Control Center, page “Restore from a backup”, source “A system backup”.</source>
+        <translation>Das gesamte System kann hier nicht wiederhergestellt werden. Seine Einstellungen für KStars, INDI und PHD2 und seine Bilder schon: im AstroArch-Kontrollzentrum, Seite „Aus einer Sicherung wiederherstellen“, Quelle „Eine Systemsicherung“.</translation>
+    </message>
+    <message>
         <source>%1 available</source>
         <translation>%1 verfügbar</translation>
     </message>
@@ -130,6 +193,10 @@ Geben Sie Speicherplatz frei oder deaktivieren Sie die Sicherheitskopie.</transl
     <message>
         <source>Cannot be used</source>
         <translation>Nicht verwendbar</translation>
+    </message>
+    <message>
+        <source>Nothing was changed.</source>
+        <translation>Es wurde nichts geändert.</translation>
     </message>
     <message>
         <source>The restore could not start. Nothing was changed.
@@ -444,45 +511,6 @@ Trotzdem beenden?</translation>
     <message>
         <source>Yes, leave</source>
         <translation>Ja, beenden</translation>
-    </message>
-</context>
-<context>
-    <name>FolderTreeWindow</name>
-    <message>
-        <source>Select the folders to exclude</source>
-        <translation>Auszuschließende Ordner auswählen</translation>
-    </message>
-    <message>
-        <source>Shared data folder</source>
-        <translation>Gemeinsamer Datenordner</translation>
-    </message>
-    <message>
-        <source>Your home folder</source>
-        <translation>Ihr Home-Ordner</translation>
-    </message>
-    <message>
-        <source>Check the folders you do NOT want to back up</source>
-        <translation>Wählen Sie die Ordner aus, die Sie NICHT sichern möchten</translation>
-    </message>
-    <message>
-        <source>🔒 Folders required by the system cannot be excluded.</source>
-        <translation>🔒 Vom System benötigte Ordner können nicht ausgeschlossen werden.</translation>
-    </message>
-    <message>
-        <source>Show hidden folders</source>
-        <translation>Versteckte Ordner anzeigen</translation>
-    </message>
-    <message>
-        <source>Select none</source>
-        <translation>Auswahl aufheben</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Abbrechen</translation>
-    </message>
-    <message>
-        <source>OK</source>
-        <translation>OK</translation>
     </message>
 </context>
 </TS>
