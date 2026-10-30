@@ -329,6 +329,11 @@ case ${1:-} in
         [[ $type == ntfs3 ]] && type=ntfs
         if mountpoint -q "$dir"; then echo "drive|$name|$type"; else echo "missing|$name|$type"; fi ;;
 
+    # The "Data and settings" backup is set up (a destination chosen) and its timer is on
+    data-backup)
+        grep -q '"path": *"/' "$CONFIG/astroarch/data-backup.json" 2>/dev/null \
+            && systemctl --user is-enabled -q astroarch-data-backup.timer 2>/dev/null ;;
+
     # ------------------------------------------------------------------ kiosk
     # astroarch-kiosk-setup (scripts/ of the astroarch repository) reads and changes the
     # kiosk. kiosk-setup prints the command that changes it, as root through pkexec:

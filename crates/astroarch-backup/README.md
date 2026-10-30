@@ -79,6 +79,9 @@ is here and the Control Center compiles the same files.
   no hard links), a network share already mounted, or Syncthing when installed (send-only
   folder on the Pi, the versions on the computer; a single copy `settings/current/`). The
   helper creates the folder once: `datadir --dest DIR`.
+- The page also chooses the **folders excluded from the system backup** with the same
+  list (folders of the home folder and of `/srv/astro-data`, the system ones locked),
+  stored in `~/.backup_dest` as before.
 - State of the last backup: `~/.local/state/astroarch/data-backup.json`; log:
   `journalctl --user -u astroarch-data-backup`.
 

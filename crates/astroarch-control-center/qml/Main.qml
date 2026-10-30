@@ -35,6 +35,7 @@ ApplicationWindow {
     //           messages when the label is not), or kind "keep" (stores the row's choice
     //           "kept") / "copy"
     //   view:   "software" shows the programs of the software installer in the page,
+    //           "backup" the backup tool (data and system profiles),
     //           "kiosk" the kiosk profiles and apps (KioskSetup.qml),
     //           "storage" moves the image folder to a drive and back,
     //           "services" the services of astroarch-sys-manager (ServicesView.qml)
@@ -133,6 +134,15 @@ ApplicationWindow {
                 { label: qsTr("PHD2 profile"), probe: "phd2-profile", missing: qsTr("None with a camera and a mount"),
                   actions: [ { label: qsTr("Open PHD2"), command: "phd2", tool: "PHD2" } ] }
             ]
+        },
+        {
+            id: "backup", setup: "recommended", topic: "data", detect: "data-backup",
+            title: qsTr("Data backup"),
+            intro: qsTr("KStars, PHD2 and INDI settings and your images, every 2 hours."),
+            detected: qsTr("The data backup is on"),
+            // Both profiles of the backup tool, in the page (DataBackupView.qml)
+            view: "backup",
+            rows: []
         },
         {
             id: "kiosk", setup: "optional", topic: "observing",
@@ -248,6 +258,25 @@ ApplicationWindow {
         const children = pageContent.children
         for (let i = 0; i < children.length; i++)
             if (children[i].visible && children[i].item && children[i].item.ownsPrimary === true)
+                return true
+        return false
+    }
+
+    // The view of the page runs a wizard (its property mode, "wizard"): its own Back / Next
+    // are the page's only navigation, the footer is hidden
+    readonly property bool viewWizard: {
+        const children = pageContent.children
+        for (let i = 0; i < children.length; i++)
+            if (children[i].visible && children[i].item && children[i].item.mode === "wizard")
+                return true
+        return false
+    }
+
+    // The view of the page shows buttons pinned under it (its property navShown, wizardNav)
+    readonly property bool viewNavShown: {
+        const children = pageContent.children
+        for (let i = 0; i < children.length; i++)
+            if (children[i].visible && children[i].item && children[i].item.navShown === true)
                 return true
         return false
     }
@@ -579,6 +608,23 @@ ApplicationWindow {
         onTriggered: root.now = new Date()
     }
 
+    // Scrolls the page so that `item`, inside it, is seen: its top first when it is taller
+    function reveal(item) {
+        const flick = pageScroll.contentItem
+        // Only what scrolls with the page (not the wizard buttons pinned under it)
+        let p = item
+        while (p && p !== flick.contentItem)
+            p = p.parent
+        if (!p)
+            return
+        const top = item.mapToItem(flick.contentItem, 0, 0).y
+        const bottom = top + item.height
+        if (top < flick.contentY)
+            flick.contentY = top
+        else if (bottom > flick.contentY + flick.height)
+            flick.contentY = Math.min(top, bottom - flick.height)
+    }
+
     // Enter = the focused text field's own Enter, else the focused button, else the primary
     // button of the page, unless its view shows its own (never "Apply" without a click);
     // Esc = "Set up later"
@@ -604,7 +650,7 @@ ApplicationWindow {
         onActivated: {
             const page = root.pageById(root.currentId)
             const status = root.statusOf(page)
-            if (!root.hidden && root.isTask(page) && (status === "" || status === "hold"))
+            if (!root.viewWizard && !root.hidden && root.isTask(page) && (status === "" || status === "hold"))
                 root.choose(page, "later")
         }
     }
@@ -1152,6 +1198,21 @@ ApplicationWindow {
                                 }
                             }
 
+                            Loader {
+                                id: backupView
+                                Layout.fillWidth: true
+                                visible: card.page.view === "backup"
+                                active: false
+                                onVisibleChanged: if (visible) active = true
+                                Component.onCompleted: if (visible) active = true
+                                sourceComponent: DataBackupView {
+                                    navHost: wizardNav
+                                    onSetupChanged: root.runProbes()
+                                    onScrollToTop: pageScroll.contentItem.contentY = 0
+                                    onReveal: (item) => root.reveal(item)
+                                }
+                            }
+
                             Kirigami.InlineMessage {
                                 Layout.fillWidth: true
                                 visible: root.message !== ""
@@ -1159,6 +1220,15 @@ ApplicationWindow {
                                 text: root.message
                             }
                         }
+                    }
+
+                    // The buttons of a view's wizard (Back, Next...) and its message, pinned
+                    // under the page as the footer is: the views move them here (navHost)
+                    ColumnLayout {
+                        id: wizardNav
+                        Layout.fillWidth: true
+                        spacing: 10
+                        visible: root.viewNavShown
                     }
 
                     // Footer: the setup actions of the page, always visible
@@ -1179,7 +1249,7 @@ ApplicationWindow {
 
                         Layout.fillWidth: true
                         spacing: 10
-                        visible: primaryAction !== null || (setupPage && card.status !== "done")
+                        visible: !root.viewWizard && (primaryAction !== null || (setupPage && card.status !== "done"))
 
                         Item {
                             Layout.fillWidth: true
