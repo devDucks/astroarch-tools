@@ -247,6 +247,26 @@ fn kxkb_apply(layout: &str, variant: Option<&str>) -> std::io::Result<()> {
     Ok(())
 }
 
+/// The layout in use now (first of the list) and its variant: the Plasma one (kxkbrc),
+/// else the system one (localectl). `None` when none is set
+pub fn current_layout() -> Option<(String, String)> {
+    let first = |list: &str| list.split(',').next().unwrap_or("").trim().to_string();
+    let layout = first(&kxkb_read("LayoutList"));
+    if !layout.is_empty() {
+        return Some((layout, first(&kxkb_read("VariantList"))));
+    }
+    let out = Command::new("localectl").arg("status").output().ok()?;
+    let text = String::from_utf8_lossy(&out.stdout).to_string();
+    let field = |name: &str| {
+        text.lines()
+            .find_map(|l| l.trim().strip_prefix(name))
+            .map(|v| first(v))
+            .unwrap_or_default()
+    };
+    let layout = field("X11 Layout:");
+    (!layout.is_empty() && layout != "(unset)").then(|| (layout, field("X11 Variant:")))
+}
+
 fn kxkb_save_backup_once() {
     if let Ok(mut guard) = LIVE_BACKUP.lock() {
         if guard.is_none() {

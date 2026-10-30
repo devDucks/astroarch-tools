@@ -13,6 +13,14 @@ ApplicationWindow {
     // Wayland: puts back the previous session layout if the user quits without applying
     onClosing: bridge.restore_keyboard_if_unsaved()
 
+    // "--page language" / "--page keyboard" opens on that page (the Control Center does,
+    // to change only that). Without it: the full flow, pre-filled from the location
+    readonly property int startPage: {
+        const args = Qt.application.arguments
+        const i = args.indexOf("--page")
+        return i >= 0 ? Math.max(0, ["location", "language", "keyboard"].indexOf(args[i + 1])) : 0
+    }
+
     LocaleBridge {
         id: bridge
     }
@@ -28,25 +36,21 @@ ApplicationWindow {
         return translatedLanguages.indexOf(lang) >= 0 ? lang : "en"
     }
 
-    Connections {
-        target: bridge
-
-        // Triggers automatically when poll_geolocation() sets selected_language_code
-        function onSelected_language_codeChanged() {
-            var langCode = bridge.selected_language_code;
-            if (langCode !== "") {
-                // Qt.uiLanguage: QQmlApplicationEngine then automatically loads
-                // i18n/qml_<language>.qm and re-evaluates the qsTr() functions (see build.rs)
-                Qt.uiLanguage = window.uiLanguageFor(langCode);
-            }
+    // The window follows a language the user chose (a language, or a country), never a
+    // guess from the location: it opens in the language of the session
+    function followLanguage() {
+        var langCode = bridge.selected_language_code
+        if (langCode !== "") {
+            // Qt.uiLanguage: QQmlApplicationEngine then automatically loads
+            // i18n/qml_<language>.qm and re-evaluates the qsTr() functions (see build.rs)
+            Qt.uiLanguage = window.uiLanguageFor(langCode)
         }
     }
-
 
     Timer {
         id: geoTimer
         interval: 200
-        running: !bridge.geo_detected
+        running: !bridge.geo_detected && window.startPage === 0
         repeat: true
         onTriggered: {
             bridge.poll_geolocation()
@@ -54,7 +58,7 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-        bridge.initialize()
+        bridge.initialize(window.startPage === 0)
     }
 
     ColumnLayout {
@@ -86,14 +90,18 @@ ApplicationWindow {
             id: stackLayout
             Layout.fillWidth: true
             Layout.fillHeight: true
-            currentIndex: 0
+            currentIndex: window.startPage
 
             LocationPage {
                 bridge: bridge
+                guessing: window.startPage === 0
+                onLanguageChosen: window.followLanguage()
             }
 
             LanguagePage {
                 bridge: bridge
+                guessing: window.startPage === 0
+                onLanguageChosen: window.followLanguage()
             }
 
             KeyboardPage {

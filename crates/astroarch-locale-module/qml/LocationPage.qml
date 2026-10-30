@@ -7,6 +7,25 @@ ColumnLayout {
     required property var bridge
     spacing: 16
 
+    // A country chosen by the user also chooses its language
+    signal languageChosen()
+    // The location is being guessed (full flow, not "--page")
+    property bool guessing: true
+
+    // Country names from Qt's locale data, in the country's own language ("Italia"),
+    // taken from the first of its locales that Qt knows
+    function nameOf(code, locales) {
+        for (const loc of locales.split(",")) {
+            const l = Qt.locale(loc)
+            if (l.name === loc && l.nativeTerritoryName)
+                return l.nativeTerritoryName
+        }
+        return code
+    }
+    readonly property var countries: Array.from(bridge.country_codes)
+        .map((code, i) => ({ code: code, name: nameOf(code, bridge.country_locales[i]) }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+
     Label {
         text: qsTr("Choose your location")
         font.pixelSize: 20
@@ -17,7 +36,7 @@ ColumnLayout {
         id: countryCombo
         Layout.fillWidth: true
         Layout.maximumWidth: 480
-        model: bridge.country_display_names
+        model: root.countries.map(c => c.name)
 
         Component.onCompleted: updateSelection()
 
@@ -29,14 +48,14 @@ ColumnLayout {
         }
 
         function updateSelection() {
-            var idx = bridge.country_codes.indexOf(bridge.selected_country_code)
+            var idx = root.countries.findIndex(c => c.code === bridge.selected_country_code)
             if (idx >= 0) currentIndex = idx
         }
 
         onActivated: (index) => {
-            if (index >= 0 && index < bridge.country_codes.length) {
-                var code = bridge.country_codes[index]
-                bridge.set_country(code)
+            if (index >= 0 && index < root.countries.length) {
+                bridge.set_country(root.countries[index].code)
+                root.languageChosen()
             }
         }
     }
@@ -52,12 +71,13 @@ ColumnLayout {
             target: worldMap
             function onCountryPicked(code) {
                 bridge.set_country(code)
+                root.languageChosen()
             }
         }
     }
 
     Label {
-        visible: !bridge.geo_detected
+        visible: root.guessing && !bridge.geo_detected
         text: qsTr("Detecting location...")
         opacity: 0.6
     }
