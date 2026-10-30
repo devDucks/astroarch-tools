@@ -1,11 +1,14 @@
 //! QObject of the "Restore from a backup" page (qml/RestoreView.qml).
 //!
-//! Three sources, one model: a folder that holds the files of another (or this) AstroArch
+//! Four sources, one model: a folder that holds the files of another (or this) AstroArch
 //! at their absolute paths, e.g. <root>/home/astronaut/.indi.
 //!   - a snapshot of the data backup: <dest>/<id>/settings/snapshot-DATE (settings) and
 //!     <dest>/<id>/data (images), as data_profile.rs writes them
 //!   - an old AstroArch disk, mounted read-only by the root helper under /run/astroarch-cc-restore
 //!   - the AstroMonitor backup, downloaded from its server and laid out the same way
+//!   - a snapshot of the system backup (the backup tool's btrfs image), mounted read-only by
+//!     its own helper (BackupManager.browse): <browse mount>/snapshots/<name>. Even one of
+//!     another architecture (a Raspberry Pi's on a PC): only settings and data are copied
 //!
 //! What can be restored is the catalog of the data backup (data/data-profile.toml of the
 //! backup tool, compiled in): the same rows, the same plan, read in the source instead of
@@ -52,7 +55,7 @@ pub mod qobject {
         fn disks(self: &RestoreManager) -> QString;
 
         // `source` (all calls): JSON {kind: "backup", folder, snapshot} | {kind: "disk",
-        // root, name} | {kind: "astromonitor", root}
+        // root, name} | {kind: "astromonitor", root} | {kind: "system", root, name}
         // What it holds, JSON: {user, kiosk, version, hostname, found}
         #[qinvokable]
         fn describe(self: &RestoreManager, source: &QString) -> QString;
@@ -195,7 +198,7 @@ impl Source {
                 let id = folder.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
                 (folder.join("settings").join(&snapshot), folder.join("data"), format!("backup|{id} {snapshot}"))
             }
-            kind @ ("disk" | "astromonitor") => {
+            kind @ ("disk" | "astromonitor" | "system") => {
                 let root = PathBuf::from(text("root"));
                 (root.clone(), root, format!("{kind}|{}", text("name")))
             }
@@ -948,6 +951,27 @@ mod tests {
         let images = r["groups"].as_array().unwrap().iter().find(|g| g["id"] == "images").unwrap();
         assert_eq!(images["items"][0]["children"][0]["key"], "/srv/astro-data/Dark");
         assert!(Source::parse(&json!({ "kind": "backup", "folder": folder, "snapshot": "../x" }).to_string(), &h).is_err());
+        let _ = std::fs::remove_dir_all(base);
+    }
+
+    #[test]
+    fn system_backup_snapshot_root() {
+        let base = tmp("system");
+        let root = base.join("browse/snapshots/2026-10-29_220554");
+        old_disk(&root);
+        file(&root.join("usr/bin/bash"), "elf");
+        let h = here(&base, true);
+        let spec = json!({ "kind": "system", "root": root, "name": "2026-10-29" }).to_string();
+        let s = Source::parse(&spec, &h).unwrap();
+        assert_eq!(s.settings, root);
+        assert_eq!(s.data, root);
+        assert_eq!(s.label, "system|2026-10-29");
+        assert_eq!(s.homes.user, "astronaut");
+        // Only the catalog's paths: never the system's own files
+        let p = plan(&profile::catalog(), &s, &[], &h);
+        assert!(p.entries.iter().any(|e| e.src == root.join("home/astronaut/.indi")));
+        assert!(p.entries.iter().all(|e| e.src.starts_with(root.join("home")) || e.src.starts_with(root.join("srv/astro-data"))));
+        assert!(Source::parse(&json!({ "kind": "system", "root": "relative" }).to_string(), &h).is_err());
         let _ = std::fs::remove_dir_all(base);
     }
 

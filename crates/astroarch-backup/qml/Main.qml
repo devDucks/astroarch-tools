@@ -145,6 +145,21 @@ ApplicationWindow {
         return name.substr(0, 10) + "   " + name.substr(11, 2) + ":" + name.substr(13, 2) + ":" + name.substr(15, 2)
     }
 
+    // A snapshot of another architecture (a Raspberry Pi backup on a PC...): its system cannot
+    // run here, its settings and data can be restored by the Control Center
+    function archName(arch) {
+        return ({ aarch64: qsTr("Raspberry Pi"), x86_64: qsTr("PC"), arm: qsTr("32-bit ARM") })[arch] || arch
+    }
+    function foreignText(arch) {
+        return qsTr("From a %1 system (%2): settings and data only").arg(archName(arch)).arg(arch)
+    }
+    // Not restorable whole: another architecture, or one that cannot be recognized
+    function notRestorableText(snap) {
+        return snap.foreign ? foreignText(snap.arch)
+                            : qsTr("The system of this backup cannot be recognized: settings and data only")
+    }
+    readonly property string controlCenterText: qsTr("The whole system cannot be restored here. Its KStars, INDI and PHD2 settings and its images can: in the AstroArch Control Center, page “Restore from a backup”, source “A system backup”.")
+
     function chooseSnapshot(name) {
         restoreSnapshot = name
         safetyBackup = true
@@ -285,7 +300,16 @@ ApplicationWindow {
             // The desktop will close: the rest of the process will take place in text mode
         }
 
-        onRestoreFailed: (errorText) => {
+        onRestoreFailed: (code, errorText) => {
+            // 44: a backup of another architecture (the helper checks it too)
+            if (code === 44) {
+                const snap = mainWindow.snapshotList.find(s => s.name === mainWindow.restoreSnapshot)
+                messageDialog.show(qsTr("❌ Error"),
+                    (snap ? mainWindow.notRestorableText(snap) + "\n\n" : "")
+                    + mainWindow.controlCenterText + "\n\n" + qsTr("Nothing was changed."))
+                mainWindow.currentState = "restore_snapshots"
+                return
+            }
             messageDialog.show(qsTr("❌ Error"),
                 qsTr("The restore could not start. Nothing was changed.\n\n%1").arg(errorText))
             mainWindow.currentState = "restore_confirm"
@@ -991,32 +1015,51 @@ ApplicationWindow {
 
                         delegate: Rectangle {
                             width: snapshotView.width
-                            height: 56
+                            height: Math.max(56, snapshotRow.implicitHeight + 20)
                             radius: 6
                             color: "white"
                             border.color: "#bdc3c7"
 
                             RowLayout {
-                                anchors.fill: parent
+                                id: snapshotRow
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
                                 anchors.margins: 10
                                 spacing: 12
 
-                                Text {
+                                ColumnLayout {
                                     Layout.fillWidth: true
-                                    text: mainWindow.formatSnapshot(modelData.name)
-                                    font.bold: true
-                                    color: "#2c3e50"
+                                    spacing: 2
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: mainWindow.formatSnapshot(modelData.name)
+                                        font.bold: true
+                                        color: "#2c3e50"
+                                    }
+
+                                    // Another or an unknown architecture: the Control Center restores its
+                                    // settings and data
+                                    Text {
+                                        Layout.fillWidth: true
+                                        visible: modelData.restorable !== true
+                                        text: mainWindow.notRestorableText(modelData) + "\n" + mainWindow.controlCenterText
+                                        color: "#e67e22"
+                                        font.pixelSize: 12
+                                        wrapMode: Text.Wrap
+                                    }
                                 }
 
                                 Text {
-                                    visible: !modelData.boot
+                                    visible: !modelData.boot && modelData.restorable === true
                                     text: qsTr("No boot partition: cannot be restored")
                                     color: "#e67e22"
                                     font.pixelSize: 12
                                 }
 
                                 Button {
-                                    visible: modelData.boot === true
+                                    visible: modelData.boot === true && modelData.restorable === true
                                     text: qsTr("Restore this backup")
                                     onClicked: mainWindow.chooseSnapshot(modelData.name)
                                 }

@@ -1085,11 +1085,6 @@
         <translation>Standard: astro</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="149"/>
-        <source>Bring back your KStars, INDI and PHD2 profiles and settings, and your images if you want, from a data backup, an old AstroArch disk or AstroMonitor.</source>
-        <translation>Holen Sie Ihre KStars-, INDI- und PHD2-Profile und -Einstellungen zurück, auf Wunsch auch Ihre Bilder: aus einer Datensicherung, einem alten AstroArch-Datenträger oder AstroMonitor.</translation>
-    </message>
-    <message>
         <location filename="../qml/Main.qml" line="183"/>
         <source>A lighter second desktop for the field: it opens only the one or two imaging programs you use, and can reopen them if they close. Reach it by remote desktop on port 3390, next to the main desktop.</source>
         <translation>Ein leichterer zweiter Desktop für unterwegs: Er öffnet nur die ein oder zwei Aufnahmeprogramme, die Sie verwenden, und kann sie wieder öffnen, wenn sie sich schließen. Erreichbar per Remote-Desktop auf Port 3390, neben dem Haupt-Desktop.</translation>
@@ -1413,6 +1408,11 @@
         <location filename="../qml/Main.qml" line="90"/>
         <source>The time zone could not be set.</source>
         <translation>Die Zeitzone konnte nicht eingestellt werden.</translation>
+    </message>
+    <message>
+        <location filename="../qml/Main.qml" line="149"/>
+        <source>Bring back your KStars, INDI and PHD2 profiles and settings, and your images if you want, from a data backup, a system backup, an old AstroArch disk or AstroMonitor.</source>
+        <translation>Holen Sie Ihre KStars-, INDI- und PHD2-Profile und -Einstellungen zurück, auf Wunsch auch Ihre Bilder: aus einer Datensicherung, einer Systemsicherung, einem alten AstroArch-Datenträger oder AstroMonitor.</translation>
     </message>
     <message>
         <location filename="../qml/Main.qml" line="151"/>
@@ -1807,164 +1807,220 @@
 <context>
     <name>RestoreView</name>
     <message>
-        <location filename="../qml/RestoreView.qml" line="51"/>
+        <location filename="../qml/RestoreView.qml" line="59"/>
         <source>Where from</source>
         <translation>Woher</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="51"/>
+        <location filename="../qml/RestoreView.qml" line="59"/>
         <source>What to restore</source>
         <translation>Was wiederherstellen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="51"/>
-        <location filename="../qml/RestoreView.qml" line="839"/>
+        <location filename="../qml/RestoreView.qml" line="59"/>
+        <location filename="../qml/RestoreView.qml" line="1010"/>
         <source>Restore</source>
         <translation>Wiederherstellen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="70"/>
+        <location filename="../qml/RestoreView.qml" line="78"/>
         <source>Latest copy (Syncthing)</source>
         <translation>Letzte Kopie (Syncthing)</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="75"/>
+        <location filename="../qml/RestoreView.qml" line="85"/>
+        <source>Raspberry Pi</source>
+        <translation>Raspberry Pi</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="85"/>
+        <source>PC</source>
+        <translation>PC</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="85"/>
+        <source>32-bit ARM</source>
+        <translation>32-Bit-ARM</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="87"/>
+        <source>From a %1 system (%2): settings and data only</source>
+        <translation>Von einem %1-System (%2): nur Einstellungen und Daten</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="88"/>
+        <source>From a %1 system (%2), like this one</source>
+        <translation>Von einem %1-System (%2), wie dieses</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="91"/>
         <source>INDI server</source>
         <translation>den INDI-Server</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="79"/>
+        <location filename="../qml/RestoreView.qml" line="95"/>
         <source>a data backup</source>
         <translation>einer Datensicherung</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="79"/>
+        <location filename="../qml/RestoreView.qml" line="95"/>
         <source>an old AstroArch disk</source>
         <translation>einem alten AstroArch-Datenträger</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="83"/>
+        <location filename="../qml/RestoreView.qml" line="95"/>
+        <source>a system backup</source>
+        <translation>einer Systemsicherung</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="100"/>
         <source>Authentication cancelled or refused.</source>
         <translation>Authentifizierung abgebrochen oder abgelehnt.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="84"/>
-        <location filename="../qml/RestoreView.qml" line="737"/>
+        <location filename="../qml/RestoreView.qml" line="101"/>
+        <location filename="../qml/RestoreView.qml" line="908"/>
         <source>Close %1 first: they would write over the restored files.</source>
         <translation>Schließen Sie zuerst %1: Sie würden die wiederhergestellten Dateien überschreiben.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="85"/>
+        <location filename="../qml/RestoreView.qml" line="102"/>
         <source>The restore helper is not installed (%1).</source>
         <translation>Das Wiederherstellungs-Hilfsprogramm ist nicht installiert (%1).</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="86"/>
+        <location filename="../qml/RestoreView.qml" line="103"/>
         <source>No AstroMonitor backup was found for this token.</source>
         <translation>Für dieses Token wurde keine AstroMonitor-Sicherung gefunden.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="87"/>
+        <location filename="../qml/RestoreView.qml" line="104"/>
         <source>The AstroArch server could not be reached: %1</source>
         <translation>Der AstroArch-Server ist nicht erreichbar: %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="88"/>
+        <location filename="../qml/RestoreView.qml" line="105"/>
         <source>This token is not valid: copy it again from the AstroMonitor bot.</source>
         <translation>Dieses Token ist ungültig: Kopieren Sie es erneut aus dem AstroMonitor-Bot.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="89"/>
+        <location filename="../qml/RestoreView.qml" line="106"/>
         <source>Nothing to restore: tick at least one row that is in the backup.</source>
         <translation>Nichts wiederherzustellen: Haken Sie mindestens eine Zeile an, die in der Sicherung ist.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="90"/>
+        <location filename="../qml/RestoreView.qml" line="107"/>
         <source>This is the disk AstroArch runs from.</source>
         <translation>Von diesem Datenträger läuft AstroArch gerade.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="91"/>
+        <location filename="../qml/RestoreView.qml" line="108"/>
         <source>This partition cannot hold an AstroArch system (%1).</source>
         <translation>Diese Partition kann kein AstroArch-System enthalten (%1).</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="92"/>
+        <location filename="../qml/RestoreView.qml" line="109"/>
         <source>The disk could not be opened: %1</source>
         <translation>Der Datenträger konnte nicht geöffnet werden: %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="93"/>
+        <location filename="../qml/RestoreView.qml" line="110"/>
         <source>Some files could not be put back: they stay in “Earlier restores”, to try again.</source>
         <translation>Einige Dateien konnten nicht zurückgeholt werden: Sie bleiben unter „Frühere Wiederherstellungen“, für einen neuen Versuch.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="94"/>
+        <location filename="../qml/RestoreView.qml" line="111"/>
         <source>It did not work: %1</source>
         <translation>Das hat nicht funktioniert: %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="206"/>
+        <location filename="../qml/RestoreView.qml" line="200"/>
+        <source>No AstroArch home folder was found in this backup.</source>
+        <translation>In dieser Sicherung wurde kein AstroArch-Benutzerordner gefunden.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="269"/>
         <source>No AstroArch home folder was found on this partition: is it the system partition of your old AstroArch?</source>
         <translation>Auf dieser Partition wurde kein AstroArch-Benutzerordner gefunden: Ist es die Systempartition Ihres alten AstroArch?</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="209"/>
+        <location filename="../qml/RestoreView.qml" line="272"/>
         <source>Your AstroMonitor backup was downloaded. Continue to choose what to restore.</source>
         <translation>Ihre AstroMonitor-Sicherung wurde heruntergeladen. Fahren Sie fort, um auszuwählen, was wiederhergestellt wird.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="216"/>
+        <location filename="../qml/RestoreView.qml" line="279"/>
         <source>What was there before the restore is back.</source>
         <translation>Was vor der Wiederherstellung da war, ist zurück.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="229"/>
+        <location filename="../qml/RestoreView.qml" line="296"/>
+        <source>The system backup could not be opened: %1</source>
+        <translation>Die Systemsicherung konnte nicht geöffnet werden: %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="301"/>
+        <source>This system backup holds no snapshot yet.</source>
+        <translation>Diese Systemsicherung enthält noch keinen Snapshot.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="305"/>
+        <location filename="../qml/RestoreView.qml" line="318"/>
         <source>Could not mount the drive: %1</source>
         <translation>Das Laufwerk konnte nicht eingehängt werden: %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="349"/>
+        <location filename="../qml/RestoreView.qml" line="438"/>
         <source>Where are your profiles? What you have now is never lost: it is set aside, and can be put back.</source>
         <translation>Wo sind Ihre Profile? Was Sie jetzt haben, geht nie verloren: Es wird beiseitegelegt und kann zurückgeholt werden.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="355"/>
+        <location filename="../qml/RestoreView.qml" line="444"/>
         <source>A data backup</source>
         <translation>Eine Datensicherung</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="356"/>
+        <location filename="../qml/RestoreView.qml" line="445"/>
         <source>Made by the Control Center, on a USB drive, a network folder or this disk</source>
         <translation>Vom Kontrollzentrum erstellt, auf einem USB-Laufwerk, einem Netzwerkordner oder diesem Datenträger</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="357"/>
+        <location filename="../qml/RestoreView.qml" line="446"/>
+        <source>A system backup</source>
+        <translation>Eine Systemsicherung</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="447"/>
+        <source>The whole system, saved by the AstroArch backup tool, even on another kind of computer. Only its profiles, settings and images are restored here, never its system.</source>
+        <translation>Das gesamte System, gesichert vom AstroArch-Sicherungsprogramm, auch auf einem anderen Computertyp. Hier werden nur seine Profile, Einstellungen und Bilder wiederhergestellt, nie sein System.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="448"/>
         <source>An old AstroArch disk</source>
         <translation>Ein alter AstroArch-Datenträger</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="358"/>
+        <location filename="../qml/RestoreView.qml" line="449"/>
         <source>The SD card or drive of your previous AstroArch, plugged in. It is only read, never changed.</source>
         <translation>Die SD-Karte oder das Laufwerk Ihres bisherigen AstroArch, angeschlossen. Es wird nur gelesen, nie verändert.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="360"/>
+        <location filename="../qml/RestoreView.qml" line="451"/>
         <source>The KStars, INDI and PHD2 profiles AstroMonitor keeps on the AstroArch server</source>
         <translation>Die KStars-, INDI- und PHD2-Profile, die AstroMonitor auf dem AstroArch-Server aufbewahrt</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="424"/>
+        <location filename="../qml/RestoreView.qml" line="515"/>
         <source>Earlier restores</source>
         <translation>Frühere Wiederherstellungen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="441"/>
+        <location filename="../qml/RestoreView.qml" line="532"/>
         <source>%1, from %2</source>
         <translation>%1, aus %2</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="443"/>
+        <location filename="../qml/RestoreView.qml" line="534"/>
         <source>%n file(s) restored. What they replaced is kept here.</source>
         <translation>
             <numerusform>%n Datei wiederhergestellt. Was sie ersetzt hat, wird hier aufbewahrt.</numerusform>
@@ -1972,53 +2028,56 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="446"/>
-        <location filename="../qml/RestoreView.qml" line="830"/>
+        <location filename="../qml/RestoreView.qml" line="537"/>
+        <location filename="../qml/RestoreView.qml" line="1001"/>
         <source>Put back what was there before</source>
         <translation>Vorherigen Stand zurückholen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="467"/>
+        <location filename="../qml/RestoreView.qml" line="558"/>
         <source>Step %1 of %2</source>
         <translation>Schritt %1 von %2</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="502"/>
+        <location filename="../qml/RestoreView.qml" line="593"/>
         <source>Plug in the drive of the backup, or connect its network folder. Then choose the date to go back to.</source>
         <translation>Schließen Sie das Laufwerk der Sicherung an oder verbinden Sie ihren Netzwerkordner. Wählen Sie dann das Datum, zu dem Sie zurückkehren möchten.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="509"/>
+        <location filename="../qml/RestoreView.qml" line="600"/>
         <source>No data backup found yet. The list follows the drives you plug in.</source>
         <translation>Noch keine Datensicherung gefunden. Die Liste folgt den Laufwerken, die Sie anschließen.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="527"/>
+        <location filename="../qml/RestoreView.qml" line="618"/>
+        <location filename="../qml/RestoreView.qml" line="726"/>
         <source>This disk</source>
         <translation>Dieser Datenträger</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="527"/>
+        <location filename="../qml/RestoreView.qml" line="618"/>
+        <location filename="../qml/RestoreView.qml" line="726"/>
         <source>USB drive %1</source>
         <translation>USB-Laufwerk %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="527"/>
+        <location filename="../qml/RestoreView.qml" line="618"/>
         <source>Network folder %1</source>
         <translation>Netzwerkordner %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="529"/>
+        <location filename="../qml/RestoreView.qml" line="620"/>
+        <location filename="../qml/RestoreView.qml" line="728"/>
         <source>Not mounted</source>
         <translation>Nicht eingehängt</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="530"/>
+        <location filename="../qml/RestoreView.qml" line="621"/>
         <source>No data backup here</source>
         <translation>Hier keine Datensicherung</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="530"/>
+        <location filename="../qml/RestoreView.qml" line="621"/>
         <source>%n backup(s) here</source>
         <translation>
             <numerusform>%n Sicherung hier</numerusform>
@@ -2026,17 +2085,18 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="535"/>
+        <location filename="../qml/RestoreView.qml" line="626"/>
+        <location filename="../qml/RestoreView.qml" line="736"/>
         <source>Mount</source>
         <translation>Einhängen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="551"/>
+        <location filename="../qml/RestoreView.qml" line="642"/>
         <source>this AstroArch</source>
         <translation>dieses AstroArch</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="553"/>
+        <location filename="../qml/RestoreView.qml" line="644"/>
         <source>Settings from %1 · %n date(s) to choose from</source>
         <translation>
             <numerusform>Einstellungen vom %1 · %n Zeitpunkt zur Auswahl</numerusform>
@@ -2044,169 +2104,209 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="555"/>
+        <location filename="../qml/RestoreView.qml" line="646"/>
         <source>Images only</source>
         <translation>Nur Bilder</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="558"/>
+        <location filename="../qml/RestoreView.qml" line="649"/>
+        <location filename="../qml/RestoreView.qml" line="762"/>
         <source>Choose</source>
         <translation>Wählen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="588"/>
+        <location filename="../qml/RestoreView.qml" line="679"/>
         <source>Connect a network folder…</source>
         <translation>Netzwerkordner verbinden…</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="610"/>
+        <location filename="../qml/RestoreView.qml" line="701"/>
+        <source>Plug in the drive of the system backup if it is on one, open the backup (read-only: nothing in it is changed), then choose the date to go back to.</source>
+        <translation>Schließen Sie das Laufwerk der Systemsicherung an, falls sie auf einem liegt, öffnen Sie die Sicherung (schreibgeschützt: darin wird nichts geändert) und wählen Sie dann das Datum, zu dem Sie zurückkehren möchten.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="708"/>
+        <source>No system backup found yet. The list follows the drives you plug in.</source>
+        <translation>Noch keine Systemsicherung gefunden. Die Liste folgt den Laufwerken, die Sie anschließen.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="726"/>
+        <source>Folder</source>
+        <translation>Ordner</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="729"/>
+        <source>Reading the backup… Your password is asked.</source>
+        <translation>Sicherung wird gelesen… Ihr Passwort wird abgefragt.</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../qml/RestoreView.qml" line="730"/>
+        <source>%n snapshot(s)</source>
+        <translation>
+            <numerusform>%n Snapshot</numerusform>
+            <numerusform>%n Snapshots</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="731"/>
+        <source>System backup</source>
+        <translation>Systemsicherung</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="780"/>
         <source>Plug in the SD card (with a card reader) or the drive of your old AstroArch, then open its system partition. It is opened read-only: nothing on it is changed, and nothing of its system is copied, only your profiles and images.</source>
         <translation>Schließen Sie die SD-Karte (mit einem Kartenleser) oder das Laufwerk Ihres alten AstroArch an und öffnen Sie dann seine Systempartition. Sie wird schreibgeschützt geöffnet: Nichts darauf wird verändert, und nichts von seinem System wird kopiert, nur Ihre Profile und Bilder.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="617"/>
+        <location filename="../qml/RestoreView.qml" line="787"/>
         <source>No disk found yet. The list follows the disks you plug in.</source>
         <translation>Noch kein Datenträger gefunden. Die Liste folgt den Datenträgern, die Sie anschließen.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="640"/>
+        <location filename="../qml/RestoreView.qml" line="810"/>
         <source>AstroArch</source>
         <translation>AstroArch</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="641"/>
+        <location filename="../qml/RestoreView.qml" line="811"/>
         <source>user %1</source>
         <translation>Benutzer %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="642"/>
+        <location filename="../qml/RestoreView.qml" line="812"/>
         <source>with a kiosk desktop</source>
         <translation>mit Kiosk-Desktop</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="643"/>
+        <location filename="../qml/RestoreView.qml" line="813"/>
         <source>No AstroArch home folder on this partition</source>
         <translation>Kein AstroArch-Benutzerordner auf dieser Partition</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="644"/>
+        <location filename="../qml/RestoreView.qml" line="814"/>
         <source>Looks like an AstroArch system</source>
         <translation>Sieht nach einem AstroArch-System aus</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="649"/>
+        <location filename="../qml/RestoreView.qml" line="819"/>
         <source>Waiting for the password…</source>
         <translation>Warten auf das Passwort…</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="649"/>
-        <location filename="../qml/RestoreView.qml" line="650"/>
+        <location filename="../qml/RestoreView.qml" line="742"/>
+        <location filename="../qml/RestoreView.qml" line="819"/>
+        <location filename="../qml/RestoreView.qml" line="820"/>
         <source>Open read-only</source>
         <translation>Schreibgeschützt öffnen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="673"/>
+        <location filename="../qml/RestoreView.qml" line="843"/>
         <source>AstroMonitor keeps your profiles under your token, the one the Telegram bot @AstroMonitorBot gave you with /register. On a new AstroArch, paste it here.</source>
         <translation>AstroMonitor bewahrt Ihre Profile unter Ihrem Token auf, dem, das Ihnen der Telegram-Bot @AstroMonitorBot mit /register gegeben hat. Fügen Sie es auf einem neuen AstroArch hier ein.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="680"/>
+        <location filename="../qml/RestoreView.qml" line="850"/>
         <source>Token</source>
         <translation>Token</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="684"/>
+        <location filename="../qml/RestoreView.qml" line="854"/>
         <source>AstroMonitor token</source>
         <translation>AstroMonitor-Token</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="691"/>
+        <location filename="../qml/RestoreView.qml" line="861"/>
         <source>Downloading…</source>
         <translation>Wird heruntergeladen…</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="691"/>
+        <location filename="../qml/RestoreView.qml" line="861"/>
         <source>Download</source>
         <translation>Herunterladen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="697"/>
+        <location filename="../qml/RestoreView.qml" line="867"/>
         <source>It holds KStars profiles, equipment and settings, INDI driver settings and the PHD2 profile, as of your last “Take Backup” in AstroMonitor.</source>
         <translation>Sie enthält KStars-Profile, -Ausrüstung und -Einstellungen, die INDI-Treibereinstellungen und das PHD2-Profil, Stand Ihres letzten „Take Backup“ in AstroMonitor.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="711"/>
+        <location filename="../qml/RestoreView.qml" line="881"/>
         <source>From the backup of %1, as it was on %2.</source>
         <translation>Aus der Sicherung von %1, Stand %2.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="712"/>
+        <location filename="../qml/RestoreView.qml" line="882"/>
+        <source>From the system backup, as it was on %1.</source>
+        <translation>Aus der Systemsicherung, Stand %1.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="883"/>
         <source>From the disk %1.</source>
         <translation>Vom Datenträger %1.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="713"/>
+        <location filename="../qml/RestoreView.qml" line="884"/>
         <source>From your AstroMonitor backup.</source>
         <translation>Aus Ihrer AstroMonitor-Sicherung.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="722"/>
-        <location filename="../qml/RestoreView.qml" line="723"/>
+        <location filename="../qml/RestoreView.qml" line="893"/>
+        <location filename="../qml/RestoreView.qml" line="894"/>
         <source>Not in this backup</source>
         <translation>Nicht in dieser Sicherung</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="728"/>
+        <location filename="../qml/RestoreView.qml" line="899"/>
         <source>Each file replaced is first moved to ~/.local/share/astroarch/restore-DATE: this page can put it back. Images are only added: those already here are kept.</source>
         <translation>Jede ersetzte Datei wird zuerst nach ~/.local/share/astroarch/restore-DATUM verschoben: Diese Seite kann sie zurückholen. Bilder werden nur hinzugefügt: Vorhandene bleiben erhalten.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="749"/>
+        <location filename="../qml/RestoreView.qml" line="920"/>
         <source>Waiting for your password…</source>
         <translation>Warte auf Ihr Passwort…</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="750"/>
+        <location filename="../qml/RestoreView.qml" line="921"/>
         <source>Restoring… %1%</source>
         <translation>Wird wiederhergestellt… %1 %</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="750"/>
+        <location filename="../qml/RestoreView.qml" line="921"/>
         <source>Restoring…</source>
         <translation>Wird wiederhergestellt…</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="774"/>
+        <location filename="../qml/RestoreView.qml" line="945"/>
         <source>Restored. KStars, PHD2 and the Equipment page now find your profiles.</source>
         <translation>Wiederhergestellt. KStars, PHD2 und die Seite Ausrüstung finden jetzt Ihre Profile.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="782"/>
+        <location filename="../qml/RestoreView.qml" line="953"/>
         <source>What was there before is kept in %1.</source>
         <translation>Der vorherige Stand wird in %1 aufbewahrt.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="789"/>
+        <location filename="../qml/RestoreView.qml" line="960"/>
         <source>Some kiosk profiles were left as they are here: the Kiosk page sets whether the kiosk shares the profiles of the main desktop.</source>
         <translation>Einige Kiosk-Profile blieben hier unverändert: Die Kiosk-Seite legt fest, ob der Kiosk die Profile des Hauptdesktops teilt.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="823"/>
+        <location filename="../qml/RestoreView.qml" line="994"/>
         <source>Cancel</source>
         <translation>Abbrechen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="823"/>
+        <location filename="../qml/RestoreView.qml" line="994"/>
         <source>Back</source>
         <translation>Zurück</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="839"/>
+        <location filename="../qml/RestoreView.qml" line="1010"/>
         <source>Next</source>
         <translation>Weiter</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="845"/>
+        <location filename="../qml/RestoreView.qml" line="1016"/>
         <source>Finish</source>
         <translation>Abschließen</translation>
     </message>

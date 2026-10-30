@@ -2,6 +2,45 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="fr">
 <context>
+    <name>FolderTreeWindow</name>
+    <message>
+        <source>Select the folders to exclude</source>
+        <translation>Sélectionner les dossiers à exclure</translation>
+    </message>
+    <message>
+        <source>Shared data folder</source>
+        <translation>Dossier de données partagé</translation>
+    </message>
+    <message>
+        <source>Your home folder</source>
+        <translation>Votre dossier personnel</translation>
+    </message>
+    <message>
+        <source>Check the folders you do NOT want to back up</source>
+        <translation>Cochez les dossiers que vous ne voulez PAS sauvegarder</translation>
+    </message>
+    <message>
+        <source>🔒 Folders required by the system cannot be excluded.</source>
+        <translation>🔒 Les dossiers nécessaires au système ne peuvent pas être exclus.</translation>
+    </message>
+    <message>
+        <source>Show hidden folders</source>
+        <translation>Afficher les dossiers cachés</translation>
+    </message>
+    <message>
+        <source>Select none</source>
+        <translation>Tout désélectionner</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Annuler</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+</context>
+<context>
     <name>Main</name>
     <message>
         <source>AstroArch Backup Assistant</source>
@@ -21,7 +60,7 @@
     </message>
     <message>
         <source>Creating the snapshot...</source>
-        <translation>Création de l'instantané...</translation>
+        <translation>Création de l&apos;instantané...</translation>
     </message>
     <message>
         <source>Verifying the backup...</source>
@@ -87,7 +126,7 @@
         <source>The space analysis failed:
 
 %1</source>
-        <translation>L'analyse de l'espace a échoué :
+        <translation>L&apos;analyse de l&apos;espace a échoué :
 
 %1</translation>
     </message>
@@ -99,9 +138,33 @@
         <source>There is not enough space for the safety backup (%1 needed, %2 available).
 
 Free some space, or untick the safety backup.</source>
-        <translation>Il n'y a pas assez de place pour la sauvegarde de sécurité (%1 nécessaires, %2 disponibles).
+        <translation>Il n&apos;y a pas assez de place pour la sauvegarde de sécurité (%1 nécessaires, %2 disponibles).
 
 Libérez de la place, ou décochez la sauvegarde de sécurité.</translation>
+    </message>
+    <message>
+        <source>Raspberry Pi</source>
+        <translation>Raspberry Pi</translation>
+    </message>
+    <message>
+        <source>PC</source>
+        <translation>PC</translation>
+    </message>
+    <message>
+        <source>32-bit ARM</source>
+        <translation>ARM 32 bits</translation>
+    </message>
+    <message>
+        <source>From a %1 system (%2): settings and data only</source>
+        <translation>D’un système %1 (%2) : réglages et données seulement</translation>
+    </message>
+    <message>
+        <source>The system of this backup cannot be recognized: settings and data only</source>
+        <translation>Le système de cette sauvegarde ne peut pas être reconnu : réglages et données seulement</translation>
+    </message>
+    <message>
+        <source>The whole system cannot be restored here. Its KStars, INDI and PHD2 settings and its images can: in the AstroArch Control Center, page “Restore from a backup”, source “A system backup”.</source>
+        <translation>Le système entier ne peut pas être restauré ici. Ses réglages KStars, INDI et PHD2 et ses images, si : dans le Centre de contrôle AstroArch, page « Restaurer depuis une sauvegarde », source « Une sauvegarde du système ».</translation>
     </message>
     <message>
         <source>%1 available</source>
@@ -132,10 +195,14 @@ Libérez de la place, ou décochez la sauvegarde de sécurité.</translation>
         <translation>Inutilisable</translation>
     </message>
     <message>
+        <source>Nothing was changed.</source>
+        <translation>Rien n’a été modifié.</translation>
+    </message>
+    <message>
         <source>The restore could not start. Nothing was changed.
 
 %1</source>
-        <translation>La restauration n'a pas pu démarrer. Rien n'a été modifié.
+        <translation>La restauration n&apos;a pas pu démarrer. Rien n&apos;a été modifié.
 
 %1</translation>
     </message>
@@ -203,7 +270,7 @@ Cet emplacement est imposé et ne peut pas être modifié.</translation>
         <source>There is not enough space on the main disk, in %1 (space needed: %2, available: %3).
 
 You must save the backup on an external drive.</source>
-        <translation>Il n'y a pas assez de place sur le disque principal, dans %1 (espace nécessaire : %2, disponible : %3).
+        <translation>Il n&apos;y a pas assez de place sur le disque principal, dans %1 (espace nécessaire : %2, disponible : %3).
 
 Vous devez enregistrer la sauvegarde sur un disque externe.</translation>
     </message>
@@ -211,7 +278,7 @@ Vous devez enregistrer la sauvegarde sur un disque externe.</translation>
         <source>The location %1 on the main disk cannot be used (%2).
 
 You must save the backup on an external drive.</source>
-        <translation>L'emplacement %1 du disque principal ne peut pas être utilisé (%2).
+        <translation>L&apos;emplacement %1 du disque principal ne peut pas être utilisé (%2).
 
 Vous devez enregistrer la sauvegarde sur un disque externe.</translation>
     </message>
@@ -277,7 +344,7 @@ Vous devez enregistrer la sauvegarde sur un disque externe.</translation>
     </message>
     <message>
         <source>Choose the location that contains the backups, on the main disk or on an external drive. A restore replaces the WHOLE system by the state of a backup.</source>
-        <translation>Choisissez l'emplacement qui contient les sauvegardes, sur le disque principal ou sur un disque externe. Une restauration remplace TOUT le système par l'état d'une sauvegarde.</translation>
+        <translation>Choisissez l&apos;emplacement qui contient les sauvegardes, sur le disque principal ou sur un disque externe. Une restauration remplace TOUT le système par l&apos;état d&apos;une sauvegarde.</translation>
     </message>
     <message>
         <source>Main disk (%1)</source>
@@ -323,21 +390,21 @@ The whole system will be replaced by the state of this backup.
 • It only works on the same disk: a backup made for another disk is refused.</source>
         <translation>⚠️  RESTAURATION COMPLÈTE DU SYSTÈME
 
-Tout le système sera remplacé par l'état de cette sauvegarde.
+Tout le système sera remplacé par l&apos;état de cette sauvegarde.
 
 • Tout ce qui a changé depuis cette sauvegarde est définitivement perdu : fichiers, programmes installés et mises à jour, réglages.
 • Le contenu des dossiers que vous avez exclus des sauvegardes est supprimé (les dossiers eux-mêmes sont conservés, vides).
 • Le bureau se ferme et la restauration se déroule en mode texte ; cela peut prendre plusieurs minutes. Le Raspberry Pi redémarre tout seul à la fin.
-• N'éteignez PAS et ne débranchez PAS le Raspberry Pi pendant la restauration : une coupure de courant ou un arrêt manuel peut rendre le système inutilisable. Ce risque est le vôtre.
+• N&apos;éteignez PAS et ne débranchez PAS le Raspberry Pi pendant la restauration : une coupure de courant ou un arrêt manuel peut rendre le système inutilisable. Ce risque est le vôtre.
 • Cela ne fonctionne que sur le même disque : une sauvegarde faite pour un autre disque est refusée.</translation>
     </message>
     <message>
         <source>First make a safety backup of the current state (recommended)</source>
-        <translation>Faire d'abord une sauvegarde de sécurité de l'état actuel (recommandé)</translation>
+        <translation>Faire d&apos;abord une sauvegarde de sécurité de l&apos;état actuel (recommandé)</translation>
     </message>
     <message>
         <source>The safety backup lets you undo the restore later by restoring it.</source>
-        <translation>La sauvegarde de sécurité permet d'annuler la restauration plus tard en la restaurant.</translation>
+        <translation>La sauvegarde de sécurité permet d&apos;annuler la restauration plus tard en la restaurant.</translation>
     </message>
     <message>
         <source>Type %1 to confirm:</source>
@@ -349,7 +416,7 @@ Tout le système sera remplacé par l'état de cette sauvegarde.
     </message>
     <message>
         <source>The desktop will close in a few seconds and the restore will continue in text mode. Do NOT switch off or unplug the Raspberry Pi: it restarts by itself when it is finished.</source>
-        <translation>Le bureau va se fermer dans quelques secondes et la restauration se poursuivra en mode texte. N'éteignez PAS et ne débranchez PAS le Raspberry Pi : il redémarre tout seul à la fin.</translation>
+        <translation>Le bureau va se fermer dans quelques secondes et la restauration se poursuivra en mode texte. N&apos;éteignez PAS et ne débranchez PAS le Raspberry Pi : il redémarre tout seul à la fin.</translation>
     </message>
     <message>
         <source>Safety backup before the restore...</source>
@@ -393,7 +460,7 @@ sur le disque %2 ?</translation>
         <source>This drive does not have enough space for the backup (%1 needed, %2 available).
 
 Please choose another drive.</source>
-        <translation>Ce disque n'a pas assez de place pour la sauvegarde (%1 nécessaires, %2 disponibles).
+        <translation>Ce disque n&apos;a pas assez de place pour la sauvegarde (%1 nécessaires, %2 disponibles).
 
 Veuillez choisir un autre disque.</translation>
     </message>
@@ -411,7 +478,7 @@ If this is your first backup, the unfinished backup file will be removed.</sourc
 
 La sauvegarde en cours sera arrêtée.
 Vos sauvegardes précédentes ne sont PAS affectées.
-S'il s'agit de votre première sauvegarde, le fichier de sauvegarde inachevé sera supprimé.</translation>
+S&apos;il s&apos;agit de votre première sauvegarde, le fichier de sauvegarde inachevé sera supprimé.</translation>
     </message>
     <message>
         <source>No, continue the backup</source>
@@ -433,7 +500,7 @@ Quitting will cancel it. Your previous backups are NOT affected.
 Quit anyway?</source>
         <translation>Une sauvegarde est en cours.
 
-Quitter l'annulera. Vos sauvegardes précédentes ne sont PAS affectées.
+Quitter l&apos;annulera. Vos sauvegardes précédentes ne sont PAS affectées.
 
 Quitter quand même ?</translation>
     </message>
@@ -444,45 +511,6 @@ Quitter quand même ?</translation>
     <message>
         <source>Yes, leave</source>
         <translation>Oui, quitter</translation>
-    </message>
-</context>
-<context>
-    <name>FolderTreeWindow</name>
-    <message>
-        <source>Select the folders to exclude</source>
-        <translation>Sélectionner les dossiers à exclure</translation>
-    </message>
-    <message>
-        <source>Shared data folder</source>
-        <translation>Dossier de données partagé</translation>
-    </message>
-    <message>
-        <source>Your home folder</source>
-        <translation>Votre dossier personnel</translation>
-    </message>
-    <message>
-        <source>Check the folders you do NOT want to back up</source>
-        <translation>Cochez les dossiers que vous ne voulez PAS sauvegarder</translation>
-    </message>
-    <message>
-        <source>🔒 Folders required by the system cannot be excluded.</source>
-        <translation>🔒 Les dossiers nécessaires au système ne peuvent pas être exclus.</translation>
-    </message>
-    <message>
-        <source>Show hidden folders</source>
-        <translation>Afficher les dossiers cachés</translation>
-    </message>
-    <message>
-        <source>Select none</source>
-        <translation>Tout désélectionner</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Annuler</translation>
-    </message>
-    <message>
-        <source>OK</source>
-        <translation>OK</translation>
     </message>
 </context>
 </TS>

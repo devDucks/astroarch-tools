@@ -51,6 +51,13 @@ Separately mounted drives (e.g., `/srv/astro-data`), `/var/backups`, and the con
 - A power failure or manual shutdown during the restoration process may render the
 system unusable; this risk is assumed by the user (a warning is provided before starting).
 - Only snapshots created **with** a copy of `/boot` can be restored.
+- Only on the **same architecture**: the helper reads the ELF header of the snapshot's
+  `/usr/bin/bash` and of this system's (the programs, not the kernel's `uname -m`), and
+  restores only when both are known and equal; otherwise error 44, nothing started (e.g. a
+  Raspberry Pi (aarch64) backup on a PC (x86_64), or a snapshot without a recognizable bash).
+  The list shows such a snapshot as "settings and data only": its KStars, INDI and PHD2
+  settings and its images can be restored by the Control Center's "Restore from a backup"
+  page (source "A system backup").
 - The log is copied to `/var/backups/astroarch-restore-<date>.log` when
 backups are stored on the main disk.
 
@@ -157,11 +164,12 @@ pkexec $H explain --dest /var/backups [--exclude PATH]...   # shows what takes u
 pkexec $H mount   --dest /var/backups      # mounts in READ-ONLY mode at /run/astroarch-backup/browse
 ls /run/astroarch-backup/browse/snapshots  # one directory per backup
 pkexec $H umount  --dest /var/backups
+pkexec $H snapshots --dest /var/backups    # SNAPSHOT:<name>:<1 if /boot is in it>:<aarch64|x86_64|arm|unknown>, then HOST:<this system's>
 pkexec $H usage   --dest /var/backups      # space used + share of each snapshot
 pkexec $H prune   --dest /var/backups --keep 2   # keep only 2 snapshots (IRREVERSIBLE), then shrink the file
 pkexec $H shrink  --dest /var/backups      # shrink on demand
 
-While a backup is mounted for inspection, any new backup or shrinking operation will be rejected (you must `umount` first).
+While a backup is mounted for inspection, any new backup or shrinking operation will be rejected (you must `umount` first). One location is mounted at a time (`mount`, `snapshots`, `usage` and `umount` of another location are refused with code 30), and the mount belongs to the program that asked (its pid and start time in `/run/astroarch-backup/browse.holder`): once that program is gone (window closed, app killed), the next `mount` or backup releases it, with its loop device.
 
 ## Translations
 

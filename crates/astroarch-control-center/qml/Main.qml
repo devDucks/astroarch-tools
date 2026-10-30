@@ -146,7 +146,7 @@ ApplicationWindow {
         {
             id: "restore", setup: "recommended", topic: "data",
             title: qsTr("Restore from a backup"),
-            intro: qsTr("Bring back your KStars, INDI and PHD2 profiles and settings, and your images if you want, from a data backup, an old AstroArch disk or AstroMonitor."),
+            intro: qsTr("Bring back your KStars, INDI and PHD2 profiles and settings, and your images if you want, from a data backup, a system backup, an old AstroArch disk or AstroMonitor."),
             // Before Equipment: restored profiles are then found there
             primary: qsTr("I’m starting fresh"),
             // The wizard of the page (RestoreView.qml)

@@ -21,6 +21,7 @@ use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command as StdCommand, Stdio};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::{Arc, Mutex};
 
 #[cxx_qt::bridge]
@@ -65,7 +66,9 @@ pub mod qobject {
         #[qsignal]
         fn configLoaded(self: Pin<&mut BackupManager>, keep: i32, excluded: &QString);
 
-        // List of snapshots for a backup (JSON [{“name”,“boot”}]); returns an empty error if successful
+        // List of snapshots for a backup, JSON [{name, boot, arch, foreign, root}] (see
+        // parse_snapshots; root: the snapshot's folder, only after `browse`); returns an
+        // empty error if successful
         #[qsignal]
         fn snapshotsListed(self: Pin<&mut BackupManager>, json: &QString, error: &QString);
 
@@ -73,9 +76,10 @@ pub mod qobject {
         #[qsignal]
         fn restoreStarted(self: Pin<&mut BackupManager>);
 
-        // The restore did NOT start (nothing was changed)
+        // The restore did NOT start (nothing was changed). code: the helper's exit code
+        // (44: a backup of another architecture), -1 when it did not run
         #[qsignal]
-        fn restoreFailed(self: Pin<&mut BackupManager>, error: &QString);
+        fn restoreFailed(self: Pin<&mut BackupManager>, code: i32, error: &QString);
 
         #[qinvokable]
         fn load_config(self: Pin<&mut BackupManager>);
@@ -140,6 +144,18 @@ pub mod qobject {
         // FULL recovery of the system while it is running (restoreStarted / restoreFailed signals)
         #[qinvokable]
         fn start_restore(self: Pin<&mut BackupManager>, destination: &QString, snapshot: &QString);
+
+        // Mounts the backup READ-ONLY (helper `mount`) and lists its snapshots with the
+        // folder of each (signal snapshotsListed): the Control Center's Restore page reads
+        // the settings and data of a snapshot there. Another backup browsed before is
+        // released first. browse and release run in the order they are asked, one at a time
+        #[qinvokable]
+        fn browse(self: Pin<&mut BackupManager>, destination: &QString);
+
+        // Unmounts what `browse` mounted (helper `umount`). A mount left behind (window
+        // closed, app killed) is released by the helper at the next mount or backup
+        #[qinvokable]
+        fn release(self: Pin<&mut BackupManager>);
     }
 
     impl cxx_qt::Threading for BackupManager {}
@@ -156,6 +172,14 @@ pub struct BackupManagerRust {
     backup_canceled: Arc<AtomicBool>,
     /// Bytes to back up, as measured by the last successful scan
     data_size: Arc<AtomicU64>,
+    /// The worker that runs browse and release in order (started at the first one); it
+    /// ends with this object
+    browse_jobs: Mutex<Option<Sender<BrowseJob>>>,
+}
+
+enum BrowseJob {
+    Open(String),
+    Release,
 }
 
 type BackupThread = cxx_qt::CxxQtThread<qobject::BackupManager>;
@@ -530,9 +554,9 @@ impl qobject::BackupManager {
         let qt_thread = self.qt_thread();
 
         std::thread::spawn(move || {
-            let (json, error) = match run_helper_list_snapshots(&dest) {
-                Ok(j) => (j, String::new()),
-                Err(e) => ("[]".to_string(), e),
+            let (json, error) = match run_helper(&["snapshots", "--dest", &dest]) {
+                Ok(out) => (snapshots_json(&out, None), String::new()),
+                Err((_, e)) => ("[]".to_string(), e),
             };
             qt_thread
                 .queue(move |mut qobject| {
@@ -564,17 +588,129 @@ impl qobject::BackupManager {
                     })
                     .ok();
             }
-            Err(message) => {
+            Err((code, message)) => {
                 eprintln!("Restore not started: {}", message);
                 qt_thread
                     .queue(move |mut qobject| {
                         let err_q = cxx_qt_lib::QString::from(&message);
-                        qobject.as_mut().restoreFailed(&err_q);
+                        qobject.as_mut().restoreFailed(code, &err_q);
                     })
                     .ok();
             }
         });
     }
+
+    pub fn browse(self: Pin<&mut Self>, destination: &cxx_qt_lib::QString) {
+        self.send_browse_job(BrowseJob::Open(destination.to_string()));
+    }
+
+    pub fn release(self: Pin<&mut Self>) {
+        self.send_browse_job(BrowseJob::Release);
+    }
+
+    /// One worker runs the jobs in the order they come: a release asked before an open
+    /// never unmounts what the open lists
+    fn send_browse_job(self: Pin<&mut Self>, job: BrowseJob) {
+        let qt_thread = self.qt_thread();
+        let mut jobs = self.browse_jobs.lock().unwrap_or_else(|e| e.into_inner());
+        let sender = jobs.get_or_insert_with(|| {
+            let (tx, rx) = channel();
+            std::thread::spawn(move || browse_worker(rx, qt_thread));
+            tx
+        });
+        let _ = sender.send(job);
+    }
+}
+
+/// The browse and release jobs of one BackupManager, one after the other; `current` is the
+/// location mounted
+fn browse_worker(jobs: Receiver<BrowseJob>, qt_thread: BackupThread) {
+    let mut current: Option<String> = None;
+    while let Ok(job) = jobs.recv() {
+        match job {
+            BrowseJob::Open(dest) => {
+                let (json, error) = match browse_snapshots(&mut current, &dest) {
+                    Ok(j) => (j, String::new()),
+                    Err(e) => ("[]".to_string(), e),
+                };
+                qt_thread
+                    .queue(move |mut qobject| {
+                        let json_q = cxx_qt_lib::QString::from(&json);
+                        let err_q = cxx_qt_lib::QString::from(&error);
+                        qobject.as_mut().snapshotsListed(&json_q, &err_q);
+                    })
+                    .ok();
+            }
+            BrowseJob::Release => release_browsed(&mut current),
+        }
+    }
+}
+
+/// Mounts `dest` read-only for browsing (releasing another location first) and lists its
+/// snapshots with their folders
+fn browse_snapshots(current: &mut Option<String>, dest: &str) -> Result<String, String> {
+    if let Some(old) = current.take() {
+        if old != dest {
+            let _ = run_helper(&["umount", "--dest", &old]);
+        }
+    }
+    let out = run_helper(&["mount", "--dest", dest]).map_err(|(_, e)| e)?;
+    let mountpoint = out
+        .lines()
+        .find_map(|l| l.trim().strip_prefix("RESULT:mounted:"))
+        .map(str::to_string)
+        .ok_or_else(|| "The backup could not be opened.".to_string())?;
+    *current = Some(dest.to_string());
+    // Mounted: the helper lists the snapshots and leaves it so
+    let list = run_helper(&["snapshots", "--dest", dest]).map_err(|(_, e)| e)?;
+    Ok(snapshots_json(&list, Some(&mountpoint)))
+}
+
+fn release_browsed(current: &mut Option<String>) {
+    if let Some(dest) = current.take() {
+        if let Err((_, e)) = run_helper(&["umount", "--dest", &dest]) {
+            eprintln!("Could not release the backup {}: {}", dest, e);
+        }
+    }
+}
+
+/// The snapshots of the helper's `snapshots` output, newest first, JSON
+/// [{name, boot, arch, foreign, restorable, root}]: lines SNAPSHOT:<name>:<boot>[:<arch>] (a
+/// helper older than the architecture prints none: "unknown") and HOST:<arch> (without it,
+/// the architecture of this program). foreign: made on another architecture, so only its
+/// settings and data can be restored here. restorable: the whole system can be restored
+/// here (its architecture is known and this one's, as the helper's `restore` requires).
+/// root: the snapshot's folder when the backup is mounted at `mountpoint`, else ""
+pub fn parse_snapshots(stdout: &str, mountpoint: Option<&str>) -> Vec<Value> {
+    let host = stdout
+        .lines()
+        .find_map(|l| l.trim().strip_prefix("HOST:"))
+        .filter(|h| !h.is_empty())
+        .unwrap_or(std::env::consts::ARCH)
+        .to_string();
+    stdout
+        .lines()
+        .filter_map(|l| l.trim().strip_prefix("SNAPSHOT:"))
+        .filter_map(|rest| {
+            let mut parts = rest.split(':');
+            let name = parts.next().filter(|n| !n.is_empty() && !n.contains('/') && !n.starts_with('.'))?;
+            let boot = parts.next()? == "1";
+            let arch = parts.next().filter(|a| !a.is_empty()).unwrap_or("unknown");
+            let root = mountpoint.map(|m| format!("{}/snapshots/{}", m.trim_end_matches('/'), name)).unwrap_or_default();
+            Some(json!({
+                "name": name,
+                "boot": boot,
+                "arch": arch,
+                "foreign": arch != "unknown" && arch != host,
+                "restorable": arch != "unknown" && arch == host,
+                "root": root,
+            }))
+        })
+        .collect()
+}
+
+fn snapshots_json(stdout: &str, mountpoint: Option<&str>) -> String {
+    Value::Array(parse_snapshots(stdout, mountpoint)).to_string()
 }
 
 /// Remove the folders that are essential to the system from the exclusions
@@ -601,42 +737,28 @@ fn helper_error_text(stdout: &str) -> Option<String> {
     None
 }
 
-/// Runs the helper via pkexec and returns its standard output (Err = readable message)
-fn run_helper(args: &[&str]) -> Result<String, String> {
+/// Runs the helper via pkexec and returns its standard output (Err = its exit code, -1 when
+/// it did not run, and a readable message)
+fn run_helper(args: &[&str]) -> Result<String, (i32, String)> {
     let helper = storage::helper_path()
-        .ok_or_else(|| "Helper script not found (astroarch-backup-helper).".to_string())?;
+        .ok_or_else(|| (-1, "Helper script not found (astroarch-backup-helper).".to_string()))?;
     let out = StdCommand::new("pkexec")
         .arg(&helper)
         .args(args)
         .stdin(Stdio::null())
         .output()
-        .map_err(|e| format!("Failed to start pkexec: {}", e))?;
+        .map_err(|e| (-1, format!("Failed to start pkexec: {}", e)))?;
     let stdout = String::from_utf8_lossy(&out.stdout).to_string();
     if out.status.success() {
         Ok(stdout)
     } else {
         let stderr = String::from_utf8_lossy(&out.stderr).to_string();
         let helper_err = helper_error_text(&stdout).unwrap_or_default();
-        Err(failure_message(out.status.code(), &helper_err, &stderr))
+        Err((out.status.code().unwrap_or(-1), failure_message(out.status.code(), &helper_err, &stderr)))
     }
 }
 
-fn run_helper_list_snapshots(dest: &str) -> Result<String, String> {
-    let stdout = run_helper(&["snapshots", "--dest", dest])?;
-    let items: Vec<Value> = stdout
-        .lines()
-        .filter_map(|l| l.trim().strip_prefix("SNAPSHOT:"))
-        .filter_map(|rest| {
-            let mut parts = rest.splitn(2, ':');
-            let name = parts.next()?;
-            let boot = parts.next()? == "1";
-            Some(json!({ "name": name, "boot": boot }))
-        })
-        .collect();
-    Ok(Value::Array(items).to_string())
-}
-
-fn run_helper_restore(dest: &str, snapshot: &str) -> Result<(), String> {
+fn run_helper_restore(dest: &str, snapshot: &str) -> Result<(), (i32, String)> {
     let stdout = run_helper(&[
         "restore",
         "--dest",
@@ -649,7 +771,7 @@ fn run_helper_restore(dest: &str, snapshot: &str) -> Result<(), String> {
     if stdout.lines().any(|l| l.trim() == "RESULT:restore-started") {
         Ok(())
     } else {
-        Err("The restore did not start.".to_string())
+        Err((-1, "The restore did not start.".to_string()))
     }
 }
 
@@ -897,6 +1019,37 @@ mod tests {
             Some("another disk".to_string())
         );
         assert_eq!(helper_error_text("RESULT:ok"), None);
+    }
+
+    #[test]
+    fn snapshot_lines_old_and_new() {
+        let out = "SNAPSHOT:2026-10-29_220554:1:x86_64\nSNAPSHOT:2026-10-28_100000:0:aarch64\n\
+                   SNAPSHOT:2026-10-27_100000:1\nSNAPSHOT:2026-10-26_100000:1:unknown\nHOST:aarch64\nRESULT:snapshots\n";
+        let list = parse_snapshots(out, Some("/run/astroarch-backup/browse/"));
+        assert_eq!(list.len(), 4);
+        assert_eq!(list[0]["name"], "2026-10-29_220554");
+        assert_eq!(list[0]["boot"], true);
+        assert_eq!(list[0]["arch"], "x86_64");
+        assert_eq!(list[0]["foreign"], true);
+        assert_eq!(list[0]["root"], "/run/astroarch-backup/browse/snapshots/2026-10-29_220554");
+        assert_eq!(list[1]["boot"], false);
+        assert_eq!(list[1]["foreign"], false);
+        assert_eq!(list[0]["restorable"], false);
+        assert_eq!(list[1]["restorable"], true);
+        // An older helper: no architecture, never another one, but not restorable whole
+        assert_eq!(list[2]["arch"], "unknown");
+        assert_eq!(list[2]["foreign"], false);
+        assert_eq!(list[2]["restorable"], false);
+        assert_eq!(list[3]["foreign"], false);
+        assert_eq!(list[3]["restorable"], false);
+        // This system unknown: nothing is restorable whole
+        let host_unknown = parse_snapshots("SNAPSHOT:2026-10-29_220554:1:aarch64\nHOST:unknown\n", None);
+        assert_eq!(host_unknown[0]["restorable"], false);
+        // Not mounted: no folder; no HOST line: this program's architecture
+        let one = parse_snapshots("SNAPSHOT:2026-10-29_220554:1:sparc64\n", None);
+        assert_eq!(one[0]["root"], "");
+        assert_eq!(one[0]["foreign"], std::env::consts::ARCH != "sparc64");
+        assert!(parse_snapshots("SNAPSHOT:../x:1:x86_64\nSNAPSHOT::1\nSNAPSHOT:a\n", None).is_empty());
     }
 
     #[test]
