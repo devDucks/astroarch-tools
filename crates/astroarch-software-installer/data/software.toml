@@ -55,7 +55,7 @@ description = "Displays information about hard disks and other storage devices."
 category = "Tools"
 
 [[package]]
-name = "print-managerp"
+name = "print-manager"
 title = "Print Manager"
 description = "Tool for managing print jobs and printers."
 category = "Tools"
@@ -64,6 +64,62 @@ category = "Tools"
 name = "kweather"
 title = "Kweather"
 description = "A convergent weather application for Plasma."
+category = "Tools"
+
+# From the list of the former Calamares onboarding
+
+[[package]]
+name = "firecapture"
+title = "FireCapture"
+description = "Planetary and lunar image capture."
+category = "Astronomy"
+
+[[package]]
+name = "rpicam-apps"
+title = "rpicam-apps"
+description = "Applications for the Raspberry Pi cameras, based on libcamera."
+category = "Astronomy"
+
+[[package]]
+name = "indi-pylibcamera"
+title = "INDI pylibcamera"
+description = "INDI driver for the Raspberry Pi cameras."
+category = "Astronomy"
+
+[[package]]
+name = "rustdesk-bin"
+title = "RustDesk"
+description = "Open-source remote desktop."
+category = "Tools"
+
+[[package]]
+name = "gwenview"
+title = "Gwenview"
+description = "A fast and easy to use image viewer."
+category = "Imaging"
+
+[[package]]
+name = "glances"
+title = "Glances"
+description = "Monitoring tool for the terminal."
+category = "Tools"
+
+[[package]]
+name = "filelight"
+title = "Filelight"
+description = "Shows what uses the space on your disks."
+category = "Tools"
+
+[[package]]
+name = "syncthing"
+title = "Syncthing"
+description = "Keeps folders in sync between your devices."
+category = "Tools"
+
+[[package]]
+name = "kinfocenter"
+title = "Info Center"
+description = "Information about your computer."
 category = "Tools"
 
 #[[package]]
