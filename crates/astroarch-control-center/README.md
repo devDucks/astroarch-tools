@@ -1,35 +1,52 @@
 # astroarch-control-center
 
-AstroArch Control Center: a window containing buttons that launch system tools.
+AstroArch Control Center: the setup of a new AstroArch and, afterwards, its settings
+and tools, in one window. **100 % Rust** with a QML interface, built with Cargo alone.
 
-**100% Rust** (with a QML interface): no remaining C++ or CMake files. Compiled using only Cargo.
+## What it shows
 
-## Compiling and installing
+- **One list of pages** (`pages` in `qml/Main.qml`): network and remote access, language
+  and time zone, passwords, update, location, equipment, Astro monitor, how to connect.
+- **While the setup is shown**, the pages are grouped as Essentials, Recommended and
+  More, with a status each (to do, done, set up later, on hold) and "Set up later" /
+  "Continue". "I'm done, hide setup" keeps every page, grouped by topic instead (System,
+  Observing, Connection).
+- **Each page shows the current values** read from the system, one per row, with the
+  buttons that change them (Plasma settings modules, the other AstroArch tools, KStars,
+  PHD2...). A page whose state can be read (network, location, equipment) is done as soon
+  as the system says so.
 
-cargo build --release
-sudo ./install.sh              # Defaults to PREFIX=/usr
+## How it works
 
-Prerequisites: Qt 6 (Quick Controls 2), `qt6-tools` (for `lrelease`, which compiles
-translations—without it, the interface will remain in English), Konsole (or another terminal),
-and zsh (for `update-astroarch`).
+| File | Role |
+|---|---|
+| `qml/Main.qml` | The pages (data), the side panel, the page view |
+| `scripts/astroarch-control-center-probe.sh` | Reads one piece of state (`probe NAME`): one line of output + exit code. Read-only, runs as the user. Installed as `/usr/lib/astroarch-control-center/astroarch-control-center-probe` |
+| `src/setup_state.rs` | Runs the probes in the background (with a timeout); keeps the user's choices in `~/.config/astroarch/setup.json` |
+| `src/launcher.rs` | Starts the tools (GUI or in a terminal), never twice, and tells when they exit so the page is read again |
 
-## Buttons
+To add a page or a row: add it to `pages`; if it needs a value from the system, add a
+case to the probe script. Nothing to change in Rust.
 
-| Button | Command | Mode |
-|--------|----------|------|
-| System Update | `update-astroarch` | Separate console (interactive zsh; uses a zsh plugin) |
-| Language & Keyboard | `astroarch-locale-module` | Application |
-| Services | `astroarch-sys-manager` | Application |
-| Backup | `astroarch-backup` | Application |
-| Astro Monitor | `astromonitor` | Separate console |
-| Software | `astroarch-software-installer` | Application |
+## Build and run
 
-To add or modify a button, edit the `entries` list in `qml/Main.qml`; no changes to the Rust code are required.
+    cargo build --release -p astroarch-control-center
+    target/release/astroarch-control-center
+    target/release/astroarch-control-center --page passwords    # opens on one page (its id in `pages`)
+
+Requirements: Qt 6 (Quick, Quick Controls 2), Kirigami, `qt6-tools` (lrelease, for the
+translations). The probes use `nmcli`, `sqlite3`, `timedatectl`, `curl`, `smbclient` and
+pam's `unix_chkpwd`. A development build finds the other tools next to its executable and
+the probe script in this crate.
 
 ## Translations
 
-Uses `qsTr()` within the QML files. Translation files (`translations/qml_<language>.ts` — fr, de, es, it) are compiled by
-`build.rs` using `lrelease` and are automatically loaded based on the system language.
-After modifying any text in the QML files:
+`qsTr()` in the QML, `translations/qml_<language>.ts` (fr, de, es, it) compiled by
+`build.rs` with `lrelease` and loaded according to the system language. After changing
+texts in the QML:
 
-    lupdate-qt6 qml -ts translations/qml_fr.ts translations/qml_de.ts translations/qml_es.ts translations/qml_it.ts
+    lupdate qml -ts translations/qml_fr.ts translations/qml_de.ts translations/qml_es.ts translations/qml_it.ts
+
+## Images
+
+See `resources/CREDITS.md`.

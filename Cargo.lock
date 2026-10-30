@@ -42,6 +42,7 @@ dependencies = [
  "cxx",
  "cxx-qt",
  "cxx-qt-lib",
+ "serde_json",
 ]
 
 [[package]]
