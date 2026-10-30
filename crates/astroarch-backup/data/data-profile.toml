@@ -1,0 +1,168 @@
+# What the "Data and settings" backup offers: one [[item]] per row of the list, grouped
+# under the [[group]] titles. To back up something new, add an item here: no code to change.
+# Read by src/data_profile.rs (compiled in), which the Control Center page and the backup
+# itself (astroarch-backup --data-backup) both use.
+#
+# Item keys:
+#   id         stable name, kept in the user's exclusions: never rename one
+#   group      id of its [[group]]
+#   name       friendly name (big); the real paths are shown under it (small)
+#   paths      what is copied. "~/" = the home of the user, "~kiosk/" = the home of the
+#              kiosk user (<user>-kiosk; the item is hidden when there is none)
+#   kind       "settings": snapshots with history (unchanged files are hard links)
+#              "data":     one copy, only added to (a file deleted on the Pi stays there)
+#   essential  true: ticked by default, unticking it shows `warn`
+#   default    false: unticked until the user ticks it (default true)
+#   hint       shown when it is unticked
+#   needed_by  id of an item that keeps this one in while it is ticked
+#   subfolders true: the subfolders of the (single) path can be unticked one by one
+#   skip       paths never copied (caches, secrets), even inside a ticked item
+#   [[item.child]]  rows under the item, each ticked or unticked on its own
+#              (id, name, paths, kind, default, note: the same meaning as above)
+#
+# The names, warnings and notes are translated in the Control Center: after changing one,
+# add it to the list at the top of qml/DataBackupView.qml and run lupdate.
+
+[[group]]
+id = "kstars"
+title = "KStars and Ekos"
+
+[[group]]
+id = "indi"
+title = "INDI"
+
+[[group]]
+id = "phd2"
+title = "PHD2"
+
+[[group]]
+id = "images"
+title = "Images and sessions"
+
+[[group]]
+id = "kiosk"
+title = "Kiosk desktop"
+
+# ------------------------------------------------------------------ KStars and Ekos
+[[item]]
+id = "kstars-db"
+group = "kstars"
+name = "KStars profiles and equipment"
+paths = ["~/.local/share/kstars/userdb.sqlite"]
+kind = "settings"
+essential = true
+warn = "Without it, Ekos profiles, optical trains and the dark library list are lost."
+# The list of darks is stored in this database
+needed_by = "kstars-darks"
+
+[[item]]
+id = "kstars-darks"
+group = "kstars"
+name = "KStars dark library"
+paths = ["~/.local/share/kstars/darks", "~/.local/share/kstars/defectmaps"]
+kind = "settings"
+essential = true
+warn = "Without it, all the dark frames have to be shot again."
+
+[[item]]
+id = "kstars-settings"
+group = "kstars"
+name = "KStars settings"
+paths = ["~/.config/kstarsrc", "~/.local/share/kstars/fov.dat", "~/.local/share/kstars/mycitydb.sqlite"]
+kind = "settings"
+essential = true
+warn = "Without it, location, folders and Ekos options go back to the defaults."
+
+[[item]]
+id = "kstars-astrometry"
+group = "kstars"
+name = "Plate-solving index files"
+paths = ["~/.local/share/kstars/astrometry"]
+kind = "data"
+default = false
+hint = "The main index files are already included in the AstroArch image. Others can be downloaded again from KStars."
+
+# ---------------------------------------------------------------------------- INDI
+[[item]]
+id = "indi"
+group = "indi"
+name = "INDI driver settings"
+paths = ["~/.indi"]
+kind = "settings"
+essential = true
+warn = "Without it, every device has to be configured again."
+
+# ---------------------------------------------------------------------------- PHD2
+[[item]]
+id = "phd2-profiles"
+group = "phd2"
+name = "PHD2 profiles and settings"
+paths = ["~/.PHDGuidingV2"]
+kind = "settings"
+essential = true
+warn = "Without it, guiding profiles and calibration are lost."
+
+[[item]]
+id = "phd2-darks"
+group = "phd2"
+name = "PHD2 dark library"
+paths = ["~/.phd2"]
+kind = "settings"
+essential = true
+warn = "Without it, guider darks and bad-pixel maps have to be made again."
+
+# -------------------------------------------------------------- Images and sessions
+[[item]]
+id = "astro-data"
+group = "images"
+name = "Images, sequences and targets"
+paths = ["/srv/astro-data"]
+kind = "data"
+subfolders = true
+
+# ---------------------------------------------------------------------- Kiosk desktop
+[[item]]
+id = "kiosk"
+group = "kiosk"
+name = "Kiosk settings and files"
+paths = ["~kiosk/"]
+kind = "settings"
+essential = true
+warn = "The kiosk has its own KStars, INDI and PHD2 settings, separate from the desktop."
+# Caches, and the secrets the kiosk keeps private (astroarch repo: kiosk-group-read.sh)
+skip = ["~kiosk/.local/share/Trash", "~kiosk/.local/share/baloo", "~kiosk/.local/share/krdpserver",
+        "~kiosk/.local/share/kwalletd", "~kiosk/.local/share/xrdp", "~kiosk/.local/state",
+        "~kiosk/.config/session", "~kiosk/.config/kwalletrc", "~kiosk/.config/krdpserverrc"]
+
+[[item.child]]
+id = "kstars"
+name = "KStars profiles and settings"
+paths = ["~kiosk/.local/share/kstars", "~kiosk/.config/kstarsrc"]
+
+[[item.child]]
+id = "indi"
+name = "INDI driver settings"
+paths = ["~kiosk/.indi"]
+
+[[item.child]]
+id = "phd2"
+name = "PHD2 profiles and dark library"
+paths = ["~kiosk/.PHDGuidingV2", "~kiosk/.phd2"]
+
+[[item.child]]
+id = "apps"
+name = "Desktop and app settings"
+paths = ["~kiosk/.config", "~kiosk/.local"]
+
+[[item.child]]
+id = "pictures"
+name = "Pictures"
+paths = ["~kiosk/Pictures"]
+kind = "data"
+
+[[item.child]]
+id = "cache"
+name = "Cache"
+paths = ["~kiosk/.cache"]
+default = false
+note = "Rebuilt automatically by the apps."

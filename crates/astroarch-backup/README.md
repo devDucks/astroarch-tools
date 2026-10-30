@@ -53,6 +53,35 @@ system unusable; this risk is assumed by the user (a warning is provided before 
 - Only snapshots created **with** a copy of `/boot` can be restored.
 - The log is copied to `/var/backups/astroarch-restore-<date>.log` when
 backups are stored on the main disk.
+
+## "Data and settings" profile (data backup)
+
+The tool's second profile, next to the system backup: the settings of KStars, PHD2, INDI
+and the kiosk, plus `/srv/astro-data`, **every 2 hours**, without root. It is set up and
+started from the Control Center's "Data backup" page (no window in this app); the logic
+is here and the Control Center compiles the same files.
+
+- **What is offered**: `data/data-profile.toml` (one entry per line of the list: name,
+  paths, `settings` or `data`, essential or not). Adding an item = one entry, no code. The
+  user keeps **exclusions** (`~/.config/astroarch/data-backup.json`), so a new folder is
+  included by itself. The KStars dark library keeps `userdb.sqlite` (the list of darks is
+  in it).
+- **Backup**: `astroarch-backup --data-backup` (no window), started by
+  `systemd/astroarch-data-backup.timer` (user unit, `/usr/lib/systemd/user/`) or by "Back
+  up now" (`--manual`). Skipped while KStars and indiserver run (a session in progress,
+  unless `--manual`), one at a time (lock), never creates the base folder (a disconnected
+  drive is an error, not a copy on the SD card).
+- **In the destination** `<folder>/<system id>/`: `settings/snapshot-YYYYMMDD-HHMMSS/`
+  (history, unchanged files as hard links, the last N kept) and `data/` (images: only
+  added). Full paths inside (`rsync -R`).
+- **Destinations**: this disk (`/var/backups/astroarch-data/<user>`, outside the system
+  backup), a USB drive (`<drive>/astroarch/data-backup`, not FAT/exFAT/NTFS: no permissions,
+  no hard links), a network share already mounted, or Syncthing when installed (send-only
+  folder on the Pi, the versions on the computer; a single copy `settings/current/`). The
+  helper creates the folder once: `datadir --dest DIR`.
+- State of the last backup: `~/.local/state/astroarch/data-backup.json`; log:
+  `journalctl --user -u astroarch-data-backup`.
+
 ## How it provides protection
 
 - **Btrfs image**: Uses checksums for all data and a copy-on-write mechanism.
@@ -85,6 +114,11 @@ storage.rs         location checks, space estimation, helper interaction
 media.rs           external drive detection (lsblk) and mounting (udisks)
 disk_analysis.rs   calculating the size of data to back up (via the helper)
 config.rs          configuration (last location, retention policy)
+data_profile.rs    "Data and settings" profile: catalog, choices, backup
+data/
+data-profile.toml  what the data backup offers
+systemd/
+astroarch-data-backup.service, .timer   user units (every 2 hours)
 scripts/
 astroarch-backup-helper.sh  the ONLY code executed as root (via pkexec)
 org.astroarch.backup.policy Polkit action (password remains valid for a few minutes)

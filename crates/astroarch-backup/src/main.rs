@@ -9,6 +9,7 @@ use cxx_qt_lib::{QGuiApplication, QQmlApplicationEngine, QString, QUrl};
 
 mod bridge;
 mod config;
+mod data_profile;
 mod disk_analysis;
 mod media;
 mod storage;
@@ -18,6 +19,13 @@ fn main() {
     if std::env::args().any(|a| a == "--version" || a == "-V") {
         println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
         return;
+    }
+
+    // The "Data and settings" backup, run by astroarch-data-backup.timer (no window).
+    // --manual: asked by the user, so it also runs while KStars is imaging
+    if std::env::args().any(|a| a == "--data-backup") {
+        let manual = std::env::args().any(|a| a == "--manual");
+        std::process::exit(data_profile::run(manual));
     }
 
     let mut app = QGuiApplication::new();
