@@ -30,6 +30,7 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 | `qml/SoftwareList.qml`, `src/software_manager.rs` | The More software page: the software installer's list and code (`software_manager.rs` is a link to its `manager.rs`) |
 | `qml/ServicesView.qml`, `src/service_manager.rs` | The Services page: Bluetooth, file transfer (FTP) and USB power, read and switched by astroarch-sys-manager's code (`service_manager.rs` is a link to its `bridge.rs`); its state is polled only while the page is shown |
 | `qml/StorageView.qml`, `src/storage_manager.rs` | Image storage page: moves the shared folder `/srv/astro-data` to a drive and back. The drive list is the backup tool's (`media.rs`, `storage.rs` of astroarch-backup, compiled in) |
+| `scripts/astroarch-restore-helper.sh` | The Restore page's code run as root (pkexec, `scripts/org.astroarch.control-center.restore.policy`): mounts an old disk read-only, and copies: read as root only from a read-only mount made by root (the old disk), anything else as the main user; the user (or its kiosk user) writes; what was there is moved aside to `~/.local/share/astroarch/restore-DATE` and can be put back. Installed as `/usr/lib/astroarch-control-center/astroarch-restore-helper` |
 | `scripts/astroarch-storage-helper.sh` | The Image storage page's code run as root (pkexec, `scripts/org.astroarch.control-center.storage.policy`): copies the folder, writes its `/etc/fstab` entry and udev rule. Installed as `/usr/lib/astroarch-control-center/astroarch-storage-helper`, the policy in `/usr/share/polkit-1/actions` |
 
 To add a page or a row: add it to `pages`; if it needs a value from the system, add a
@@ -50,6 +51,25 @@ folder its group `astro` and default ACL; exFAT, FAT32 and NTFS are mounted with
 folder with `sudo ASTRO_DATA_DIR=/some/folder scripts/astroarch-storage-helper.sh ...`
 (the probes read `ASTRO_DATA_DIR` too).
 
+### Restore
+
+Each source is a folder holding the files of the old system at their absolute paths
+(`<root>/home/astronaut/.indi`): a snapshot of the data backup (`<id>/settings/snapshot-DATE`
+and `<id>/data`), the old disk mounted under `/run/astroarch-cc-restore` (`ro,noload`; the
+device itself is set read-only too when nothing else, e.g. the file manager, has it mounted), or the AstroMonitor backup, downloaded as its own "Restore Backup"
+does (`GET http://astromatto.com:11111/backup/db/<token>`, a tar archive) and laid out in
+`~/.cache/astroarch/restore-astromonitor`. Only the
+catalog's paths are copied, never system files: the restore helper reads only under a
+root's `home/` and `srv/astro-data`, and under `/run` accepts only an old disk it mounted. Each source is resolved once when checked and only that
+path is used (its folder is entered and checked again before reading; links inside are
+copied as links). Root reads only from the read-only mounts made by root (an old disk whose
+device it set read-only, held open during the restore); anything else
+(a data backup, the AstroMonitor download) is read as the main user. The old user's home becomes the new user's, `<user>-kiosk` the new kiosk's; kiosk
+profiles that are links to the main user's here (shared on the Kiosk page) are left alone,
+and the kiosk helper shares the restored ones again. KStars, PHD2 and indiserver must be
+closed. Test the helper on other users and folders with `sudo ASTROARCH_MAIN_USER=u
+ASTROARCH_KIOSK_USER=u-kiosk ASTRO_DATA_DIR=/some/folder scripts/astroarch-restore-helper.sh ...`.
+
 ## Build and run
 
     cargo build --release -p astroarch-control-center
@@ -58,12 +78,12 @@ folder with `sudo ASTRO_DATA_DIR=/some/folder scripts/astroarch-storage-helper.s
 
 Requirements: Qt 6 (Quick, Quick Controls 2), Kirigami, `qt6-tools` (lrelease, for the
 translations). The probes use `nmcli`, `sqlite3`, `timedatectl`, `curl`, `smbclient` and
-pam's `unix_chkpwd`; the image storage helper `rsync`, `chattr` and `setfacl`. A development
-build finds the other tools next to its executable, and the probe script and the storage
-helper in this crate (without its polkit policy, pkexec then asks for an administrator
-password each time).
+pam's `unix_chkpwd`; the image storage helper `rsync`, `chattr` and `setfacl`; the restore
+helper `tar`, `runuser` and `blockdev`. A development build finds the other tools next to its
+executable, and the probe script and the storage and restore helpers in this crate (without
+their polkit policies, pkexec then asks for an administrator password each time).
 
-Installed, the Data backup and Image storage pages also need their root helpers and polkit
+Installed, the Data backup, Image storage and Restore pages also need their root helpers and polkit
 policies:
 
 - **Data backup**: from `crates/astroarch-backup`, `scripts/astroarch-backup-helper.sh` as
@@ -73,6 +93,9 @@ policies:
 - **Image storage**: from this crate, `scripts/astroarch-storage-helper.sh` as
   `/usr/lib/astroarch-control-center/astroarch-storage-helper` and
   `scripts/org.astroarch.control-center.storage.policy` in `/usr/share/polkit-1/actions`.
+- **Restore**: from this crate, `scripts/astroarch-restore-helper.sh` as
+  `/usr/lib/astroarch-control-center/astroarch-restore-helper` and
+  `scripts/org.astroarch.control-center.restore.policy` in `/usr/share/polkit-1/actions`.
 
 ## Translations
 
