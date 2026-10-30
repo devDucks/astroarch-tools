@@ -1,0 +1,11 @@
+# The "Data and settings" backup of the user (see src/data_profile.rs), started by
+# astroarch-data-backup.timer. A user unit: installed in /usr/lib/systemd/user, switched on
+# from the Control Center's Data backup page (systemctl --user enable --now ...timer)
+[Unit]
+Description=Back up the astro settings and data
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/astroarch-backup --data-backup
+Nice=10
+IOSchedulingClass=idle

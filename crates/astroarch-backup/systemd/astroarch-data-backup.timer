@@ -1,0 +1,12 @@
+# Every 2 hours; a run missed while the Pi was off happens at the next start. The backup
+# skips itself while KStars and indiserver both run (an imaging session)
+[Unit]
+Description=Back up the astro settings and data every 2 hours
+
+[Timer]
+OnCalendar=0/2:00
+Persistent=true
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target
