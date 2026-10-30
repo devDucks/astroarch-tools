@@ -4,6 +4,11 @@ AstroArch language/location/keyboard configuration module.
 **100% Rust** application (Rust + cxx-qt 0.10 + QML), compiled with `cargo` alone:
 no more CMake, `main.cpp` or `translator_manager`.
 
+**Menu entry**: `org.astroarch.locale-module.desktop` now opens the Language and time zone
+page of the AstroArch Control Center (`astroarch-control-center --page language --single`):
+its country, language and keyboard steps use this crate's code (`bridge.rs`, `keyboard.rs`,
+`locale_gen.rs`, `geolocation.rs`, compiled in). The standalone binary still builds.
+
 ## Compile and launch 
 
 cargo build --release 
@@ -21,7 +26,8 @@ src/main.rs               QGuiApplication + QQmlApplicationEngine, nothing else
 src/bridge.rs             LocaleBridge QObject exposed to QML (via cxx-qt)
 src/locale_gen.rs         locale.gen, language/country names, persist_locale (using pkexec)
 src/keyboard.rs           XKB layouts, live testing (setxkbmap on X11; kxkbrc + D-Bus on Wayland), localectl (for persistence)
-src/geolocation.rs        Country/timezone detection via IP (ip-api.com)
+src/geolocation.rs        Country/timezone detection via IP (geoip.kde.org); cargo feature `geoip`
+                          (default; reqwest), off in the AstroArch Control Center
 qml/                      Main, LanguagePage, LocationPage, KeyboardPage, WorldMapView
 translations/qml_<langue>.ts   fr, it, es, de + en
 gen_map.py, map-source/   Regenerates country outlines for WorldMapView.qml

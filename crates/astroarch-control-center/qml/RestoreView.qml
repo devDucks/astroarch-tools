@@ -554,37 +554,9 @@ ColumnLayout {
         visible: view.mode === "wizard"
         spacing: 12
 
-        // "Step 2 of 3" and the segmented bar, as the Data backup page
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 10
-            Label {
-                text: qsTr("Step %1 of %2").arg(view.step).arg(view.steps.length)
-                color: "#1d6fa5"
-                font.bold: true
-            }
-            Label {
-                Layout.fillWidth: true
-                text: view.steps[view.step - 1]
-                color: "#1f2d3a"
-                font.bold: true
-                elide: Text.ElideRight
-            }
-        }
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 4
-            Accessible.ignored: true
-            Repeater {
-                model: view.steps.length
-                Rectangle {
-                    required property int index
-                    Layout.fillWidth: true
-                    implicitHeight: 6
-                    radius: 3
-                    color: index < view.step ? "#1d6fa5" : "#c9d3db"
-                }
-            }
+        WizardSteps {
+            steps: view.steps
+            step: view.step
         }
 
         // ---- Step 1, data backup: the places, the systems in them, their snapshots

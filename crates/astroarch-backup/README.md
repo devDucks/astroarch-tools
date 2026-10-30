@@ -6,6 +6,11 @@ from corruption and accidental mishandling.
 
 **100% Rust** (with a QML interface): no remaining C++ files. Compiled using only Cargo.
 
+**Menu entry**: `org.astroarch.backup.desktop` now opens the Data backup page of the
+AstroArch Control Center (`astroarch-control-center --page backup --single`), which shows
+both profiles of this tool with its own code (see `crates/astroarch-control-center`). The
+`astroarch-backup` binary still builds and runs (it also runs the scheduled data backup).
+
 ## Build and install
 
 cargo build --release
