@@ -118,7 +118,8 @@ impl qobject::ServiceManager {
                     let gps_q = cxx_qt_lib::QString::from(gps);
                     let rpi_status_q = cxx_qt_lib::QString::from(rpi_status_str);
 
-                    qt_thread.queue(move |mut qobject| {
+                    // The QObject is gone (its page closed): the monitoring ends
+                    let sent = qt_thread.queue(move |mut qobject| {
                         qobject.as_mut().set_bluetooth_status(bt_q);
                         qobject.as_mut().set_vsftpd_status(ftp_q);
                         qobject.as_mut().set_gpsd_status(gps_q);
@@ -128,7 +129,10 @@ impl qobject::ServiceManager {
                         qobject.as_mut().set_bluetooth_installed(bt_installed);
                         qobject.as_mut().set_vsftpd_installed(ftp_installed);
                         qobject.as_mut().set_gpsd_installed(gps_installed);
-                    }).unwrap();
+                    });
+                    if sent.is_err() {
+                        break;
+                    }
 
                     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
                 }
