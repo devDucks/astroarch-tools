@@ -41,6 +41,10 @@ ApplicationWindow {
     //           "services" the services of astroarch-sys-manager (ServicesView.qml),
     //           "restore" brings profiles back from a backup (RestoreView.qml)
     //   probes: probes the view reads, run with those of the rows
+    //   prefill: item of the setup file of the boot partition that sets the row (probe
+    //           "prefill"): once applied the row says "Set before first boot", and a page
+    //           without detect whose prefill rows (none with a choice) were all applied
+    //           counts as done
     readonly property var pages: [
         {
             id: "network", setup: "essential", topic: "system", detect: "network-ok",
@@ -48,12 +52,12 @@ ApplicationWindow {
             intro: qsTr("How AstroArch is connected, and how to reach it from another device."),
             detected: "network",
             rows: [
-                { label: qsTr("Home network"), probe: "network-home", missing: qsTr("Not connected"),
+                { label: qsTr("Home network"), probe: "network-home", missing: qsTr("Not connected"), prefill: "wifi",
                   actions: [ { label: qsTr("Network settings"), command: "kcmshell6 kcm_networkmanagement" } ] },
                 { label: qsTr("Field hotspot"), probe: "hotspot", missing: qsTr("Not set up"),
                   sub: qsTr("For the field, when there is no home network"),
                   actions: [ { label: qsTr("Hotspot settings"), command: "kcmshell6 kcm_networkmanagement", hotspot: true } ] },
-                { label: qsTr("Reach it at"), probe: "host",
+                { label: qsTr("Reach it at"), probe: "host", prefill: "hostname",
                   sub: qsTr("All the addresses are in “How to connect”"), actions: [] }
             ]
         },
@@ -63,13 +67,13 @@ ApplicationWindow {
             intro: qsTr("Check these three: they are what the system uses now."),
             primary: qsTr("These are right"),
             rows: [
-                { label: qsTr("Language"), probe: "language", format: "locale",
+                { label: qsTr("Language"), probe: "language", format: "locale", prefill: "language",
                   actions: [ { label: qsTr("Change…"), command: "astroarch-locale-module --page language",
                                tool: qsTr("Language and keyboard") } ] },
-                { label: qsTr("Keyboard"), probe: "keyboard", format: "keyboard",
+                { label: qsTr("Keyboard"), probe: "keyboard", format: "keyboard", prefill: "keyboard",
                   actions: [ { label: qsTr("Change…"), command: "astroarch-locale-module --page keyboard",
                                tool: qsTr("Language and keyboard") } ] },
-                { label: qsTr("Time zone"), probe: "timezone", format: "timezone",
+                { label: qsTr("Time zone"), probe: "timezone", format: "timezone", prefill: "timezone",
                   actions: [ { label: qsTr("Change…"), command: "kcmshell6 kcm_clock", tool: qsTr("Date and time") } ] }
             ]
         },
@@ -81,10 +85,12 @@ ApplicationWindow {
             // password for this user); value = the default, missing = what "none" means
             rows: [
                 { label: qsTr("User password"), choice: "password-user", probe: "password-user", format: "password",
+                  prefill: "password",
                   value: qsTr("Default: astro"),
                   actions: [ { label: qsTr("Change…"), command: "kcmshell6 kcm_users", tool: qsTr("Users") },
                              { label: qsTr("Keep"), kind: "keep" } ] },
                 { label: qsTr("Field Wi‑Fi"), choice: "password-wifi", probe: "password-hotspot", format: "password",
+                  prefill: "hotspot_password",
                   value: qsTr("Default: astronomy"), missing: qsTr("Not set up"),
                   sub: qsTr("On shared Wi‑Fi in the field, anyone nearby could connect"),
                   actions: [ { label: qsTr("Change…"), command: "kcmshell6 kcm_networkmanagement", hotspot: true,
@@ -92,6 +98,7 @@ ApplicationWindow {
                              { label: qsTr("Keep"), kind: "keep" } ] },
                 // Separate from the user password: smbpasswd asks the old one, then the new one
                 { label: qsTr("Shared folders"), choice: "password-samba", probe: "password-samba", format: "password",
+                  prefill: "password",
                   value: qsTr("Default: astro"), missing: qsTr("Not set up for this user"),
                   sub: qsTr("To open your files from another computer"),
                   actions: [ { label: qsTr("Change…"), command: "smbpasswd", terminal: true, needs: "password-samba",
@@ -340,6 +347,15 @@ ApplicationWindow {
         const keptDefault = r => root.rowState(r) === "kept" && root.probeOk(r.probe) && root.probes[r.probe].value === "default"
         return rows.some(keptDefault) && rows.every(r => keptDefault(r) || root.rowState(r) === "none")
     }
+    // The row was set by the setup file of the boot partition at the first boot
+    function prefilled(row) {
+        return !!row.prefill && root.probeOk("prefill") && root.probes["prefill"].value.split(",").includes(row.prefill)
+    }
+    // Rows with a choice are settled by what their probe reads (rowsSettled)
+    function allPrefilled(page) {
+        const rows = page.rows.filter(r => r.prefill)
+        return !page.detect && rows.length > 0 && rows.every(r => !r.choice && root.prefilled(r))
+    }
     function rowShown(row) {
         const when = row.hideWhen
         return !when || !root.probeOk(when.probe) || root.probes[when.probe].value !== when.value
@@ -347,7 +363,7 @@ ApplicationWindow {
 
     // "done" | "later" | "skip" | "hold" | "" (to do). A hold only stops a step still to do
     function statusOf(page) {
-        if ((page.detect && root.probeOk(page.detect)) || root.rowsSettled(page))
+        if ((page.detect && root.probeOk(page.detect)) || root.rowsSettled(page) || root.allPrefilled(page))
             return "done"
         const chosen = root.choices[page.id] || ""
         if (chosen === "" && root.onHold(page))
@@ -415,6 +431,7 @@ ApplicationWindow {
             }
         }
         names.add("hotspot-uuid")
+        names.add("prefill")
         root.lastRun = nowMs
         // The first page does not wait for the hold probe: it asks a server
         if (root.firstRunNames.length === 0)
@@ -1126,6 +1143,17 @@ ApplicationWindow {
                                                         visible: !!valueRow.modelData.sub
                                                         text: valueRow.modelData.sub || ""
                                                         color: "#5d6d7e"
+                                                        font: Kirigami.Theme.smallFont
+                                                        wrapMode: Text.Wrap
+                                                    }
+                                                    // A password set by the setup file says so only while the
+                                                    // system still reads it as changed
+                                                    Label {
+                                                        Layout.fillWidth: true
+                                                        visible: root.prefilled(valueRow.modelData)
+                                                                 && (!valueRow.modelData.choice || valueRow.rowState === "changed")
+                                                        text: qsTr("Set before first boot")
+                                                        color: "#1e7a45"
                                                         font: Kirigami.Theme.smallFont
                                                         wrapMode: Text.Wrap
                                                     }
