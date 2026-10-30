@@ -219,6 +219,11 @@ impl qobject::LocaleBridge {
         let (tx, rx) = mpsc::channel();
         self.as_mut().rust_mut().geo_rx = Some(rx);
 
+        // Without the "geoip" feature (the AstroArch Control Center, which finds the country
+        // with its own probe) there is no lookup: as without a network
+        #[cfg(not(feature = "geoip"))]
+        let _ = tx.send(None);
+        #[cfg(feature = "geoip")]
         std::thread::spawn(move || {
             let rt = match tokio::runtime::Runtime::new() {
                 Ok(rt) => rt,
@@ -353,10 +358,21 @@ impl qobject::LocaleBridge {
 
         println!("--> Attempt to register : Langue = {}, Layout = {}", lang_code, layout);
 
-        // 1. Clavier live
-        let _ = keyboard::apply_layout_live(&layout, variant_opt);
+        // 1. The language first (pkexec): when it is refused or fails, nothing else
+        //    changes, not even the keyboard of the session
+        let locale_ok = match locale_gen::persist_locale(&lang_code) {
+            Ok(_) => true,
+            Err(e) => {
+                eprintln!("Error saving locale settings : {:?}", e);
+                false
+            }
+        };
+        if !locale_ok {
+            println!("--> Result: Locale = false, keyboard left unchanged");
+            return false;
+        }
 
-        // 2. Keyboard Persistence
+        // 2. The keyboard: the system's (localectl), then, once written, the session's
         let kb_ok = match keyboard::persist_layout(&layout, variant_opt) {
             Ok(_) => true,
             Err(e) => {
@@ -365,17 +381,8 @@ impl qobject::LocaleBridge {
             }
         };
 
-        // 3. Local persistence
-        let locale_ok = match locale_gen::persist_locale(&lang_code) {
-            Ok(_) => true,
-            Err(e) => {
-                eprintln!("Error saving locale settings : {:?}", e);
-                false
-            }
-        };
-
         println!("--> Result: Keyboard = {}, Locale = {}", kb_ok, locale_ok);
 
-        kb_ok && locale_ok
+        kb_ok
     }
 }

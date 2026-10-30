@@ -513,43 +513,10 @@ ColumnLayout {
         visible: view.profile === "data" && view.mode === "wizard"
         spacing: 12
 
-        // "Step 2 of 3" and the segmented bar
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 10
-            Label {
-                text: qsTr("Step %1 of %2").arg(view.step).arg(view.steps.length)
-                color: "#1d6fa5"
-                font.bold: true
-            }
-            Label {
-                Layout.fillWidth: true
-                text: view.steps[view.step - 1]
-                color: "#1f2d3a"
-                font.bold: true
-                elide: Text.ElideRight
-            }
-            Label {
-                visible: view.step < view.steps.length
-                text: qsTr("Next: %1").arg(view.step < view.steps.length ? view.steps[view.step] : "")
-                color: "#5d6d7e"
-                font: Kirigami.Theme.smallFont
-            }
-        }
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 4
-            Accessible.ignored: true
-            Repeater {
-                model: view.steps.length
-                Rectangle {
-                    required property int index
-                    Layout.fillWidth: true
-                    implicitHeight: 6
-                    radius: 3
-                    color: index < view.step ? "#1d6fa5" : "#c9d3db"
-                }
-            }
+        WizardSteps {
+            steps: view.steps
+            step: view.step
+            showNext: true
         }
 
         // ---- Step 1: what is included

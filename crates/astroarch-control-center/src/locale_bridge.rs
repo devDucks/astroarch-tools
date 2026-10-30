@@ -1,0 +1,1 @@
+../../astroarch-locale-module/src/bridge.rs

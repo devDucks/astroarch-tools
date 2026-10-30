@@ -9,16 +9,26 @@ import AstroArchControlCenter
 ApplicationWindow {
     id: root
 
-    width: 940
-    height: 660
+    // --page ID --single: only that page (a menu entry of one tool), without the side
+    // panel and the setup buttons; the setup state is not changed by it
+    readonly property string askedPage: {
+        const args = Qt.application.arguments
+        const i = args.indexOf("--page")
+        return i >= 0 && root.pages.some(p => p.id === args[i + 1]) ? args[i + 1] : ""
+    }
+    readonly property bool single: askedPage !== "" && Qt.application.arguments.indexOf("--single") >= 0
+
+    width: single ? 720 : 940
+    height: single ? 600 : 660
     // Fits the official 800x480 Raspberry Pi touchscreen
-    minimumWidth: 760
-    minimumHeight: 460
+    minimumWidth: single ? 520 : 760
+    minimumHeight: single ? 400 : 460
     // --autostart (the login autostart of the image): the window opens only while the
     // setup is shown; once the user hid it, the Control Center quits at once
     readonly property bool autostart: Qt.application.arguments.indexOf("--autostart") >= 0
     visible: !autostart
-    title: qsTr("AstroArch Control Center")
+    // card.page: the asked page from the start, not the first one until onCompleted
+    title: single ? card.page.title : qsTr("AstroArch Control Center")
     color: Kirigami.Theme.backgroundColor
 
     // ------------------------------------------------------------------ pages
@@ -40,13 +50,15 @@ ApplicationWindow {
     //           hidden when it is the row's own probe, as the row says why; when: values of
     //           the row's probe that show it, "on" or "off|missing"; tool: its name in
     //           messages when the label is not), or kind "keep" (stores the row's choice
-    //           "kept") / "copy" / "go" (opens the page `page`)
+    //           "kept") / "copy" / "go" (opens the page `page`) / "view" (starts the
+    //           page's view at `step`: its function start(step))
     //   view:   "software" shows the programs of the software installer in the page,
     //           "backup" the backup tool (data and system profiles),
     //           "kiosk" the kiosk profiles and apps (KioskSetup.qml),
     //           "storage" moves the image folder to a drive and back,
     //           "services" the services of astroarch-sys-manager (ServicesView.qml),
-    //           "restore" brings profiles back from a backup (RestoreView.qml)
+    //           "restore" brings profiles back from a backup (RestoreView.qml),
+    //           "language" country, language and keyboard (LanguageView.qml)
     //   probes: probes the view reads, run with those of the rows
     //   prefill: item of the setup file of the boot partition that sets the row (probe
     //           "prefill"): once applied the row says "Set before first boot", and a page
@@ -73,18 +85,17 @@ ApplicationWindow {
             title: qsTr("Language and time zone"),
             intro: qsTr("Check language, keyboard and time zone: they are what the system uses now."),
             primary: qsTr("These are right"),
+            // Country, language and keyboard of the locale module, in the page (LanguageView.qml)
+            view: "language",
             rows: [
                 { label: qsTr("Language"), probe: "language", format: "locale", prefill: "language",
-                  actions: [ { label: qsTr("Change…"), command: "astroarch-locale-module --page language",
-                               tool: qsTr("Language and keyboard") } ] },
+                  actions: [ { label: qsTr("Change…"), kind: "view", step: "language" } ] },
                 { label: qsTr("Keyboard"), probe: "keyboard", format: "keyboard", prefill: "keyboard",
-                  actions: [ { label: qsTr("Change…"), command: "astroarch-locale-module --page keyboard",
-                               tool: qsTr("Language and keyboard") } ] },
-                // The module without --page starts from the country of the network
+                  actions: [ { label: qsTr("Change…"), kind: "view", step: "keyboard" } ] },
+                // The view's wizard from its first step, the country of the network chosen
                 { label: qsTr("Country of your network"), probe: "country-suggest", format: "country", suggestion: true,
                   sub: qsTr("Language and keyboard can follow it: you check them before they are applied"),
-                  actions: [ { label: qsTr("Choose…"), command: "astroarch-locale-module",
-                               tool: qsTr("Language and keyboard") } ] },
+                  actions: [ { label: qsTr("Choose…"), kind: "view", step: "country" } ] },
                 { label: qsTr("Time zone"), probe: "timezone", format: "timezone", prefill: "timezone",
                   actions: [ { label: qsTr("Change…"), command: "kcmshell6 kcm_clock", tool: qsTr("Date and time") } ] },
                 { label: qsTr("Time zone of your network"), probe: "timezone-suggest", format: "timezone", suggestion: true,
@@ -289,34 +300,24 @@ ApplicationWindow {
     property date now: new Date()       // for the local time next to the time zone
     property var failedText: null       // { command, text } of the action started last
 
-    // The view of the page shows its own primary button now (its property ownsPrimary, e.g.
-    // the kiosk's "Apply"): the footer's is then not highlighted, and Enter alone does nothing
-    readonly property bool viewOwnsPrimary: {
+    // The view of the page now shown (the item of its Loader), or null. Only the Loaders of
+    // pageContent are read, their item first: the rows box hides with viewWizard, its
+    // visible must not be read here
+    readonly property Item currentView: {
         const children = pageContent.children
         for (let i = 0; i < children.length; i++)
-            if (children[i].visible && children[i].item && children[i].item.ownsPrimary === true)
-                return true
-        return false
+            if (children[i].item && children[i].visible)
+                return children[i].item
+        return null
     }
-
-    // The view of the page runs a wizard (its property mode, "wizard"): its own Back / Next
-    // are the page's only navigation, the footer is hidden
-    readonly property bool viewWizard: {
-        const children = pageContent.children
-        for (let i = 0; i < children.length; i++)
-            if (children[i].visible && children[i].item && children[i].item.mode === "wizard")
-                return true
-        return false
-    }
-
-    // The view of the page shows buttons pinned under it (its property navShown, wizardNav)
-    readonly property bool viewNavShown: {
-        const children = pageContent.children
-        for (let i = 0; i < children.length; i++)
-            if (children[i].visible && children[i].item && children[i].item.navShown === true)
-                return true
-        return false
-    }
+    // The view shows its own primary button now (its property ownsPrimary, e.g. the kiosk's
+    // "Apply"): the footer's is then not highlighted, and Enter alone does nothing
+    readonly property bool viewOwnsPrimary: !!currentView && currentView.ownsPrimary === true
+    // The view runs a wizard (its property mode, "wizard"): its own Back / Next are the
+    // page's only navigation, the footer is hidden
+    readonly property bool viewWizard: !!currentView && currentView.mode === "wizard"
+    // The view shows buttons pinned under it (its property navShown, wizardNav)
+    readonly property bool viewNavShown: !!currentView && currentView.navShown === true
 
     readonly property var choices: {
         try {
@@ -587,6 +588,11 @@ ApplicationWindow {
             root.go(action.page)
             return
         }
+        if (action.kind === "view") {
+            if (root.currentView && typeof root.currentView.start === "function")
+                root.currentView.start(action.step)
+            return
+        }
         if (action.kind === "copy") {
             clipboard.text = root.formatValue(row)
             clipboard.selectAll()
@@ -656,11 +662,9 @@ ApplicationWindow {
         root.visible = true
         root.runProbes()
         // --page ID opens on that page (a desktop launcher of one page, e.g. --page kiosk)
-        const args = Qt.application.arguments
-        const asked = args.indexOf("--page") >= 0 ? args[args.indexOf("--page") + 1] : ""
-        if (root.pages.some(p => p.id === asked)) {
+        if (root.askedPage !== "") {
             root.userPicked = true
-            root.go(asked)
+            root.go(root.askedPage)
         } else {
             root.currentId = setup.hidden ? root.pages[0].id : root.resumePage()
         }
@@ -722,7 +726,7 @@ ApplicationWindow {
         onActivated: {
             const page = root.pageById(root.currentId)
             const status = root.statusOf(page)
-            if (!root.viewWizard && !root.hidden && root.isTask(page) && (status === "" || status === "hold"))
+            if (!root.single && !root.viewWizard && !root.hidden && root.isTask(page) && (status === "" || status === "hold"))
                 root.choose(page, "later")
         }
     }
@@ -774,7 +778,7 @@ ApplicationWindow {
 
                     Label {
                         Layout.fillWidth: true
-                        text: qsTr("AstroArch Control Center")
+                        text: root.single ? card.page.title : qsTr("AstroArch Control Center")
                         color: Kirigami.Theme.textColor
                         font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.9
                         font.weight: Font.Light
@@ -782,7 +786,8 @@ ApplicationWindow {
                     }
                     Label {
                         Layout.fillWidth: true
-                        text: root.hidden
+                        text: root.single ? qsTr("AstroArch Control Center")
+                              : root.hidden
                               ? qsTr("Settings and tools of your AstroArch")
                               : qsTr("Setup: %1 of %2 done · you can stop at any time").arg(root.tasksDone).arg(root.taskPages.length)
                         color: Kirigami.Theme.disabledTextColor
@@ -799,6 +804,7 @@ ApplicationWindow {
 
             // Side panel: the groups open and close, the one of the current page is open
             Rectangle {
+                visible: !root.single
                 Layout.preferredWidth: 240
                 Layout.maximumWidth: 240
                 Layout.fillHeight: true
@@ -1001,7 +1007,7 @@ ApplicationWindow {
             Rectangle {
                 id: card
 
-                readonly property var page: root.pageById(root.currentId)
+                readonly property var page: root.pageById(root.currentId || root.askedPage)
                 readonly property string status: root.statusOf(page)
                 readonly property var level: root.levels[page.setup]
                 // Narrow window: each row puts its buttons under the value
@@ -1051,7 +1057,9 @@ ApplicationWindow {
                             Accessible.role: Accessible.Pane
                             Accessible.name: card.page.title
 
+                            // In a single page window the header names the page
                             Flow {
+                                visible: !root.single
                                 Layout.fillWidth: true
                                 spacing: 10
                                 Label {
@@ -1114,8 +1122,9 @@ ApplicationWindow {
                             }
 
                             // Current values, one per row, with their actions
+                            // Not while the page's view runs a wizard: its steps take the page
                             Rectangle {
-                                visible: card.page.rows.length > 0
+                                visible: card.page.rows.length > 0 && !root.viewWizard
                                 Layout.fillWidth: true
                                 implicitHeight: rowsColumn.implicitHeight
                                 radius: 8
@@ -1311,6 +1320,21 @@ ApplicationWindow {
                                 }
                             }
 
+                            // Language page: country, language and keyboard (the locale module's code)
+                            Loader {
+                                Layout.fillWidth: true
+                                visible: card.page.view === "language"
+                                active: false
+                                onVisibleChanged: if (visible) active = true
+                                Component.onCompleted: if (visible) active = true
+                                sourceComponent: LanguageView {
+                                    probes: root.probes
+                                    navHost: wizardNav
+                                    onSystemChanged: root.runProbes()
+                                    onScrollToTop: pageScroll.contentItem.contentY = 0
+                                }
+                            }
+
                             Kirigami.InlineMessage {
                                 Layout.fillWidth: true
                                 visible: root.message !== ""
@@ -1333,11 +1357,11 @@ ApplicationWindow {
                     RowLayout {
                         id: footer
 
-                        readonly property bool setupPage: !root.hidden && card.page.setup !== ""
+                        readonly property bool setupPage: !root.hidden && !root.single && card.page.setup !== ""
                         // What Enter does on this page when no button has the focus
                         readonly property var primaryAction: {
                             if (card.page.id === "summary")
-                                return root.hidden ? null : () => { setup.hide_setup(true); hiddenNote.visible = true }
+                                return root.hidden || root.single ? null : () => { setup.hide_setup(true); hiddenNote.visible = true }
                             if (!setupPage || card.status === "hold")
                                 return null
                             if (card.status === "done")

@@ -15,8 +15,15 @@ serde = { workspace = true }
 toml = "0.8"
 # For astroarch-sys-manager's ServiceManager (src/service_manager.rs)
 tokio = { workspace = true, features = ["full"] }
+# astroarch-locale-module's IP lookup (geolocation.rs), off: the Language page has the
+# country from its probe (country-suggest). Declared so that bridge.rs's cfg is known
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
 # For the backup tool's code (src/main.rs: data and system profiles)
 thiserror = { workspace = true }
+
+[features]
+# The locale module's own IP lookup (see reqwest above); not needed by the Language page
+geoip = ["dep:reqwest"]
 
 [build-dependencies]
 astroarch-build = { workspace = true }

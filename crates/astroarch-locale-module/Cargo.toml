@@ -9,10 +9,16 @@ description = "Language / location / keyboard configuration module for AstroArch
 cxx = { workspace = true }
 cxx-qt = { workspace = true }
 cxx-qt-lib = { workspace = true }
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
+
+[features]
+# The country from the IP address (geolocation.rs, over https with reqwest). The AstroArch
+# Control Center compiles bridge.rs without it: it has the country from its own probe
+default = ["geoip"]
+geoip = ["dep:reqwest"]
 
 [build-dependencies]
 astroarch-build = { workspace = true }
