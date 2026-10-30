@@ -16,11 +16,11 @@ pub mod qobject {
     unsafe extern "RustQt" {
         #[qobject]
         #[qml_element]
-        #[qproperty(QStringList, language_display_names)]
         #[qproperty(QStringList, language_codes)]
         #[qproperty(QString, selected_language_code)]
         #[qproperty(QStringList, country_codes)]
-        #[qproperty(QStringList, country_display_names)]
+        // Per country: its locale codes joined by “,” (QML names the country with them)
+        #[qproperty(QStringList, country_locales)]
         #[qproperty(QString, selected_country_code)]
         #[qproperty(QStringList, keyboard_layout_codes)]
         #[qproperty(QStringList, keyboard_layout_names)]
@@ -33,8 +33,9 @@ pub mod qobject {
         #[qproperty(QString, detected_country_code)]
         type LocaleBridge = super::LocaleBridgeRust;
 
+        // `geolocate`: guess the country from the IP address to pre-fill the choices
         #[qinvokable]
-        fn initialize(self: Pin<&mut LocaleBridge>);
+        fn initialize(self: Pin<&mut LocaleBridge>, geolocate: bool);
 
         #[qinvokable]
         fn set_language(self: Pin<&mut LocaleBridge>, code: &QString);
@@ -75,12 +76,11 @@ fn to_qstringlist(items: &[QString]) -> QStringList {
 }
 
 pub struct LocaleBridgeRust {
-    language_display_names: QStringList,
     language_codes: QStringList,
     selected_language_code: QString,
 
     country_codes: QStringList,
-    country_display_names: QStringList,
+    country_locales: QStringList,
     selected_country_code: QString,
 
     keyboard_layout_codes: QStringList,
@@ -95,16 +95,19 @@ pub struct LocaleBridgeRust {
     detected_country_code: QString,
 
     geo_rx: Option<mpsc::Receiver<Option<geolocation::GeoInfo>>>,
+
+    /// Locale codes of locale.gen, and per country its codes (see list_countries)
+    available: Vec<String>,
+    countries: Vec<(String, String)>,
 }
 
 impl Default for LocaleBridgeRust {
     fn default() -> Self {
         Self {
-            language_display_names: QStringList::default(),
             language_codes: QStringList::default(),
             selected_language_code: QString::from("en_US"),
             country_codes: QStringList::default(),
-            country_display_names: QStringList::default(),
+            country_locales: QStringList::default(),
             selected_country_code: QString::default(),
             keyboard_layout_codes: QStringList::default(),
             keyboard_layout_names: QStringList::default(),
@@ -116,13 +119,17 @@ impl Default for LocaleBridgeRust {
             geo_detected: false,
             detected_country_code: QString::default(),
             geo_rx: None,
+            available: Vec::new(),
+            countries: Vec::new(),
         }
     }
 }
 
-fn determine_defaults(country_code: &str, timezone: &str) -> (&'static str, &'static str, &'static str) {
+/// Language, layout and variant for a country. `main_locale`: its first locale in
+/// locale.gen (see list_countries), for the countries not listed here
+fn determine_defaults(country_code: &str, timezone: &str, main_locale: Option<&str>) -> (String, &'static str, &'static str) {
     let tz = timezone.to_lowercase();
-    match country_code {
+    let (lang, layout, variant) = match country_code {
         "CH" => {
             if tz.contains("geneva") || tz.contains("lausanne") || tz.contains("zurich") {
                 ("fr_CH", "ch", "fr")
@@ -155,40 +162,37 @@ fn determine_defaults(country_code: &str, timezone: &str) -> (&'static str, &'st
         "US" => ("en_US", "us", ""),
         other => {
             let default_layout = keyboard::default_layout_for_country(other);
-            ("en_US", default_layout, "")
+            (main_locale.unwrap_or("en_US"), default_layout, "")
         }
-    }
+    };
+    (lang.to_string(), layout, variant)
 }
 
+/// AstroArch image defaults: a guess from the location only replaces these
+const IMAGE_LANGUAGE: &str = "en_US";
+const IMAGE_LAYOUT: &str = "us";
+
 impl qobject::LocaleBridge {
-    pub fn initialize(mut self: Pin<&mut Self>) {
-        // 1. Locales
-        if let Ok(entries) = locale_gen::read_available_locales(locale_gen::DEFAULT_LOCALE_GEN_PATH) {
-            let mut names: Vec<QString> = Vec::with_capacity(entries.len());
-            let mut codes: Vec<QString> = Vec::with_capacity(entries.len());
-            for e in &entries {
-                names.push(QString::from(e.display_name.as_str()));
-                codes.push(QString::from(e.code.as_str()));
-            }
-            self.as_mut().set_language_display_names(to_qstringlist(&names));
-            self.as_mut().set_language_codes(to_qstringlist(&codes));
-        }
+    pub fn initialize(mut self: Pin<&mut Self>, geolocate: bool) {
+        // 1. Locales (their names come from Qt, in QML)
+        let entries = locale_gen::read_available_locales(locale_gen::DEFAULT_LOCALE_GEN_PATH)
+            .unwrap_or_default();
+        let codes: Vec<QString> = entries.iter().map(|e| QString::from(e.code.as_str())).collect();
+        self.as_mut().set_language_codes(to_qstringlist(&codes));
+        self.as_mut().rust_mut().available = entries.iter().map(|e| e.code.clone()).collect();
 
         // Restores the locale already stored in the system, if one exists
         if let Some(existing_locale) = locale_gen::read_current_system_locale() {
             self.as_mut().set_selected_language_code(QString::from(existing_locale.as_str()));
         }
 
-        // 2. Country
-        let countries = locale_gen::list_countries();
-        let mut ccodes: Vec<QString> = Vec::with_capacity(countries.len());
-        let mut cnames: Vec<QString> = Vec::with_capacity(countries.len());
-        for (code, name) in &countries {
-            ccodes.push(QString::from(code.as_str()));
-            cnames.push(QString::from(name.as_str()));
-        }
+        // 2. Countries of these locales
+        let countries = locale_gen::list_countries(&entries);
+        let ccodes: Vec<QString> = countries.iter().map(|(c, _)| QString::from(c.as_str())).collect();
+        let clocales: Vec<QString> = countries.iter().map(|(_, l)| QString::from(l.as_str())).collect();
         self.as_mut().set_country_codes(to_qstringlist(&ccodes));
-        self.as_mut().set_country_display_names(to_qstringlist(&cnames));
+        self.as_mut().set_country_locales(to_qstringlist(&clocales));
+        self.as_mut().rust_mut().countries = countries;
 
         // 3. XKB Keyboards
         if let Ok(layouts) = keyboard::list_layouts() {
@@ -202,7 +206,16 @@ impl qobject::LocaleBridge {
             self.as_mut().set_keyboard_layout_names(to_qstringlist(&names));
         }
 
+        // The layout in use now, not a default one: "Finish" keeps it unless it is changed
+        if let Some((layout, variant)) = keyboard::current_layout() {
+            self.as_mut().set_keyboard_layout(&QString::from(layout.as_str()));
+            self.as_mut().set_selected_variant_code(QString::from(variant.as_str()));
+        }
+
         // 4. IP Detection
+        if !geolocate {
+            return;
+        }
         let (tx, rx) = mpsc::channel();
         self.as_mut().rust_mut().geo_rx = Some(rx);
 
@@ -247,27 +260,15 @@ impl qobject::LocaleBridge {
                 let q_country = QString::from(country_code.as_str());
                 self.as_mut().set_detected_country_code(q_country.clone());
 
-                // Replaces the choices only if no explicit local settings have been preloaded
+                // A guess: it pre-selects the country, and the language and layout only
+                // where they are still the image defaults (what the user set stays).
+                // Choices only: nothing is applied until "Finish"
                 if self.selected_country_code().to_string().is_empty() {
                     self.as_mut().set_selected_country_code(q_country);
-
-                    let (lang_code, layout_code, variant_code) = determine_defaults(&country_code, &timezone);
-
-                    let q_lang = QString::from(lang_code);
-                    let q_layout = QString::from(layout_code);
-                    let q_variant = QString::from(variant_code);
-
-                    self.as_mut().set_selected_language_code(q_lang);
-                    self.as_mut().set_selected_layout_code(q_layout.clone());
-                    self.as_mut().set_selected_variant_code(q_variant.clone());
-
-                    self.as_mut().set_keyboard_layout(&q_layout);
-                    if !variant_code.is_empty() {
-                        self.as_mut().set_keyboard_variant(&q_variant);
-                    }
-
-                    let variant_opt = if variant_code.is_empty() { None } else { Some(variant_code) };
-                    let _ = keyboard::apply_layout_live(layout_code, variant_opt);
+                    let language = self.selected_language_code().to_string() == IMAGE_LANGUAGE;
+                    let layout = self.selected_layout_code().to_string() == IMAGE_LAYOUT
+                        && self.selected_variant_code().to_string().is_empty();
+                    self.as_mut().choose_for_country(&country_code, &timezone, language, layout);
                 }
             }
             None => {
@@ -284,20 +285,31 @@ impl qobject::LocaleBridge {
     pub fn set_country(mut self: Pin<&mut Self>, code: &QString) {
         let country_str = code.to_string();
         self.as_mut().set_selected_country_code(code.clone());
+        self.as_mut().choose_for_country(&country_str, "", true, true);
+    }
 
-        let (lang_code, layout_code, variant_code) = determine_defaults(&country_str, "");
+    /// Selects the language and/or layout of a country
+    fn choose_for_country(mut self: Pin<&mut Self>, country: &str, timezone: &str, language: bool, layout: bool) {
+        // Its first locale that locale.gen has
+        let main_locale = self
+            .rust()
+            .countries
+            .iter()
+            .find(|(c, _)| c == country)
+            .and_then(|(_, codes)| codes.split(',').find(|c| self.rust().available.iter().any(|a| a == c)))
+            .map(str::to_string);
+        let (lang_code, layout_code, variant_code) = determine_defaults(country, timezone, main_locale.as_deref());
+        // Picked by hand (no time zone): the language the country is named with
+        let lang_code = if timezone.is_empty() { main_locale.unwrap_or(lang_code) } else { lang_code };
 
-        let q_lang = QString::from(lang_code);
-        let q_layout = QString::from(layout_code);
-        let q_variant = QString::from(variant_code);
-
-        self.as_mut().set_selected_language_code(q_lang);
-        self.as_mut().set_selected_layout_code(q_layout.clone());
-        self.as_mut().set_selected_variant_code(q_variant.clone());
-
-        self.as_mut().set_keyboard_layout(&q_layout);
-        if !variant_code.is_empty() {
-            self.as_mut().set_keyboard_variant(&q_variant);
+        if language {
+            self.as_mut().set_selected_language_code(QString::from(lang_code.as_str()));
+        }
+        if layout {
+            self.as_mut().set_keyboard_layout(&QString::from(layout_code));
+            if !variant_code.is_empty() {
+                self.as_mut().set_keyboard_variant(&QString::from(variant_code));
+            }
         }
     }
 
