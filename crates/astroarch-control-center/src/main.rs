@@ -48,6 +48,19 @@ mod keyboard;
 mod locale_gen;
 mod locale_bridge;
 
+/// The launcher this window belongs to (icon and name in the task manager): a page opened
+/// alone with --single from a menu entry of its own is that entry, else the Control Center
+fn desktop_file_name(args: &[String]) -> &'static str {
+    let page = args.iter().position(|a| a == "--page").and_then(|i| args.get(i + 1));
+    match (args.iter().any(|a| a == "--single"), page.map(String::as_str)) {
+        (true, Some("services")) => "org.astroarch.sys-manager",
+        (true, Some("software")) => "org.astroarch.software-installer",
+        (true, Some("backup")) => "org.astroarch.backup",
+        (true, Some("language")) => "org.astroarch.locale-module",
+        _ => "org.astroarch.control-center",
+    }
+}
+
 fn main() {
     // `--version` / `-V` : affiche la version du workspace (Cargo.toml) puis quitte
     if std::env::args().any(|a| a == "--version" || a == "-V") {
@@ -60,9 +73,9 @@ fn main() {
 
     let mut app = QGuiApplication::new();
 
-    // Associates the window with org.astroarch.control-center.desktop (icon and grouping
-    // in the taskbar, including under Wayland)
-    QGuiApplication::set_desktop_file_name(&QString::from("org.astroarch.control-center"));
+    // Associates the window with its .desktop file (icon, name and grouping in the taskbar,
+    // including under Wayland): the Control Center's, or the menu entry of a single page
+    QGuiApplication::set_desktop_file_name(&QString::from(desktop_file_name(&std::env::args().collect::<Vec<_>>())));
 
     let mut engine = QQmlApplicationEngine::new();
     if let Some(engine) = engine.as_mut() {
@@ -72,5 +85,23 @@ fn main() {
 
     if let Some(app) = app.as_mut() {
         app.exec();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::desktop_file_name;
+
+    fn args(list: &[&str]) -> Vec<String> {
+        list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn single_pages_are_their_own_launcher() {
+        assert_eq!(desktop_file_name(&args(&["cc", "--page", "services", "--single"])), "org.astroarch.sys-manager");
+        assert_eq!(desktop_file_name(&args(&["cc", "--single", "--page", "language"])), "org.astroarch.locale-module");
+        assert_eq!(desktop_file_name(&args(&["cc", "--page", "services"])), "org.astroarch.control-center");
+        assert_eq!(desktop_file_name(&args(&["cc", "--page", "kiosk", "--single"])), "org.astroarch.control-center");
+        assert_eq!(desktop_file_name(&args(&["cc"])), "org.astroarch.control-center");
     }
 }
