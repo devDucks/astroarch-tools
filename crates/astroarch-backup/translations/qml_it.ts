@@ -2,6 +2,45 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="it">
 <context>
+    <name>FolderTreeWindow</name>
+    <message>
+        <source>Select the folders to exclude</source>
+        <translation>Seleziona le cartelle da escludere</translation>
+    </message>
+    <message>
+        <source>Shared data folder</source>
+        <translation>Cartella dati condivisa</translation>
+    </message>
+    <message>
+        <source>Your home folder</source>
+        <translation>La tua cartella personale</translation>
+    </message>
+    <message>
+        <source>Check the folders you do NOT want to back up</source>
+        <translation>Seleziona le cartelle che NON vuoi salvare</translation>
+    </message>
+    <message>
+        <source>🔒 Folders required by the system cannot be excluded.</source>
+        <translation>🔒 Le cartelle necessarie al sistema non possono essere escluse.</translation>
+    </message>
+    <message>
+        <source>Show hidden folders</source>
+        <translation>Mostra cartelle nascoste</translation>
+    </message>
+    <message>
+        <source>Select none</source>
+        <translation>Deseleziona tutto</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Annulla</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+</context>
+<context>
     <name>Main</name>
     <message>
         <source>AstroArch Backup Assistant</source>
@@ -21,7 +60,7 @@
     </message>
     <message>
         <source>Creating the snapshot...</source>
-        <translation>Creazione dell'istantanea...</translation>
+        <translation>Creazione dell&apos;istantanea...</translation>
     </message>
     <message>
         <source>Verifying the backup...</source>
@@ -87,7 +126,7 @@
         <source>The space analysis failed:
 
 %1</source>
-        <translation>L'analisi dello spazio non è riuscita:
+        <translation>L&apos;analisi dello spazio non è riuscita:
 
 %1</translation>
     </message>
@@ -99,9 +138,33 @@
         <source>There is not enough space for the safety backup (%1 needed, %2 available).
 
 Free some space, or untick the safety backup.</source>
-        <translation>Non c'è abbastanza spazio per il backup di sicurezza (%1 necessari, %2 disponibili).
+        <translation>Non c&apos;è abbastanza spazio per il backup di sicurezza (%1 necessari, %2 disponibili).
 
 Libera dello spazio oppure deseleziona il backup di sicurezza.</translation>
+    </message>
+    <message>
+        <source>Raspberry Pi</source>
+        <translation>Raspberry Pi</translation>
+    </message>
+    <message>
+        <source>PC</source>
+        <translation>PC</translation>
+    </message>
+    <message>
+        <source>32-bit ARM</source>
+        <translation>ARM a 32 bit</translation>
+    </message>
+    <message>
+        <source>From a %1 system (%2): settings and data only</source>
+        <translation>Da un sistema %1 (%2): solo impostazioni e dati</translation>
+    </message>
+    <message>
+        <source>The system of this backup cannot be recognized: settings and data only</source>
+        <translation>Il sistema di questo backup non può essere riconosciuto: solo impostazioni e dati</translation>
+    </message>
+    <message>
+        <source>The whole system cannot be restored here. Its KStars, INDI and PHD2 settings and its images can: in the AstroArch Control Center, page “Restore from a backup”, source “A system backup”.</source>
+        <translation>L’intero sistema non può essere ripristinato qui. Le sue impostazioni di KStars, INDI e PHD2 e le sue immagini sì: nel Centro di controllo AstroArch, pagina “Ripristina da un backup”, origine “Un backup del sistema”.</translation>
     </message>
     <message>
         <source>%1 available</source>
@@ -132,6 +195,10 @@ Libera dello spazio oppure deseleziona il backup di sicurezza.</translation>
         <translation>Non utilizzabile</translation>
     </message>
     <message>
+        <source>Nothing was changed.</source>
+        <translation>Non è stato modificato nulla.</translation>
+    </message>
+    <message>
         <source>The restore could not start. Nothing was changed.
 
 %1</source>
@@ -157,11 +224,11 @@ Libera dello spazio oppure deseleziona il backup di sicurezza.</translation>
     </message>
     <message>
         <source>The whole system is backed up. Choose the folders of %1 that you do NOT want to include: checked folders and everything inside them are left out.</source>
-        <translation>Viene salvato l'intero sistema. Scegli le cartelle di %1 che NON vuoi includere: le cartelle selezionate e tutto il loro contenuto vengono escluse.</translation>
+        <translation>Viene salvato l&apos;intero sistema. Scegli le cartelle di %1 che NON vuoi includere: le cartelle selezionate e tutto il loro contenuto vengono escluse.</translation>
     </message>
     <message>
         <source>The whole system is backed up. Choose the folders that you do NOT want to include, in your home folder %1 or in the shared data folder %2: checked folders and everything inside them are left out.</source>
-        <translation>Viene salvato l'intero sistema. Scegli le cartelle che NON vuoi includere, nella tua cartella personale %1 o nella cartella dati condivisa %2: le cartelle selezionate e tutto il loro contenuto vengono escluse.</translation>
+        <translation>Viene salvato l&apos;intero sistema. Scegli le cartelle che NON vuoi includere, nella tua cartella personale %1 o nella cartella dati condivisa %2: le cartelle selezionate e tutto il loro contenuto vengono escluse.</translation>
     </message>
     <message>
         <source>📂 Choose the folders...</source>
@@ -195,7 +262,7 @@ Libera dello spazio oppure deseleziona il backup di sicurezza.</translation>
         <source>There is enough space on the main disk, in %1 (space needed: %2, available: %3).
 
 This location is fixed and cannot be changed.</source>
-        <translation>C'è abbastanza spazio sul disco principale, in %1 (spazio necessario: %2, disponibile: %3).
+        <translation>C&apos;è abbastanza spazio sul disco principale, in %1 (spazio necessario: %2, disponibile: %3).
 
 Questa posizione è fissa e non può essere modificata.</translation>
     </message>
@@ -203,7 +270,7 @@ Questa posizione è fissa e non può essere modificata.</translation>
         <source>There is not enough space on the main disk, in %1 (space needed: %2, available: %3).
 
 You must save the backup on an external drive.</source>
-        <translation>Non c'è abbastanza spazio sul disco principale, in %1 (spazio necessario: %2, disponibile: %3).
+        <translation>Non c&apos;è abbastanza spazio sul disco principale, in %1 (spazio necessario: %2, disponibile: %3).
 
 Devi salvare il backup su un disco esterno.</translation>
     </message>
@@ -229,7 +296,7 @@ Devi salvare il backup su un disco esterno.</translation>
     </message>
     <message>
         <source>The backup will be created in the folder astroarch/backups of the drive. The list refreshes automatically when a drive is plugged in.</source>
-        <translation>Il backup verrà creato nella cartella astroarch/backups del disco. L'elenco si aggiorna automaticamente quando viene collegato un disco.</translation>
+        <translation>Il backup verrà creato nella cartella astroarch/backups del disco. L&apos;elenco si aggiorna automaticamente quando viene collegato un disco.</translation>
     </message>
     <message>
         <source>⚠️  Drives formatted in FAT32 cannot be used (4 GB file limit).</source>
@@ -323,12 +390,12 @@ The whole system will be replaced by the state of this backup.
 • It only works on the same disk: a backup made for another disk is refused.</source>
         <translation>⚠️  RIPRISTINO COMPLETO DEL SISTEMA
 
-L'intero sistema verrà sostituito dallo stato di questo backup.
+L&apos;intero sistema verrà sostituito dallo stato di questo backup.
 
 • Tutto ciò che è cambiato dopo questo backup andrà perso definitivamente: file, programmi installati e aggiornamenti, impostazioni.
 • Il contenuto delle cartelle che hai escluso dai backup viene eliminato (le cartelle stesse restano, vuote).
 • Il desktop si chiude e il ripristino avviene in modalità testo; può richiedere diversi minuti. Il Raspberry Pi si riavvia da solo al termine.
-• NON spegnere e NON scollegare il Raspberry Pi durante il ripristino: un'interruzione di corrente o uno spegnimento manuale può rendere il sistema inutilizzabile. Questo rischio è tuo.
+• NON spegnere e NON scollegare il Raspberry Pi durante il ripristino: un&apos;interruzione di corrente o uno spegnimento manuale può rendere il sistema inutilizzabile. Questo rischio è tuo.
 • Funziona solo sullo stesso disco: un backup creato per un altro disco viene rifiutato.</translation>
     </message>
     <message>
@@ -444,45 +511,6 @@ Uscire comunque?</translation>
     <message>
         <source>Yes, leave</source>
         <translation>Sì, esci</translation>
-    </message>
-</context>
-<context>
-    <name>FolderTreeWindow</name>
-    <message>
-        <source>Select the folders to exclude</source>
-        <translation>Seleziona le cartelle da escludere</translation>
-    </message>
-    <message>
-        <source>Shared data folder</source>
-        <translation>Cartella dati condivisa</translation>
-    </message>
-    <message>
-        <source>Your home folder</source>
-        <translation>La tua cartella personale</translation>
-    </message>
-    <message>
-        <source>Check the folders you do NOT want to back up</source>
-        <translation>Seleziona le cartelle che NON vuoi salvare</translation>
-    </message>
-    <message>
-        <source>🔒 Folders required by the system cannot be excluded.</source>
-        <translation>🔒 Le cartelle necessarie al sistema non possono essere escluse.</translation>
-    </message>
-    <message>
-        <source>Show hidden folders</source>
-        <translation>Mostra cartelle nascoste</translation>
-    </message>
-    <message>
-        <source>Select none</source>
-        <translation>Deseleziona tutto</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Annulla</translation>
-    </message>
-    <message>
-        <source>OK</source>
-        <translation>OK</translation>
     </message>
 </context>
 </TS>

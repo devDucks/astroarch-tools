@@ -35,13 +35,18 @@
 #   backup  --dest DIR --size BYTES --cancel-file FILE [--keep N] [--exclude PATH]...
 #   shrink  --dest DIR [--size BYTES|auto]
 #   explain --dest DIR [--exclude PATH]...   (what the backup would contain, by size)
-#   mount   --dest DIR                      (browse the backup, READ-ONLY)
+#   mount   --dest DIR                      (browse the backup, READ-ONLY; one location at a
+#                                            time; held while the program that asked runs:
+#                                            left behind, it is released by the next mount
+#                                            or backup)
 #   umount  --dest DIR
 #   usage   --dest DIR                      (space used, share of each snapshot)
 #   prune   --dest DIR --keep N             (keep only the last N snapshots; IRREVERSIBLE)
-#   snapshots --dest DIR                    (list of snapshots: SNAPSHOT:<name>:<1 if /boot is present>)
+#   snapshots --dest DIR                    (list of snapshots: SNAPSHOT:<name>:<1 if /boot is
+#                                            present>:<architecture>, then HOST:<architecture>)
 #   restore --dest DIR --snapshot NAME --confirm RESTORE
-#                                         (RESTAURATION COMPLÈTE du système en marche, voir plus bas)
+#                                         (FULL RESTORE of the running system, see below;
+#                                          refused with 44 for a snapshot of another architecture)
 #   nas-add --kind smb|nfs --server HOST --share NAME|/EXPORT [--user NAME]
 #                                         (password on stdin: a network share for the data
 #                                          backup, mounted when used; see cmd_nas_add)
@@ -62,7 +67,10 @@
 #
 # Exit codes: 0 OK, 10 arguments, 11 insufficient space, 12
 # unsuitable location, 20 rsync failure, 21 verification failed, 30 already in progress,
-# 40 image cannot be mounted, 41 preparation impossible, 130 canceled.
+# 40 image cannot be mounted, 41 preparation impossible, 42 backup made for another disk,
+# 43 systemd or chroot missing, 44 backup of another architecture or of one that cannot be
+# recognized (aarch64, x86_64...: its settings and data can be restored by the Control
+# Center, not the whole system), 130 canceled.
 
 set -Eeuo pipefail
 export LC_ALL=C
@@ -75,6 +83,8 @@ readonly RUN_DIR="/run/astroarch-backup"
 readonly MNT="$RUN_DIR/mnt"
 readonly LOCK_FILE="$RUN_DIR/lock"
 readonly BROWSE="$RUN_DIR/browse"
+# The program that opened the browse mount: "<pid> <start time>" (see browse_holder_alive)
+readonly BROWSE_HOLDER="$RUN_DIR/browse.holder"
 readonly KEEP_SNAPSHOTS=5
 # nodiscard: A discard on a loop “pierces” the preallocated file (and makes it empty again)
 readonly MOUNT_OPTS="compress=zstd:3,noatime,nodiscard"
@@ -524,9 +534,8 @@ auto_shrink() {
 
 # An image mounted for reading should not be remounted for writing
 refuse_if_browsing() {
-    if mountpoint -q "$BROWSE" 2>/dev/null; then
-        fail 30 "the backup is mounted for browsing at $BROWSE: unmount it first (helper umount)"
-    fi
+    release_stale_browse \
+        || fail 30 "a backup is open for browsing at $BROWSE (the Control Center's Restore page or helper mount): close it first (helper umount)"
 }
 
 prune_snapshots() {
@@ -783,6 +792,68 @@ cmd_explain() {
 }
 
 # -------------------------------------------------------------- - mount/umount
+# Start time of process $1 (field 22 of /proc/PID/stat, after the name in parentheses):
+# with the pid, it names one program even when pids are reused
+proc_start() {
+    local stat
+    stat=$(cat -- "/proc/$1/stat" 2>/dev/null) || return 1
+    stat=${stat##*) }
+    set -- $stat
+    say "${20:-}"
+}
+
+# The program that asked (pkexec runs the helper in its place, so the parent is the app)
+caller_id() { say "$PPID $(proc_start "$PPID")"; }
+
+# Is the program that opened the browse mount still running? (no record: no)
+browse_holder_alive() {
+    local pid start
+    read -r pid start < "$BROWSE_HOLDER" 2>/dev/null || return 1
+    [[ -n "$pid" && -n "$start" && "$(proc_start "$pid")" == "$start" ]]
+}
+
+# The image file mounted at the browse point (the loop device's backing file), or ""
+browse_image() {
+    local dev
+    dev=$(findmnt -nro SOURCE --mountpoint "$BROWSE" 2>/dev/null) || return 0
+    [[ "$dev" == /dev/loop* ]] && losetup -nO BACK-FILE -- "$dev" 2>/dev/null | sed 's/ (deleted)$//'
+}
+
+# Unmounts the browse point and detaches ITS loop device; false if still in use
+unmount_browse() {
+    local dev=""
+    if mountpoint -q "$BROWSE" 2>/dev/null; then
+        dev=$(findmnt -nro SOURCE --mountpoint "$BROWSE" 2>/dev/null || true)
+        umount -- "$BROWSE" 2>/dev/null || return 1
+        if [[ "$dev" == /dev/loop* ]]; then losetup -d "$dev" 2>/dev/null || true; fi
+    fi
+    rm -f -- "$BROWSE_HOLDER"
+    rmdir -- "$BROWSE" 2>/dev/null || true
+    return 0
+}
+
+# A browse mount whose program is gone (closed, killed) is released; true when nothing
+# is mounted for browsing any more
+release_stale_browse() {
+    if ! mountpoint -q "$BROWSE" 2>/dev/null; then
+        rm -f -- "$BROWSE_HOLDER"
+        return 0
+    fi
+    browse_holder_alive && return 1
+    unmount_browse
+}
+
+# The browse mount belongs to another backup location: refused (its window would see the
+# wrong backup, and the loop device of the other image would stay attached)
+refuse_other_browse() {
+    local other
+    mountpoint -q "$BROWSE" 2>/dev/null || return 0
+    other=$(browse_image)
+    [[ "$other" == "$IMG" ]] && return 0
+    release_stale_browse && return 0
+    fail 30 "another backup is open for browsing (${other:-unknown}): close it first"
+}
+
 # Browse the backup without damaging it: read-only loop, mount
 # as “ro.” The image remains immutable (it is not unprotected)
 cmd_mount() {
@@ -794,7 +865,14 @@ cmd_mount() {
     exec 9>"$LOCK_FILE"
     flock -n 9 || fail 30 "a backup is running"
 
+    refuse_other_browse
     if mountpoint -q "$BROWSE" 2>/dev/null; then
+        # The same backup, open by another program still running: its release would
+        # unmount it under this one
+        if browse_holder_alive && [[ "$(cat -- "$BROWSE_HOLDER")" != "$(caller_id)" ]]; then
+            fail 30 "this backup is already open for browsing in another window: close it there first"
+        fi
+        caller_id > "$BROWSE_HOLDER"
         say "RESULT:mounted:$BROWSE"
         return 0
     fi
@@ -807,22 +885,22 @@ cmd_mount() {
         losetup -d "$loop" 2>/dev/null || true
         fail 40 "cannot mount the backup file read-only: $(oneline "$out")"
     fi
+    caller_id > "$BROWSE_HOLDER"
     say "RESULT:mounted:$BROWSE"
 }
 
+# Only the browse mount of THIS location, and only its own loop device (never the one of
+# a backup running on the same image)
 cmd_umount() {
     validate_common
     IMG="$DEST/$IMG_NAME"
+    mkdir -p -- "$RUN_DIR"
+    exec 9>"$LOCK_FILE"
+    flock -n 9 || fail 30 "a backup is running"
     if mountpoint -q "$BROWSE" 2>/dev/null; then
-        umount -- "$BROWSE" || fail 41 "cannot unmount $BROWSE (still in use?)"
+        [[ "$(browse_image)" == "$IMG" ]] || fail 30 "another backup is open for browsing ($(browse_image)): not unmounted"
     fi
-    local dev
-    if [[ -e "$IMG" ]]; then
-        for dev in $(losetup -j "$IMG" -O NAME -n 2>/dev/null); do
-            losetup -d "$dev" 2>/dev/null || true
-        done
-    fi
-    rmdir -- "$BROWSE" 2>/dev/null || true
+    unmount_browse || fail 41 "cannot unmount $BROWSE (still in use?)"
     say "RESULT:unmounted"
 }
 
@@ -868,6 +946,8 @@ cmd_prune() {
 # the space that would be freed if it were deleted). Mount as read-only if necessary
 cmd_usage() {
     validate_common
+    IMG="$DEST/$IMG_NAME"
+    refuse_other_browse
     local was_mounted=1
     if ! mountpoint -q "$BROWSE" 2>/dev/null; then
         was_mounted=0
@@ -882,9 +962,38 @@ cmd_usage() {
 }
 
 # ----------------------------------------------------------------- - snapshots
-# Lists the snapshots (most recent first): SNAPSHOT:<name>:<1 if /boot is included>
+# Architecture of the program $1 from its ELF header (64-bit or 32-bit, little endian):
+# e_machine, 2 bytes at offset 18. aarch64, x86_64, arm or unknown (no file, a link, not ELF)
+elf_arch() {
+    local hex
+    [[ -f "$1" && ! -L "$1" ]] || { say unknown; return; }
+    hex=$(od -An -tx1 -N20 -- "$1" 2>/dev/null | tr -d ' \n') || true
+    # \x7fELF, then EI_DATA = 1 (little endian)
+    if [[ ${#hex} -ne 40 || ${hex:0:8} != 7f454c46 || ${hex:10:2} != 01 ]]; then
+        say unknown
+        return
+    fi
+    case ${hex:36:4} in
+        b700) say aarch64 ;;
+        3e00) say x86_64 ;;
+        2800) say arm ;;
+        *)    say unknown ;;
+    esac
+}
+
+# The system a snapshot comes from: its bash. A Raspberry Pi backup cannot become a PC
+snapshot_arch() { elf_arch "$1/usr/bin/bash"; }
+
+# This system's architecture, read as a snapshot's is: its own bash (the programs that
+# would run, not the kernel's `uname -m`, which can differ, e.g. 32-bit programs on aarch64)
+host_arch() { elf_arch /usr/bin/bash; }
+
+# Lists the snapshots (most recent first): SNAPSHOT:<name>:<1 if /boot is included>:<arch>,
+# then HOST:<arch of this system>
 cmd_snapshots() {
     validate_common
+    IMG="$DEST/$IMG_NAME"
+    refuse_other_browse
     local was_mounted=1 name boot
     if ! mountpoint -q "$BROWSE" 2>/dev/null; then
         was_mounted=0
@@ -893,8 +1002,9 @@ cmd_snapshots() {
     while IFS= read -r name; do
         boot=0
         if [[ -f "$BROWSE/snapshots/$name/boot/cmdline.txt" ]]; then boot=1; fi
-        say "SNAPSHOT:$name:$boot"
+        say "SNAPSHOT:$name:$boot:$(snapshot_arch "$BROWSE/snapshots/$name")"
     done < <(find "$BROWSE/snapshots" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort -r)
+    say "HOST:$(host_arch)"
     if (( ! was_mounted )); then cmd_umount >/dev/null; fi
     say "RESULT:snapshots"
 }
@@ -1214,6 +1324,17 @@ cmd_restore() {
     fi
     local snap="$RESTORE_SRC/snapshots/$SNAPSHOT"
     [[ -d "$snap" ]] || fail 41 "snapshot not found: $SNAPSHOT"
+    # Only a system of this architecture can run here (a Raspberry Pi backup can never
+    # become a PC): both known and equal, else refused before anything else is checked
+    # or prepared
+    local snap_arch host
+    snap_arch=$(snapshot_arch "$snap")
+    host=$(host_arch)
+    if [[ "$snap_arch" == unknown || "$host" == unknown ]]; then
+        fail 44 "the system of this backup cannot be recognized (its /usr/bin/bash, or this system's): the whole system cannot be restored here. Its settings and data can: Restore in the AstroArch Control Center"
+    elif [[ "$snap_arch" != "$host" ]]; then
+        fail 44 "this backup comes from a $snap_arch system, this one is $host: the whole system cannot be restored here. Its settings and data can: Restore in the AstroArch Control Center"
+    fi
     if [[ ! -f "$snap/boot/cmdline.txt" || ! -f "$snap/etc/fstab" ]]; then
         fail 41 "this backup does not contain the boot partition: it cannot be restored completely (make a new backup)"
     fi

@@ -59,7 +59,7 @@
 <context>
     <name>RestoreView</name>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="443"/>
+        <location filename="../qml/RestoreView.qml" line="534"/>
         <source>%n file(s) restored. What they replaced is kept here.</source>
         <translation>
             <numerusform>%n file restored. What it replaced is kept here.</numerusform>
@@ -67,7 +67,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="530"/>
+        <location filename="../qml/RestoreView.qml" line="621"/>
         <source>%n backup(s) here</source>
         <translation>
             <numerusform>%n backup here</numerusform>
@@ -75,11 +75,19 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="553"/>
+        <location filename="../qml/RestoreView.qml" line="644"/>
         <source>Settings from %1 · %n date(s) to choose from</source>
         <translation>
             <numerusform>Settings from %1 · %n date to choose from</numerusform>
             <numerusform>Settings from %1 · %n dates to choose from</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../qml/RestoreView.qml" line="730"/>
+        <source>%n snapshot(s)</source>
+        <translation>
+            <numerusform>%n snapshot</numerusform>
+            <numerusform>%n snapshots</numerusform>
         </translation>
     </message>
 </context>

@@ -11,18 +11,21 @@
 #   restore       copy what the page chose, read from stdin, one line each (tab separated):
 #                   label   TEXT                      what the restore came from
 #                   root    PATH                      every source path is inside one: a
-#                                                     folder of a backup or an old disk
-#                                                     mounted by `mount`; sources only in its
+#                                                     folder of a backup, an old disk mounted
+#                                                     by `mount`, or a snapshot of the system
+#                                                     backup mounted read-only by the backup
+#                                                     helper (/run/astroarch-backup/browse/
+#                                                     snapshots/NAME); sources only in its
 #                                                     home/ and srv/astro-data
 #                   exclude PATH                      never copied
 #                   settings|data USER SOURCE TARGET
 #                 The files are written by USER (the main user or its kiosk user), so they
 #                 belong to them and land only where they can write. They are READ by root
 #                 only from the read-only mounts made by root itself (an old disk this helper
-#                 set read-only, held open during the restore so it cannot be swapped); from
-#                 any other folder (a data backup, the AstroMonitor download, an old disk a
-#                 file manager had mounted) they are read as the main user: its own files,
-#                 nothing more. Each source is resolved
+#                 set read-only, a snapshot of the backup's browse mount, held open during
+#                 the restore so it cannot be swapped); from any other folder (a data backup,
+#                 the AstroMonitor download, an old disk a file manager had mounted) they are
+#                 read as the main user: its own files, nothing more. Each source is resolved
 #                 once, when checked, and only that path is used; links inside are copied
 #                 as links, never followed. settings: a file already there is moved aside first, to
 #                 ~/.local/share/astroarch/restore-DATE/files (with the list of what was
@@ -42,6 +45,8 @@ export LC_ALL=C
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 
 MOUNTS=/run/astroarch-cc-restore
+# Where the backup helper (crates/astroarch-backup) mounts the system backup read-only
+BROWSE=/run/astroarch-backup/browse
 DATA=${ASTRO_DATA_DIR:-/srv/astro-data}
 DATA=${DATA%/}
 KIOSK_SETUP=${ASTROARCH_KIOSK_SETUP:-/usr/lib/astroarch/astroarch-kiosk-setup}
@@ -167,24 +172,28 @@ target_ok() {   # user target
 }
 
 # A root to read from (resolved): never / itself or a kernel folder; under the folders the
-# helpers mount, only an old disk mounted here
+# helpers mount, only an old disk mounted here or a snapshot of the system backup browsed
 root_ok() {
     case $1 in
         / | /proc | /proc/* | /sys | /sys/* | /dev | /dev/*) return 1 ;;
         "$MOUNTS"/*) [[ ${1#"$MOUNTS"/} =~ ^[A-Za-z0-9_.-]+$ ]] && mountpoint -q "$1" ;;
+        "$BROWSE"/snapshots/*) [[ ${1#"$BROWSE"/snapshots/} =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{6}$ ]] && mountpoint -q "$BROWSE" ;;
         "$MOUNTS" | /run/astroarch-backup | /run/astroarch-backup/*) return 1 ;;
     esac
 }
 
 # Is the root a read-only mount made by root, whose files nobody can change during the
 # restore? An old disk mounted by `mount` with its device set read-only (not when a file
-# manager had it mounted, maybe writable). Anything else is read as the main user
+# manager had it mounted, maybe writable), a snapshot of the browse mount (read-only loop
+# and mount, read-only btrfs snapshot). Anything else is read as the main user
 root_trusted() {
     local opts
     case $1 in
         "$MOUNTS"/*)
             [[ -e $MOUNTS/.setro-${1#"$MOUNTS"/} ]] || return 1
             opts=$(findmnt -nro OPTIONS --mountpoint "$1") ;;
+        "$BROWSE"/snapshots/*)
+            opts=$(findmnt -nro OPTIONS --mountpoint "$BROWSE") ;;
         *) return 1 ;;
     esac
     [[ $opts == ro || $opts == ro,* ]]

@@ -30,7 +30,7 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 | `qml/SoftwareList.qml`, `src/software_manager.rs` | The More software page: the software installer's list and code (`software_manager.rs` is a link to its `manager.rs`) |
 | `qml/ServicesView.qml`, `src/service_manager.rs` | The Services page: Bluetooth, file transfer (FTP) and USB power, read and switched by astroarch-sys-manager's code (`service_manager.rs` is a link to its `bridge.rs`); its state is polled only while the page is shown |
 | `qml/StorageView.qml`, `src/storage_manager.rs` | Image storage page: moves the shared folder `/srv/astro-data` to a drive and back. The drive list is the backup tool's (`media.rs`, `storage.rs` of astroarch-backup, compiled in) |
-| `qml/RestoreView.qml`, `src/restore.rs` | The Restore page: KStars, INDI, PHD2 profiles and settings (and images) from a data backup snapshot, an old AstroArch disk or AstroMonitor. What it offers is the data backup's catalog and plan (`data_profile.rs`, read in the backup instead of the system); the places and the network folder form are the Data backup page's (`DataBackup`, `ShareForm.qml`) |
+| `qml/RestoreView.qml`, `src/restore.rs` | The Restore page: KStars, INDI, PHD2 profiles and settings (and images) from a data backup snapshot, a system backup snapshot, an old AstroArch disk or AstroMonitor. What it offers is the data backup's catalog and plan (`data_profile.rs`, read in the backup instead of the system); the places and the network folder form are the Data backup page's (`DataBackup`, `ShareForm.qml`) |
 | `scripts/astroarch-restore-helper.sh` | The Restore page's code run as root (pkexec, `scripts/org.astroarch.control-center.restore.policy`): mounts an old disk read-only, and copies: read as root only from a read-only mount made by root (the old disk), anything else as the main user; the user (or its kiosk user) writes; what was there is moved aside to `~/.local/share/astroarch/restore-DATE` and can be put back. Installed as `/usr/lib/astroarch-control-center/astroarch-restore-helper` |
 | `scripts/astroarch-storage-helper.sh` | The Image storage page's code run as root (pkexec, `scripts/org.astroarch.control-center.storage.policy`): copies the folder, writes its `/etc/fstab` entry and udev rule. Installed as `/usr/lib/astroarch-control-center/astroarch-storage-helper`, the policy in `/usr/share/polkit-1/actions` |
 
@@ -59,12 +59,20 @@ Each source is a folder holding the files of the old system at their absolute pa
 and `<id>/data`), the old disk mounted under `/run/astroarch-cc-restore` (`ro,noload`; the
 device itself is set read-only too when nothing else, e.g. the file manager, has it mounted), or the AstroMonitor backup, downloaded as its own "Restore Backup"
 does (`GET http://astromatto.com:11111/backup/db/<token>`, a tar archive) and laid out in
-`~/.cache/astroarch/restore-astromonitor`. Only the
+`~/.cache/astroarch/restore-astromonitor`. A snapshot of the **system backup** (the backup
+tool's btrfs image) is a source too: the page finds it where the Data backup page's System
+profile does (`~/.backup_dest`, `/var/backups`, the drives with `astroarch/backups`), mounts
+it read-only with the backup helper's `mount --dest DIR` (`BackupManager.browse`, released
+with `umount` when the page leaves the source or closes) and reads
+`/run/astroarch-backup/browse/snapshots/<name>`. A snapshot made on another architecture (a
+Raspberry Pi's on a PC) cannot be restored whole by the backup tool (its helper refuses it,
+error 44); here it is offered like any other, with "settings and data only". Only the
 catalog's paths are copied, never system files: the restore helper reads only under a
-root's `home/` and `srv/astro-data`, and under `/run` accepts only an old disk it mounted. Each source is resolved once when checked and only that
+root's `home/` and `srv/astro-data`, and under `/run` accepts only an old disk it mounted or
+a snapshot of the browse mount. Each source is resolved once when checked and only that
 path is used (its folder is entered and checked again before reading; links inside are
 copied as links). Root reads only from the read-only mounts made by root (an old disk whose
-device it set read-only, held open during the restore); anything else
+device it set read-only, a browsed snapshot, held open during the restore); anything else
 (a data backup, the AstroMonitor download) is read as the main user. The old user's home becomes the new user's, `<user>-kiosk` the new kiosk's; kiosk
 profiles that are links to the main user's here (shared on the Kiosk page) are left alone,
 and the kiosk helper shares the restored ones again. KStars, PHD2 and indiserver must be
