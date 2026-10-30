@@ -42,6 +42,8 @@
 #   snapshots --dest DIR                    (list of snapshots: SNAPSHOT:<name>:<1 if /boot is present>)
 #   restore --dest DIR --snapshot NAME --confirm RESTORE
 #                                         (RESTAURATION COMPLÈTE du système en marche, voir plus bas)
+#   datadir --dest DIR                      (folder of the "Data and settings" backup, owned
+#                                            by the caller: see cmd_datadir)
 #
 # Output protocol (stdout, one piece of information per line; rsync passes it through as-is):
 #   STAGE:<preparing|copying|boot|snapshot|verifying|pruning|shrinking|finishing>
@@ -89,6 +91,7 @@ MOUNTED=0
 CANCELED=0
 FIRST_RUN=0
 WATCH_PID=""
+RSYNC_PID=""
 IMG=""
 MARKER=""
 DEST=""
@@ -151,6 +154,9 @@ cleanup() {
     local rc=$?
     set +e
     if [[ -n "$WATCH_PID" ]]; then kill "$WATCH_PID" 2>/dev/null; fi
+    # Stopped by a signal during the copy: stop rsync before unmounting, or it would
+    # keep writing into an image that is no longer protected
+    if [[ -n "$RSYNC_PID" ]]; then kill -TERM "$RSYNC_PID" 2>/dev/null; wait "$RSYNC_PID" 2>/dev/null; RSYNC_PID=""; fi
     if (( MOUNTED )); then
         sync
         if umount -- "$MNT" 2>/dev/null; then
@@ -387,6 +393,11 @@ extend_image() {   # $1 = current size, $2 = desired size (bytes, multiples of 1
 }
 
 attach_loop() {
+    # A run killed without cleanup (SIGKILL) can leave the image attached and mounted:
+    # mounting it a second time would corrupt it
+    if mountpoint -q "$MNT" 2>/dev/null || [[ -n "$(losetup -j "$IMG" -n -O NAME 2>/dev/null)" ]]; then
+        fail 30 "the backup file is still in use by an earlier backup: restart the Raspberry Pi, then try again"
+    fi
     LOOP_DEV=$(losetup --find --show -- "$IMG") || fail 40 "cannot attach the backup file"
 }
 
@@ -529,6 +540,8 @@ cmd_backup() {
     resolve_keep
 
     trap cleanup EXIT
+    # Killed (systemctl stop, kill): exit through cleanup, which unmounts and detaches
+    trap 'exit 143' TERM INT HUP
 
     # Destination directory (e.g., <media>/astroarch/backups): created by root,
     # readable by everyone so the app can read the image size from it
@@ -596,6 +609,7 @@ cmd_backup() {
     # 9>&- : Child processes do not keep the lock open
     stdbuf -o0 rsync "${RSYNC_ARGS[@]}" / "$MNT/work/" 9>&- &
     local rsync_pid=$!
+    RSYNC_PID=$rsync_pid
     (
         exec 9>&-
         while kill -0 "$rsync_pid" 2>/dev/null; do
@@ -606,6 +620,7 @@ cmd_backup() {
     WATCH_PID=$!
     local rsync_rc=0
     wait "$rsync_pid" || rsync_rc=$?
+    RSYNC_PID=""
     kill "$WATCH_PID" 2>/dev/null || true
     WATCH_PID=""
 
@@ -654,6 +669,8 @@ cmd_backup() {
 cmd_shrink() {
     validate_common
     trap cleanup EXIT
+    # Killed (systemctl stop, kill): exit through cleanup, which unmounts and detaches
+    trap 'exit 143' TERM INT HUP
 
     IMG="$DEST/$IMG_NAME"
     MARKER="$DEST/$MARKER_NAME"
@@ -803,6 +820,8 @@ cmd_prune() {
     is_uint "${KEEP:-}" || fail 10 "missing or invalid --keep"
     (( KEEP >= 1 )) || fail 10 "--keep must be at least 1"
     trap cleanup EXIT
+    # Killed (systemctl stop, kill): exit through cleanup, which unmounts and detaches
+    trap 'exit 143' TERM INT HUP
 
     IMG="$DEST/$IMG_NAME"
     MARKER="$DEST/$MARKER_NAME"
@@ -1210,6 +1229,44 @@ cmd_restore() {
     say "RESULT:restore-started"
 }
 
+# ------------------------------------------------------------------ datadir
+# The "Data and settings" backup (astroarch-backup --data-backup) runs as the user, every
+# 2 hours, without root. It only needs its folder, created here once and owned by the
+# caller: /var/backups/astroarch-data/<user> on the main disk (never in the system backup),
+# or <mounted drive>/astroarch/data-backup. Nothing else is changed
+cmd_datadir() {
+    validate_common
+    local user group base
+    user=$(id -un -- "$CALLER_UID") || fail 10 "unknown user"
+    group=$(id -g -- "$CALLER_UID") || fail 10 "unknown user"
+    case "$DEST" in
+        "/var/backups/astroarch-data/$user") base=/var/backups ;;
+        /run/media/*/astroarch/data-backup|/media/*/astroarch/data-backup|/mnt/*/astroarch/data-backup)
+            base=${DEST%/astroarch/data-backup}
+            # A drive that is really mounted there, not a folder of the SD card
+            mountpoint -q -- "$base" || fail 12 "the drive is not mounted: $base"
+            [[ $(stat -c %d -- "$base") != $(stat -c %d /) ]] || fail 12 "this is the system disk: $base" ;;
+        *) fail 10 "location not allowed: $DEST" ;;
+    esac
+    check_host_fs "$(existing_ancestor "$DEST")"
+    # Parent folders readable by everyone (the helper's umask is 077)
+    umask 022
+    local parent=${DEST%/*} name=${DEST##*/}
+    mkdir -p -- "$parent"
+    # Created from inside the real parent folder: a symbolic link swapped in meanwhile
+    # cannot send root elsewhere
+    cd -P -- "$parent" || fail 12 "cannot open $parent"
+    [[ $(pwd -P) == "$parent" ]] || fail 12 "symbolic links are not allowed: $DEST"
+    if [[ -e "$name" || -L "$name" ]]; then
+        [[ ! -L "$name" && -d "$name" ]] || fail 12 "not a folder: $DEST"
+        [[ $(stat -c %u -- "$name") == "$CALLER_UID" ]] || fail 12 "this folder belongs to another user: $DEST"
+    else
+        mkdir -m 750 -- "$name" || fail 12 "cannot create $DEST"
+        chown -h -- "$CALLER_UID:$group" "$name"
+    fi
+    say "RESULT:ok:$DEST"
+}
+
 main() {
     local cmd=${1:-}
     shift || true
@@ -1225,6 +1282,7 @@ main() {
         prune)   cmd_prune ;;
         snapshots) cmd_snapshots ;;
         restore) cmd_restore ;;
+        datadir) cmd_datadir ;;
         *)       fail 10 "unknown command: $cmd" ;;
     esac
 }
