@@ -12,6 +12,8 @@ cxx-qt-lib = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+# data/data-profile.toml (src/data_profile.rs)
+toml = "0.8"
 
 [build-dependencies]
 astroarch-build = { workspace = true }
