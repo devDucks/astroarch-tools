@@ -79,6 +79,14 @@ is here and the Control Center compiles the same files.
   no hard links), a network share already mounted, or Syncthing when installed (send-only
   folder on the Pi, the versions on the computer; a single copy `settings/current/`). The
   helper creates the folder once: `datadir --dest DIR`.
+- **Network share** added from the page ("Connect a network folder", SMB or NFS): helper
+  `nas-add` (password on stdin, credentials in `/etc/astroarch-backup/nas-<id>.cred`, 0600
+  root, an `/etc/fstab` line after `# astroarch-backup nas <id>`, mounted at
+  `/mnt/astroarch-nas/<id>` on first use, `nofail,_netdev,x-systemd.automount`: the Pi
+  starts without the NAS). The share is mounted once to check it before anything is
+  written. `nas-remove --id <id>` removes everything. On a share, rsync compares times and
+  sizes only (`-rlt`): the hard links of the snapshots work despite the permissions the
+  mount imposes.
 - The page also chooses the **folders excluded from the system backup** with the same
   list (folders of the home folder and of `/srv/astro-data`, the system ones locked),
   stored in `~/.backup_dest` as before.
