@@ -2,6 +2,7 @@
 use cxx_qt_lib::{QGuiApplication, QQmlApplicationEngine, QString, QUrl};
 
 mod launcher;
+mod setup_state;
 
 fn main() {
     // `--version` / `-V` : affiche la version du workspace (Cargo.toml) puis quitte
@@ -10,11 +11,8 @@ fn main() {
         return;
     }
 
-    // Fusion style (custom QML buttons are not supported by
-    // the native style). Any previously defined QT_QUICK_CONTROLS_STYLE variable is respected
-    if std::env::var_os("QT_QUICK_CONTROLS_STYLE").is_none() {
-        std::env::set_var("QT_QUICK_CONTROLS_STYLE", "Fusion");
-    }
+    // No forced Qt Quick Controls style: on Plasma the platform theme picks
+    // org.kde.desktop (Breeze buttons, focus rings, sizes); QT_QUICK_CONTROLS_STYLE still wins
 
     let mut app = QGuiApplication::new();
 
