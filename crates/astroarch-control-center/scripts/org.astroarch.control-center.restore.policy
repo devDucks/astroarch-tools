@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
+<!-- Restore page of the Control Center: an old AstroArch disk mounted read-only, profiles
+     and images copied from a backup (astroarch-restore-helper). Installed in
+     /usr/share/polkit-1/actions -->
+<policyconfig>
+  <vendor>AstroArch</vendor>
+  <action id="org.astroarch.control-center.restore">
+    <description>Restore AstroArch profiles and images from a backup</description>
+    <message>Authentication is required to restore your profiles and images from a backup</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/astroarch-control-center/astroarch-restore-helper</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+  </action>
+</policyconfig>
