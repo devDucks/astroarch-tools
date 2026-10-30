@@ -6,11 +6,12 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 ## What it shows
 
 - **One list of pages** (`pages` in `qml/Main.qml`): network and remote access, language
-  and time zone, passwords, update, location, equipment, Astro monitor, how to connect.
-- **While the setup is shown**, the pages are grouped as Essentials, Recommended and
-  More, with a status each (to do, done, set up later, on hold) and "Set up later" /
-  "Continue". "I'm done, hide setup" keeps every page, grouped by topic instead (System,
-  Observing, Connection).
+  and time zone, passwords, update, location, equipment, software, Astro monitor, how
+  to connect.
+- **While the setup is shown**, the pages are grouped as Essentials, Recommended,
+  Optional and More, with a status each (to do, done, set up later, not needed, on hold)
+  and "Set up later" / "Continue". "I'm done, hide setup" keeps every page, grouped by
+  topic instead (System, Observing, Software and services, Connection).
 - **Each page shows the current values** read from the system, one per row, with the
   buttons that change them (Plasma settings modules, the other AstroArch tools, KStars,
   PHD2...). A page whose state can be read (network, location, equipment) is done as soon
@@ -24,6 +25,7 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 | `scripts/astroarch-control-center-probe.sh` | Reads one piece of state (`probe NAME`): one line of output + exit code. Read-only, runs as the user. Installed as `/usr/lib/astroarch-control-center/astroarch-control-center-probe` |
 | `src/setup_state.rs` | Runs the probes in the background (with a timeout); keeps the user's choices in `~/.config/astroarch/setup.json` |
 | `src/launcher.rs` | Starts the tools (GUI or in a terminal), never twice, and tells when they exit so the page is read again |
+| `qml/SoftwareList.qml`, `src/software_manager.rs` | The More software page: the software installer's list and code (`software_manager.rs` is a link to its `manager.rs`) |
 
 To add a page or a row: add it to `pages`; if it needs a value from the system, add a
 case to the probe script. Nothing to change in Rust.

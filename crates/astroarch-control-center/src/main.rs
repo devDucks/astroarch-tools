@@ -4,6 +4,13 @@ use cxx_qt_lib::{QGuiApplication, QQmlApplicationEngine, QString, QUrl};
 mod launcher;
 mod setup_state;
 
+// The software installer's list and install code, shown in the "More software" page:
+// the same source files, not a copy. software_manager.rs is a link to its manager.rs
+// (cxx-qt wants the QML types of a module in one folder)
+#[path = "../../astroarch-software-installer/src/backend.rs"]
+mod backend;
+mod software_manager;
+
 fn main() {
     // `--version` / `-V` : affiche la version du workspace (Cargo.toml) puis quitte
     if std::env::args().any(|a| a == "--version" || a == "-V") {
