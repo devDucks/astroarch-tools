@@ -90,6 +90,48 @@ kiosk_status() {
     bash "$helper" status "$1"
 }
 
+# Country and time zone of the network's public address, from KDE's geoip service
+# (the one Calamares used): "code|zone|name" (IT|Europe/Rome|Italy). The answer is
+# kept a day, a failure 5 minutes; the lock makes probes running together ask once.
+# The cache is replaced only once the answer is complete: a probe killed meanwhile
+# leaves it as it was. Lock and request stay under the probe time limit
+geoip() {
+    local cache=$CACHE/geoip age answer code zone name
+    mkdir -p "$CACHE" || return 1
+    exec 9> "$cache.lock"
+    flock -w 2 9 || return 1
+    if [[ -f $cache ]]; then
+        age=$(( $(date +%s) - $(stat -c %Y "$cache") ))
+        if { [[ -s $cache ]] && (( age < 86400 )); } || { [[ ! -s $cache ]] && (( age < 300 )); }; then
+            [[ -s $cache ]] && printf '%s\n' "$(< "$cache")"
+            return
+        fi
+    fi
+    answer=$(curl -fsS -m 3 https://geoip.kde.org/v1/ubiquity 2>/dev/null)
+    # Each element on its own, in any order: <CountryCode>IT</CountryCode>
+    [[ $answer =~ \<Status\>OK\</Status\> ]] || answer=
+    [[ $answer =~ \<CountryCode\>([A-Z][A-Z])\</CountryCode\> ]] && code=${BASH_REMATCH[1]}
+    [[ $answer =~ \<TimeZone\>([^<|]+)\</TimeZone\> ]] && zone=${BASH_REMATCH[1]}
+    [[ $answer =~ \<CountryName\>([^<|]+)\</CountryName\> ]] && name=${BASH_REMATCH[1]}
+    if [[ -n ${code:-} && -n ${zone:-} && -n ${name:-} ]]; then
+        printf '%s|%s|%s' "$code" "$zone" "$name" > "$cache.new"
+    else
+        : > "$cache.new"
+    fi
+    mv -f "$cache.new" "$cache"
+    [[ -s $cache ]] && printf '%s\n' "$(< "$cache")"
+}
+
+# Time zone, language and keyboard are still the image's (astroarch_build.sh:
+# Europe/London, en_US and no keyboard layout)
+image_locale() {
+    local keyboard
+    [[ $(timedatectl show -p Timezone --value 2>/dev/null) == Europe/London ]] || return 1
+    [[ $("$0" language) == en_US* ]] || return 1
+    keyboard=$("$0" keyboard)
+    [[ $keyboard == default || $keyboard == "English (US)" ]]
+}
+
 # Value of KEY in [GROUP] of an ini-style FILE
 ini_value() {
     awk -F= -v group="[$2]" -v key="$3" '
@@ -215,6 +257,21 @@ case ${1:-} in
         zone=$(timedatectl show -p Timezone --value 2>/dev/null)
         [[ -n $zone ]] || exit 1
         echo "$zone|$(TZ=$zone date +%z)" ;;
+    # Suggestions from the network, asked only while time zone, language and keyboard
+    # are all still the image's, so the public address is sent only then. Nothing
+    # when the network agrees with the system.
+    # The zone of the network, as "timezone" prints it
+    timezone-suggest)
+        image_locale || exit 1
+        IFS='|' read -r code zone name < <(geoip) || exit 1
+        [[ $zone =~ ^[A-Za-z_]+(/[A-Za-z0-9_+-]+)+$ && $zone != Europe/London && -f /usr/share/zoneinfo/$zone ]] || exit 1
+        echo "$zone|$(TZ=$zone date +%z)" ;;
+    # "code|name" of the country of the network (IT|Italy)
+    country-suggest)
+        image_locale || exit 1
+        IFS='|' read -r code zone name < <(geoip) || exit 1
+        [[ -n $code && -n $name && $code != US ]] || exit 1
+        echo "$code|$name" ;;
 
     # ------------------------------------------------------- location (KStars)
     # "City|latitude|longitude" when KStars has a site

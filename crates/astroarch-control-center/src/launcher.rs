@@ -8,7 +8,7 @@
 //! In both cases the words after the first are its arguments (e.g. "kcmshell6 kcm_users");
 //! quoting is not supported. Returns "started", "running" (the same command is still
 //! open: it is not started twice), "missing" or "failed", so QML can tell the user.
-//! `finished(command)` is emitted when a command started here exits.
+//! `finished(command, ok)` is emitted when a command started here exits (ok: exit code 0).
 
 use std::collections::HashSet;
 use std::env;
@@ -40,7 +40,7 @@ pub mod qobject {
         fn available(self: &Launcher, command: &QString) -> bool;
 
         #[qsignal]
-        fn finished(self: Pin<&mut Launcher>, command: &QString);
+        fn finished(self: Pin<&mut Launcher>, command: &QString, ok: bool);
     }
 
     impl cxx_qt::Threading for Launcher {}
@@ -179,13 +179,13 @@ impl qobject::Launcher {
                 let qt_thread = self.qt_thread();
                 // Reap the child when it exits (no zombie), then tell QML
                 std::thread::spawn(move || {
-                    let _ = child.wait();
+                    let ok = child.wait().is_ok_and(|status| status.success());
                     if let Ok(mut r) = running.lock() {
                         r.remove(&key);
                     }
                     qt_thread
                         .queue(move |mut qobject| {
-                            qobject.as_mut().finished(&QString::from(&command));
+                            qobject.as_mut().finished(&QString::from(&command), ok);
                         })
                         .ok();
                 });
