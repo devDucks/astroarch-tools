@@ -28,9 +28,24 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 | `qml/KioskSetup.qml` | The Kiosk page: profiles shared with the main desktop or separate, the apps the kiosk opens. Reads the kiosk with the `kiosk-*` probes and changes it with `pkexec /usr/lib/astroarch/astroarch-kiosk-setup apply …`, the helper of the astroarch repository (`scripts/astroarch-kiosk-setup.sh`, installed by `scripts/install-kiosk-setup.sh` with its polkit action); the apps are the lines of its `configs/kiosk/apps.list` |
 | `qml/SoftwareList.qml`, `src/software_manager.rs` | The More software page: the software installer's list and code (`software_manager.rs` is a link to its `manager.rs`) |
 | `qml/ServicesView.qml`, `src/service_manager.rs` | The Services page: Bluetooth, file transfer (FTP) and USB power, read and switched by astroarch-sys-manager's code (`service_manager.rs` is a link to its `bridge.rs`); its state is polled only while the page is shown |
+| `scripts/astroarch-storage-helper.sh` | The Image storage page's code run as root (pkexec, `scripts/org.astroarch.control-center.storage.policy`): copies the folder, writes its `/etc/fstab` entry and udev rule. Installed as `/usr/lib/astroarch-control-center/astroarch-storage-helper`, the policy in `/usr/share/polkit-1/actions` |
 
 To add a page or a row: add it to `pages`; if it needs a value from the system, add a
 case to the probe script. Nothing to change in Rust.
+
+### Image storage on a drive
+
+The folder goes to `<drive>/astroarch/astro-data` and is mounted at `/srv/astro-data` by
+an `/etc/fstab` entry (by UUID, `X-mount.subdir`, `nofail`: AstroArch starts without the
+drive), under a `# astroarch-storage: <drive name>` line. A udev rule
+(`/etc/udev/rules.d/90-astroarch-storage.rules`) mounts it again when the drive is plugged
+back in. Without the drive, `/srv/astro-data` is an empty folder that nobody can write in
+(`chattr +i`, with a `DRIVE-NOT-CONNECTED.txt` note): programs get an error instead of
+filling the internal disk. On ext4, Btrfs, XFS, F2FS the files keep their owners and the
+folder its group `astro` and default ACL; exFAT, FAT32 and NTFS are mounted with group
+`astro` and group-writable permissions. Nothing is ever formatted. Test it on another
+folder with `sudo ASTRO_DATA_DIR=/some/folder scripts/astroarch-storage-helper.sh ...`
+(the probes read `ASTRO_DATA_DIR` too).
 
 ## Build and run
 
@@ -40,8 +55,16 @@ case to the probe script. Nothing to change in Rust.
 
 Requirements: Qt 6 (Quick, Quick Controls 2), Kirigami, `qt6-tools` (lrelease, for the
 translations). The probes use `nmcli`, `sqlite3`, `timedatectl`, `curl`, `smbclient` and
-pam's `unix_chkpwd`. A development build finds the other tools next to its executable and
-the probe script in this crate.
+pam's `unix_chkpwd`; the image storage helper `rsync`, `chattr` and `setfacl`. A development
+build finds the other tools next to its executable, and the probe script and the storage
+helper in this crate (without its polkit policy, pkexec then asks for an administrator
+password each time).
+
+Installed, the Image storage page also needs its root helper and polkit policy:
+
+- **Image storage**: from this crate, `scripts/astroarch-storage-helper.sh` as
+  `/usr/lib/astroarch-control-center/astroarch-storage-helper` and
+  `scripts/org.astroarch.control-center.storage.policy` in `/usr/share/polkit-1/actions`.
 
 ## Translations
 
