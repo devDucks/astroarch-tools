@@ -33,12 +33,13 @@ ApplicationWindow {
     //           hidden when it is the row's own probe, as the row says why; when: values of
     //           the row's probe that show it, "on" or "off|missing"; tool: its name in
     //           messages when the label is not), or kind "keep" (stores the row's choice
-    //           "kept") / "copy"
+    //           "kept") / "copy" / "go" (opens the page `page`)
     //   view:   "software" shows the programs of the software installer in the page,
     //           "backup" the backup tool (data and system profiles),
     //           "kiosk" the kiosk profiles and apps (KioskSetup.qml),
     //           "storage" moves the image folder to a drive and back,
-    //           "services" the services of astroarch-sys-manager (ServicesView.qml)
+    //           "services" the services of astroarch-sys-manager (ServicesView.qml),
+    //           "restore" brings profiles back from a backup (RestoreView.qml)
     //   probes: probes the view reads, run with those of the rows
     readonly property var pages: [
         {
@@ -123,6 +124,16 @@ ApplicationWindow {
             ]
         },
         {
+            id: "restore", setup: "recommended", topic: "data",
+            title: qsTr("Restore from a backup"),
+            intro: qsTr("Bring back your KStars, INDI and PHD2 profiles and settings, and your images if you want, from a data backup, an old AstroArch disk or AstroMonitor."),
+            // Before Equipment: restored profiles are then found there
+            primary: qsTr("I’m starting fresh"),
+            // The wizard of the page (RestoreView.qml)
+            view: "restore",
+            rows: []
+        },
+        {
             id: "equipment", setup: "recommended", topic: "observing", detect: "equipment-ok",
             title: qsTr("Equipment"),
             intro: qsTr("Your Ekos and PHD2 profiles: create them with their own wizards, or bring them from a backup."),
@@ -132,7 +143,9 @@ ApplicationWindow {
                   sub: qsTr("In KStars: Ekos, then the profile wizard"),
                   actions: [ { label: qsTr("Open KStars"), command: "kstars", tool: "KStars" } ] },
                 { label: qsTr("PHD2 profile"), probe: "phd2-profile", missing: qsTr("None with a camera and a mount"),
-                  actions: [ { label: qsTr("Open PHD2"), command: "phd2", tool: "PHD2" } ] }
+                  actions: [ { label: qsTr("Open PHD2"), command: "phd2", tool: "PHD2" } ] },
+                { label: qsTr("From a backup"), value: qsTr("Restore my profiles"),
+                  actions: [ { label: qsTr("Restore…"), kind: "go", page: "restore" } ] }
             ]
         },
         {
@@ -522,6 +535,11 @@ ApplicationWindow {
     function runAction(page, row, action) {
         if (action.kind === "keep") {
             setup.set_choice(row.choice, "kept")
+            return
+        }
+        if (action.kind === "go") {
+            root.userPicked = true
+            root.go(action.page)
             return
         }
         if (action.kind === "copy") {
@@ -1208,6 +1226,21 @@ ApplicationWindow {
                                 sourceComponent: DataBackupView {
                                     navHost: wizardNav
                                     onSetupChanged: root.runProbes()
+                                    onScrollToTop: pageScroll.contentItem.contentY = 0
+                                    onReveal: (item) => root.reveal(item)
+                                }
+                            }
+
+                            Loader {
+                                id: restoreView
+                                Layout.fillWidth: true
+                                visible: card.page.view === "restore"
+                                active: false
+                                onVisibleChanged: if (visible) active = true
+                                Component.onCompleted: if (visible) active = true
+                                sourceComponent: RestoreView {
+                                    navHost: wizardNav
+                                    onRestored: if (root.statusOf(root.pageById("restore")) !== "done") setup.set_choice("restore", "done")
                                     onScrollToTop: pageScroll.contentItem.contentY = 0
                                     onReveal: (item) => root.reveal(item)
                                 }

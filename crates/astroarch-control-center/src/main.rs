@@ -36,6 +36,8 @@ mod system_backup;
 mod storage_manager;
 // The Services page: astroarch-sys-manager's ServiceManager (a link to its bridge.rs)
 mod service_manager;
+// The Restore page: the same catalog and plan as the data backup, read in a backup
+mod restore;
 
 fn main() {
     // `--version` / `-V` : affiche la version du workspace (Cargo.toml) puis quitte
