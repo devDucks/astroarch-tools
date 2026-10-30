@@ -47,6 +47,7 @@ ColumnLayout {
     property bool warning: false
     property string newFolder: ""
     property double runStarted: 0          // "Back up now" pressed (seconds)
+    property bool shareForm: false         // "Connect a network folder" open
 
     onStepChanged: view.scrollToTop()
     onModeChanged: view.scrollToTop()
@@ -63,7 +64,7 @@ ColumnLayout {
     // Narrow window: the buttons of a row go under its text
     readonly property bool narrow: width < 560
     // One primary button at a time, then not the footer's (Main.qml): "Set up the data
-    // backup…", the wizard's Next, "Done" of the folders left out
+    // backup…", the wizard's Next (or Connect), "Done" of the folders left out
     readonly property bool ownsPrimary: view.profile === "data" ? (view.mode === "wizard" || !view.configured)
                                                                 : view.sysState === "folders"
     readonly property var steps: [qsTr("What is included"), qsTr("Where to keep the backups"), qsTr("When")]
@@ -138,7 +139,8 @@ ColumnLayout {
             not_mounted: qsTr("Not mounted"),
             fat32: qsTr("FAT32: cannot be used"),
             nohistory: qsTr("exFAT or NTFS keeps no history: cannot be used"),
-            readonly: qsTr("Your user cannot write here")
+            readonly: qsTr("Your user cannot write here"),
+            automount: qsTr("Connected, mounted when used")
         })[d.state] || d.state
     }
     function sameDest(a, b) {
@@ -146,7 +148,7 @@ ColumnLayout {
     }
     // A place the backups can go to now (one too small is listed, not usable)
     function destUsable(d) {
-        return d.state === "ready"
+        return ["ready", "automount"].includes(d.state)
     }
     // The chosen place is in the list and usable
     function destOk() {
@@ -226,6 +228,24 @@ ColumnLayout {
                 view.say(qsTr("Could not mount the drive: %1").arg(error), true)
             view.refreshDests()
         }
+        onShareChanged: (ok, error, path) => {
+            if (!ok) {
+                view.say(shareBox.errorText(error), true)
+                return
+            }
+            view.refreshDests()
+            if (path !== "") {
+                // The new share is the place chosen
+                view.shareForm = false
+                shareBox.clearPassword()
+                const d = view.dests.find(x => x.mountPoint === path)
+                if (d)
+                    view.dest = { kind: d.kind, path: d.path, label: d.label || "" }
+                view.say(qsTr("Network folder connected. It is mounted when a backup needs it, and the Pi starts without it."))
+            } else {
+                view.say(qsTr("Network folder removed."))
+            }
+        }
         onApplied: (ok, error) => {
             if (!ok) {
                 view.say(error === "auth" ? qsTr("Authentication cancelled or refused.")
@@ -271,7 +291,7 @@ ColumnLayout {
         property Item item: null
         interval: 300
         onTriggered: {
-            const target = revealTimer.item || [wizardMessage, overviewMessage, systemMessage].find(m => m.visible)
+            const target = revealTimer.item || [shareBox.messageItem, wizardMessage, overviewMessage, systemMessage].find(m => m.visible)
             // Not when the page is not shown (the view is kept while another page is)
             if (target && target.visible)
                 view.reveal(target)
@@ -742,6 +762,13 @@ ColumnLayout {
                                     Accessible.name: qsTr("Mount %1").arg(view.destName(place.modelData))
                                     onClicked: backend.mount(place.modelData.device)
                                 }
+                                CardButton {
+                                    visible: !!place.modelData.removable && !place.chosen
+                                    enabled: !backend.busy
+                                    text: qsTr("Remove")
+                                    Accessible.name: qsTr("Remove the network folder %1").arg(place.modelData.label)
+                                    onClicked: backend.removeShare(place.modelData.mountPoint)
+                                }
                                 // Too small: shown greyed, the line above says why
                                 CardButton {
                                     visible: place.usable || place.modelData.state === "too_small"
@@ -756,6 +783,23 @@ ColumnLayout {
                         }
                     }
                 }
+            }
+            CardButton {
+                visible: !view.shareForm
+                text: qsTr("Connect a network folder…")
+                onClicked: view.shareForm = true
+            }
+
+            // A share of a NAS or another computer, kept across restarts (helper nas-add)
+            ShareForm {
+                id: shareBox
+                visible: view.shareForm
+                manager: backend
+                // Its message under its Connect button
+                message: view.message
+                warning: view.warning
+                onCancelled: view.shareForm = false
+                onSubmitted: view.say("")
             }
             Label {
                 Layout.fillWidth: true
@@ -908,6 +952,7 @@ ColumnLayout {
             Component.onCompleted: if (view.navHost) parent = view.navHost
             ViewMessage {
                 id: wizardMessage
+                here: !(view.step === 2 && view.shareForm)
             }
             // Wizard buttons
             RowLayout {
@@ -930,8 +975,9 @@ ColumnLayout {
                     }
                 }
                 Item { Layout.fillWidth: true }
+                // Not highlighted while the network folder form shows its Connect
                 CardButton {
-                    highlighted: true
+                    highlighted: !(view.step === 2 && view.shareForm)
                     enabled: !backend.busy && (view.step !== 2 || view.destOk())
                     text: view.step < view.steps.length ? qsTr("Next")
                          : (view.configured ? qsTr("Save") : qsTr("Turn on the backup"))

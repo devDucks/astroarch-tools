@@ -45,6 +45,22 @@ pub mod qobject {
         #[qsignal]
         fn applied(self: Pin<&mut DataBackup>, ok: bool, error: &QString);
 
+        // A network share was connected or removed; path: its mount point
+        #[qsignal]
+        #[cxx_name = "shareChanged"]
+        fn share_changed(self: Pin<&mut DataBackup>, ok: bool, error: &QString, path: &QString);
+
+        // `share`: JSON {kind: "smb"|"nfs", server, share, user, password}. Checked here,
+        // then added by the root helper (nas-add) as a share mounted when used
+        #[qinvokable]
+        #[cxx_name = "connectShare"]
+        fn connect_share(self: Pin<&mut DataBackup>, share: &QString);
+
+        // Forget a share added by connectShare (its mount point)
+        #[qinvokable]
+        #[cxx_name = "removeShare"]
+        fn remove_share(self: Pin<&mut DataBackup>, path: &QString);
+
         // JSON: [{id, title, items: [{id, name, paths, exists, essential, warn, hint,
         // neededBy, subfolders, children: [{key, name, paths, exists, note}]}]}]
         #[qinvokable]
@@ -176,6 +192,91 @@ fn backup_active() -> bool {
     }
 }
 
+/// Shares added from the page (helper nas-add) are mounted here when used
+const NAS_BASE: &str = "/mnt/astroarch-nas";
+
+/// The rules of the helper's nas-add, checked before anything reaches pkexec. Err: a code
+/// the page translates (server, share, export, user, password)
+pub fn check_share(kind: &str, server: &str, share: &str, user: &str, password: &str) -> Result<(), &'static str> {
+    let host_ok = !server.is_empty()
+        && server.len() <= 253
+        && server.chars().next().is_some_and(|c| c.is_ascii_alphanumeric())
+        && server.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-');
+    let ipv6_ok = server.len() >= 2 && server.len() <= 41 && server.chars().all(|c| c.is_ascii_hexdigit() || matches!(c, ':' | '[' | ']'));
+    if !(host_ok || ipv6_ok) {
+        return Err("server");
+    }
+    match kind {
+        "smb" => {
+            if share.is_empty() || share.len() > 80 || share.contains("..")
+                || !share.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | ' ' | '$' | '-'))
+            {
+                return Err("share");
+            }
+            if user.len() > 64 || !user.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '@' | '-')) {
+                return Err("user");
+            }
+            if password.contains(['\n', '\r']) {
+                return Err("password");
+            }
+        }
+        "nfs" => {
+            if !share.starts_with('/') || share.len() > 201 || share.contains("..")
+                || !share.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '/' | '-'))
+            {
+                return Err("export");
+            }
+        }
+        _ => return Err("share"),
+    }
+    Ok(())
+}
+
+/// Runs the root helper through pkexec, `input` on its stdin. Ok: the RESULT value
+fn run_helper(args: &[&str], input: &str) -> Result<String, String> {
+    use std::io::Write;
+    let helper = storage::helper_path().ok_or("Helper script not found (astroarch-backup-helper).")?;
+    let mut child = Command::new("pkexec")
+        .arg(helper)
+        .args(args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    if let Some(mut stdin) = child.stdin.take() {
+        let _ = stdin.write_all(input.as_bytes());
+    }
+    let out = child.wait_with_output().map_err(|e| e.to_string())?;
+    let stdout = String::from_utf8_lossy(&out.stdout).to_string();
+    if out.status.success() {
+        return Ok(stdout.lines().find_map(|l| l.strip_prefix("RESULT:ok:")).unwrap_or("").to_string());
+    }
+    Err(match out.status.code() {
+        Some(126) | Some(127) => "auth".into(),
+        _ => stdout
+            .lines()
+            .find_map(|l| l.strip_prefix("ERROR:").map(|r| r.splitn(2, ':').nth(1).unwrap_or(r).to_string()))
+            .unwrap_or_else(|| String::from_utf8_lossy(&out.stderr).trim().to_string()),
+    })
+}
+
+/// Shares added from the page that are not mounted now (automount, mounted when used):
+/// (mount point, source from /etc/fstab)
+fn idle_shares(mounted: &[(String, String, String)]) -> Vec<(String, String)> {
+    let Ok(out) = Command::new("findmnt").args(["-rn", "--fstab", "-o", "TARGET,SOURCE"]).output() else {
+        return Vec::new();
+    };
+    String::from_utf8_lossy(&out.stdout)
+        .lines()
+        .filter_map(|l| {
+            let mut parts = l.split(' ').map(|s| s.replace("\\x20", " ").replace("\\040", " "));
+            Some((parts.next()?, parts.next()?))
+        })
+        .filter(|(target, _)| target.starts_with(&format!("{NAS_BASE}/")) && !mounted.iter().any(|(t, _, _)| t == target))
+        .collect()
+}
+
 /// state of a place `path` for `bytes` of data, 1 GiB kept free. A place that already holds
 /// the backup only gets what changed: the 1 GiB is enough
 fn space_state(free: u64, bytes: u64, path: &Path) -> &'static str {
@@ -263,8 +364,14 @@ impl qobject::DataBackup {
                               "free": free, "state": state, "hasBackup": !path.is_empty() && Path::new(&path).is_dir() }));
         }
 
-        // Network shares already mounted (a NAS)
-        for (target, source, fstype) in network_mounts() {
+        // Network shares already mounted (a NAS), and those added here, mounted when used
+        let mounted = network_mounts();
+        for (target, source) in idle_shares(&mounted) {
+            list.push(json!({ "kind": "nas", "path": format!("{target}/{}", profile::MEDIA_SUBDIR), "label": source,
+                              "detail": target, "free": 0, "state": "automount", "hasBackup": false,
+                              "mountPoint": target, "removable": true }));
+        }
+        for (target, source, fstype) in mounted {
             let path = format!("{target}/{}", profile::MEDIA_SUBDIR);
             let free = storage::available_space(Path::new(&target)).unwrap_or(0);
             let state = if writable(Path::new(&path)) || (!Path::new(&path).exists() && writable(Path::new(&target))) {
@@ -273,7 +380,8 @@ impl qobject::DataBackup {
                 "readonly"
             };
             list.push(json!({ "kind": "nas", "path": path, "label": source, "detail": format!("{target} · {fstype}"),
-                              "free": free, "state": state, "hasBackup": Path::new(&path).is_dir() }));
+                              "free": free, "state": state, "hasBackup": Path::new(&path).is_dir(),
+                              "mountPoint": target, "removable": target.starts_with(&format!("{NAS_BASE}/")) }));
         }
 
         // Syncthing: the backup on the main disk, sent to the computer
@@ -317,6 +425,58 @@ impl qobject::DataBackup {
                         Err(e) => (false, e),
                     };
                     o.as_mut().applied(ok, &q(&err));
+                })
+                .ok();
+        });
+    }
+
+    pub fn connect_share(mut self: Pin<&mut Self>, share: &QString) {
+        let v: Value = serde_json::from_str(&share.to_string()).unwrap_or(Value::Null);
+        let field = |k: &str| v[k].as_str().unwrap_or("").trim().to_string();
+        let (kind, server, name, user) = (field("kind"), field("server"), field("share"), field("user"));
+        let password = v["password"].as_str().unwrap_or("").to_string();
+        if let Err(code) = check_share(&kind, &server, &name, &user, &password) {
+            self.as_mut().share_changed(false, &q(code), &q(""));
+            return;
+        }
+        self.as_mut().set_busy(true);
+        let qt_thread = self.qt_thread();
+        std::thread::spawn(move || {
+            let mut args = vec!["nas-add", "--kind", kind.as_str(), "--server", server.as_str(), "--share", name.as_str()];
+            if kind == "smb" && !user.is_empty() {
+                args.extend(["--user", user.as_str()]);
+            }
+            let result = run_helper(&args, &format!("{password}\n"));
+            qt_thread
+                .queue(move |mut o| {
+                    o.as_mut().set_busy(false);
+                    match result {
+                        Ok(path) => o.as_mut().share_changed(true, &q(""), &q(&path)),
+                        Err(e) => o.as_mut().share_changed(false, &q(&e), &q("")),
+                    }
+                })
+                .ok();
+        });
+    }
+
+    pub fn remove_share(mut self: Pin<&mut Self>, path: &QString) {
+        let path = path.to_string();
+        let id = path.strip_prefix(&format!("{NAS_BASE}/")).unwrap_or("").to_string();
+        if id.is_empty() || !id.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
+            self.as_mut().share_changed(false, &q("share"), &q(""));
+            return;
+        }
+        self.as_mut().set_busy(true);
+        let qt_thread = self.qt_thread();
+        std::thread::spawn(move || {
+            let result = run_helper(&["nas-remove", "--id", &id], "");
+            qt_thread
+                .queue(move |mut o| {
+                    o.as_mut().set_busy(false);
+                    match result {
+                        Ok(_) => o.as_mut().share_changed(true, &q(""), &q("")),
+                        Err(e) => o.as_mut().share_changed(false, &q(&e), &q("")),
+                    }
                 })
                 .ok();
         });
@@ -448,6 +608,8 @@ fn apply_choices(choices: &Value) -> Result<(), String> {
         if dest.kind == "nas" {
             // Only on a share that is mounted now: else the folder would be on the SD card
             let share = dest.path.strip_suffix(&format!("/{}", profile::MEDIA_SUBDIR)).unwrap_or("");
+            // A share added here is mounted when used: this mounts it
+            let _ = std::fs::read_dir(share);
             if !network_mounts().iter().any(|(target, _, _)| target == share) {
                 return Err("The network folder is not mounted.".into());
             }
@@ -509,4 +671,24 @@ fn apply_choices(choices: &Value) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::check_share;
+
+    #[test]
+    fn share_rules() {
+        assert!(check_share("smb", "nas.local", "Backup Disk", "teo", "p@ss w,rd").is_ok());
+        assert!(check_share("smb", "192.168.1.10", "astro$", "", "").is_ok());
+        assert_eq!(check_share("smb", "-o", "x", "", ""), Err("server"));
+        assert_eq!(check_share("smb", "nas;rm", "x", "", ""), Err("server"));
+        assert_eq!(check_share("smb", "nas", "a/../b", "", ""), Err("share"));
+        assert_eq!(check_share("smb", "nas", "x,uid=0", "", ""), Err("share"));
+        assert_eq!(check_share("smb", "nas", "x", "a,b", ""), Err("user"));
+        assert_eq!(check_share("smb", "nas", "x", "u", "a\nb"), Err("password"));
+        assert!(check_share("nfs", "nas", "/export/astro", "", "").is_ok());
+        assert_eq!(check_share("nfs", "nas", "export", "", ""), Err("export"));
+        assert_eq!(check_share("nfs", "nas", "/a/../etc", "", ""), Err("export"));
+    }
 }

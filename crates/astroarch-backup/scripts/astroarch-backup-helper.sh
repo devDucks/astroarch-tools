@@ -42,6 +42,10 @@
 #   snapshots --dest DIR                    (list of snapshots: SNAPSHOT:<name>:<1 if /boot is present>)
 #   restore --dest DIR --snapshot NAME --confirm RESTORE
 #                                         (RESTAURATION COMPLÈTE du système en marche, voir plus bas)
+#   nas-add --kind smb|nfs --server HOST --share NAME|/EXPORT [--user NAME]
+#                                         (password on stdin: a network share for the data
+#                                          backup, mounted when used; see cmd_nas_add)
+#   nas-remove --id ID                      (forget a share added by nas-add)
 #   datadir --dest DIR                      (folder of the "Data and settings" backup, owned
 #                                            by the caller: see cmd_datadir)
 #
@@ -195,6 +199,11 @@ parse_args() {
     KEEP=""
     SNAPSHOT=""
     CONFIRM=""
+    NAS_KIND=""
+    NAS_SERVER=""
+    NAS_SHARE=""
+    NAS_USER=""
+    NAS_ID=""
     while (( $# )); do
         (( $# >= 2 )) || fail 10 "missing value for $1"
         case "$1" in
@@ -205,6 +214,11 @@ parse_args() {
             --snapshot)    SNAPSHOT=$2 ;;
             --confirm)     CONFIRM=$2 ;;
             --exclude)     EXCLUDES+=("$2") ;;
+            --kind)        NAS_KIND=$2 ;;
+            --server)      NAS_SERVER=$2 ;;
+            --share)       NAS_SHARE=$2 ;;
+            --user)        NAS_USER=$2 ;;
+            --id)          NAS_ID=$2 ;;
             *)             fail 10 "unknown option: $1" ;;
         esac
         shift 2
@@ -1267,6 +1281,101 @@ cmd_datadir() {
     say "RESULT:ok:$DEST"
 }
 
+# ---------------------------------------------------------------- nas-add/remove
+# A network share (NAS) for the "Data and settings" backup, kept across restarts: an
+# /etc/fstab entry mounted on first use (x-systemd.automount) that never blocks the boot
+# (nofail, _netdev), on /mnt/astroarch-nas/<id>, owned by the caller. SMB credentials in
+# /etc/astroarch-backup/nas-<id>.cred (root only, 0600); the password comes on stdin,
+# never on a command line. The share is mounted once to check it before anything is kept
+readonly NAS_BASE=/mnt/astroarch-nas
+readonly NAS_CRED_DIR=/etc/astroarch-backup
+readonly NAS_MARK="# astroarch-backup nas"
+
+nas_caller() {
+    (( EUID == 0 )) || fail 10 "must run as root"
+    CALLER_UID=${PKEXEC_UID:-}
+    is_uint "$CALLER_UID" || fail 10 "must be started through pkexec"
+    CALLER_GID=$(id -g -- "$CALLER_UID") || fail 10 "unknown user"
+}
+
+cmd_nas_add() {
+    nas_caller
+    # Same rules as the Control Center (src/data_backup.rs): checked here again
+    [[ $NAS_SERVER =~ ^[A-Za-z0-9][A-Za-z0-9.-]{0,252}$ || $NAS_SERVER =~ ^\[?[0-9A-Fa-f:]{2,39}\]?$ ]] \
+        || fail 10 "invalid server name"
+    local fstype
+    case $NAS_KIND in
+        smb)
+            [[ $NAS_SHARE =~ ^[A-Za-z0-9._\ \$-]{1,80}$ && $NAS_SHARE != *..* ]] || fail 10 "invalid share name"
+            [[ -z $NAS_USER || $NAS_USER =~ ^[A-Za-z0-9._@-]{1,64}$ ]] || fail 10 "invalid user name"
+            command -v mount.cifs >/dev/null || fail 12 "cifs-utils is not installed"
+            fstype=cifs ;;
+        nfs)
+            [[ $NAS_SHARE =~ ^/[A-Za-z0-9._/-]{0,200}$ && $NAS_SHARE != *..* ]] || fail 10 "invalid export path"
+            command -v mount.nfs >/dev/null || fail 12 "nfs-utils is not installed"
+            fstype=nfs ;;
+        *) fail 10 "invalid --kind" ;;
+    esac
+    local id mnt cred="" src opts pass="" out
+    id=$(printf '%s-%s' "$NAS_SERVER" "$NAS_SHARE" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9' '-' | tr -s '-' | sed 's/^-//; s/-$//' | cut -c1-60)
+    [[ -n $id ]] || fail 10 "invalid share"
+    mnt=$NAS_BASE/$id
+    grep -qxF "$NAS_MARK $id" /etc/fstab && fail 12 "this share is already connected"
+    findmnt -rn --fstab -T "$mnt" >/dev/null 2>&1 && fail 12 "$mnt is already in /etc/fstab"
+
+    if [[ $NAS_KIND == smb ]]; then
+        # One line on stdin
+        IFS= read -r pass || true
+        [[ $pass != *$'\r'* ]] || fail 10 "invalid password"
+        src="//$NAS_SERVER/$NAS_SHARE"
+        opts="uid=$CALLER_UID,gid=$CALLER_GID,file_mode=0640,dir_mode=0750,iocharset=utf8"
+        if [[ -n $NAS_USER ]]; then
+            ( umask 077; mkdir -p -- "$NAS_CRED_DIR" )
+            chmod 700 -- "$NAS_CRED_DIR"
+            cred=$NAS_CRED_DIR/nas-$id.cred
+            ( umask 077; printf 'username=%s\npassword=%s\n' "$NAS_USER" "$pass" > "$cred" )
+            opts="credentials=$cred,$opts"
+        else
+            opts="guest,$opts"
+        fi
+    else
+        src="$NAS_SERVER:$NAS_SHARE"
+        opts="soft,noatime"
+    fi
+    ( umask 022; mkdir -p -- "$mnt" )
+    # Mounted once, to check the server, the share and the password
+    if ! out=$(timeout 40 mount -t "$fstype" -o "$opts" -- "$src" "$mnt" 2>&1); then
+        [[ -n $cred ]] && rm -f -- "$cred"
+        rmdir -- "$mnt" "$NAS_BASE" "$NAS_CRED_DIR" 2>/dev/null || true
+        fail 12 "cannot connect to $src: $(oneline "$out")"
+    fi
+    umount -- "$mnt" || umount -l -- "$mnt"
+    # A space in fstab is written \040
+    printf '%s %s\n%s %s %s %s,nofail,_netdev,x-systemd.automount,x-systemd.mount-timeout=20,x-systemd.idle-timeout=600 0 0\n' \
+        "$NAS_MARK" "$id" "${src// /\\040}" "$mnt" "$fstype" "$opts" >> /etc/fstab
+    systemctl daemon-reload
+    systemctl start "$(systemd-escape -p --suffix=automount -- "$mnt")" || warn "automount not started"
+    say "RESULT:ok:$mnt"
+}
+
+cmd_nas_remove() {
+    nas_caller
+    [[ $NAS_ID =~ ^[a-z0-9-]{1,60}$ ]] || fail 10 "invalid --id"
+    grep -qxF "$NAS_MARK $NAS_ID" /etc/fstab || fail 12 "no such share"
+    local mnt=$NAS_BASE/$NAS_ID unit tmp
+    unit=$(systemd-escape -p -- "$mnt")
+    systemctl stop "$unit.automount" "$unit.mount" 2>/dev/null || true
+    umount -l -- "$mnt" 2>/dev/null || true
+    # The mark and the line after it, nothing else; the file keeps its owner and mode
+    tmp=$(mktemp /etc/fstab.astroarch-XXXXXX)
+    awk -v mark="$NAS_MARK $NAS_ID" '$0 == mark { skip = 1; next } skip { skip = 0; next } { print }' /etc/fstab > "$tmp" \
+        && cat -- "$tmp" > /etc/fstab
+    rm -f -- "$tmp" "$NAS_CRED_DIR/nas-$NAS_ID.cred"
+    rmdir -- "$mnt" "$NAS_BASE" "$NAS_CRED_DIR" 2>/dev/null || true
+    systemctl daemon-reload
+    say "RESULT:ok:$NAS_ID"
+}
+
 main() {
     local cmd=${1:-}
     shift || true
@@ -1283,6 +1392,8 @@ main() {
         snapshots) cmd_snapshots ;;
         restore) cmd_restore ;;
         datadir) cmd_datadir ;;
+        nas-add) cmd_nas_add ;;
+        nas-remove) cmd_nas_remove ;;
         *)       fail 10 "unknown command: $cmd" ;;
     esac
 }
