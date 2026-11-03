@@ -994,8 +994,16 @@ ColumnLayout {
     function sysLoadFolders() {
         const home = system.home_path()
         const shared = system.shared_data_path()
-        const row = (path, f) => ({ id: path, name: f.name, paths: [path.replace(home, "~")], exists: true,
-                                    raw: true, locked: f.locked || !f.excludable, children: [] })
+        // A folder needed by AstroArch inside a home folder (Pictures/wallpapers) stays in
+        // the backup even when that folder is left out: said under the unticked row
+        const kept = (path, f) => f.hasChildren && !f.locked
+            ? JSON.parse(system.list_subfolders(path, true)).filter(c => c.locked).map(c => c.name) : []
+        const row = (path, f) => {
+            const k = kept(path, f)
+            return { id: path, name: f.name, paths: [path.replace(home, "~")], exists: true,
+                     raw: true, locked: f.locked || !f.excludable, children: [],
+                     hint: k.length > 0 ? qsTr("Left out, except %1: AstroArch always keeps it.").arg(k.join(", ")) : "" }
+        }
         const homeItems = JSON.parse(system.list_subfolders(home, true)).map(f => row(home + "/" + f.name, f))
         const groups = [{ id: "home", title: "Your home", items: homeItems }]
         if (shared !== "") {

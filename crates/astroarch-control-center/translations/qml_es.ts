@@ -20,15 +20,15 @@
     </message>
     <message>
         <location filename="../qml/DataBackupView.qml" line="123"/>
-        <location filename="../qml/DataBackupView.qml" line="1031"/>
-        <location filename="../qml/DataBackupView.qml" line="1208"/>
+        <location filename="../qml/DataBackupView.qml" line="1039"/>
+        <location filename="../qml/DataBackupView.qml" line="1216"/>
         <source>This disk</source>
         <translation>Este disco</translation>
     </message>
     <message>
         <location filename="../qml/DataBackupView.qml" line="124"/>
-        <location filename="../qml/DataBackupView.qml" line="1033"/>
-        <location filename="../qml/DataBackupView.qml" line="1208"/>
+        <location filename="../qml/DataBackupView.qml" line="1041"/>
+        <location filename="../qml/DataBackupView.qml" line="1216"/>
         <source>USB drive %1</source>
         <translation>Unidad USB %1</translation>
     </message>
@@ -59,7 +59,7 @@
     </message>
     <message>
         <location filename="../qml/DataBackupView.qml" line="140"/>
-        <location filename="../qml/DataBackupView.qml" line="1024"/>
+        <location filename="../qml/DataBackupView.qml" line="1032"/>
         <source>Not enough space: %1 free</source>
         <translation>No hay espacio suficiente: %1 libres</translation>
     </message>
@@ -70,7 +70,7 @@
     </message>
     <message>
         <location filename="../qml/DataBackupView.qml" line="142"/>
-        <location filename="../qml/DataBackupView.qml" line="1023"/>
+        <location filename="../qml/DataBackupView.qml" line="1031"/>
         <source>FAT32: cannot be used</source>
         <translation>FAT32: no se puede usar</translation>
     </message>
@@ -171,7 +171,7 @@
     </message>
     <message>
         <location filename="../qml/DataBackupView.qml" line="230"/>
-        <location filename="../qml/DataBackupView.qml" line="1079"/>
+        <location filename="../qml/DataBackupView.qml" line="1087"/>
         <source>Could not mount the drive: %1</source>
         <translation>No se pudo montar la unidad: %1</translation>
     </message>
@@ -298,15 +298,15 @@
     <message>
         <location filename="../qml/DataBackupView.qml" line="488"/>
         <location filename="../qml/DataBackupView.qml" line="900"/>
-        <location filename="../qml/DataBackupView.qml" line="1100"/>
+        <location filename="../qml/DataBackupView.qml" line="1108"/>
         <source>Where</source>
         <translation>Dónde</translation>
     </message>
     <message>
         <location filename="../qml/DataBackupView.qml" line="492"/>
         <location filename="../qml/DataBackupView.qml" line="503"/>
-        <location filename="../qml/DataBackupView.qml" line="1104"/>
-        <location filename="../qml/DataBackupView.qml" line="1136"/>
+        <location filename="../qml/DataBackupView.qml" line="1112"/>
+        <location filename="../qml/DataBackupView.qml" line="1144"/>
         <source>Change…</source>
         <translation>Cambiar…</translation>
     </message>
@@ -406,7 +406,7 @@
     </message>
     <message>
         <location filename="../qml/DataBackupView.qml" line="730"/>
-        <location filename="../qml/DataBackupView.qml" line="1231"/>
+        <location filename="../qml/DataBackupView.qml" line="1239"/>
         <source>Mount</source>
         <translation>Montar</translation>
     </message>
@@ -417,13 +417,13 @@
     </message>
     <message>
         <location filename="../qml/DataBackupView.qml" line="746"/>
-        <location filename="../qml/DataBackupView.qml" line="1239"/>
+        <location filename="../qml/DataBackupView.qml" line="1247"/>
         <source>Chosen</source>
         <translation>Elegido</translation>
     </message>
     <message>
         <location filename="../qml/DataBackupView.qml" line="746"/>
-        <location filename="../qml/DataBackupView.qml" line="1239"/>
+        <location filename="../qml/DataBackupView.qml" line="1247"/>
         <source>Choose</source>
         <translation>Elegir</translation>
     </message>
@@ -484,8 +484,8 @@
     </message>
     <message>
         <location filename="../qml/DataBackupView.qml" line="939"/>
-        <location filename="../qml/DataBackupView.qml" line="1254"/>
-        <location filename="../qml/DataBackupView.qml" line="1301"/>
+        <location filename="../qml/DataBackupView.qml" line="1262"/>
+        <location filename="../qml/DataBackupView.qml" line="1309"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
@@ -520,97 +520,102 @@
         <translation>Activar la copia</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1025"/>
+        <location filename="../qml/DataBackupView.qml" line="1005"/>
+        <source>Left out, except %1: AstroArch always keeps it.</source>
+        <translation>Se omite, excepto %1: AstroArch siempre lo conserva.</translation>
+    </message>
+    <message>
+        <location filename="../qml/DataBackupView.qml" line="1033"/>
         <source>Read-only</source>
         <translation>Solo lectura</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1026"/>
+        <location filename="../qml/DataBackupView.qml" line="1034"/>
         <source>This format cannot be used</source>
         <translation>Este formato no se puede usar</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1036"/>
+        <location filename="../qml/DataBackupView.qml" line="1044"/>
         <source>Preparing the backup file…</source>
         <translation>Preparando el archivo de copia…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1036"/>
+        <location filename="../qml/DataBackupView.qml" line="1044"/>
         <source>Copying files…</source>
         <translation>Copiando archivos…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1037"/>
+        <location filename="../qml/DataBackupView.qml" line="1045"/>
         <source>Copying the boot partition…</source>
         <translation>Copiando la partición de arranque…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1037"/>
+        <location filename="../qml/DataBackupView.qml" line="1045"/>
         <source>Creating the snapshot…</source>
         <translation>Creando la instantánea…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1038"/>
+        <location filename="../qml/DataBackupView.qml" line="1046"/>
         <source>Verifying the backup…</source>
         <translation>Verificando la copia…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1038"/>
+        <location filename="../qml/DataBackupView.qml" line="1046"/>
         <source>Removing old backups…</source>
         <translation>Quitando copias antiguas…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1039"/>
+        <location filename="../qml/DataBackupView.qml" line="1047"/>
         <source>Shrinking the backup file…</source>
         <translation>Reduciendo el archivo de copia…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1039"/>
+        <location filename="../qml/DataBackupView.qml" line="1047"/>
         <source>Finishing…</source>
         <translation>Terminando…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1043"/>
+        <location filename="../qml/DataBackupView.qml" line="1051"/>
         <source>Measuring what to back up… Your password is asked.</source>
         <translation>Midiendo qué copiar… Se pide tu contraseña.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1058"/>
+        <location filename="../qml/DataBackupView.qml" line="1066"/>
         <source>Could not measure the data: %1</source>
         <translation>No se pudieron medir los datos: %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1065"/>
+        <location filename="../qml/DataBackupView.qml" line="1073"/>
         <source>Not enough space at %1 (%2 needed): choose another place.</source>
         <translation>No hay espacio suficiente en %1 (se necesitan %2): elige otro lugar.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1075"/>
+        <location filename="../qml/DataBackupView.qml" line="1083"/>
         <source>System backup complete.</source>
         <translation>Copia del sistema completada.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1075"/>
+        <location filename="../qml/DataBackupView.qml" line="1083"/>
         <source>The system backup failed: %1</source>
         <translation>La copia del sistema falló: %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1089"/>
+        <location filename="../qml/DataBackupView.qml" line="1097"/>
         <source>System backup cancelled. The previous backups are untouched.</source>
         <translation>Copia del sistema cancelada. Las copias anteriores siguen intactas.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1106"/>
+        <location filename="../qml/DataBackupView.qml" line="1114"/>
         <source>Change where the system backups go</source>
         <translation>Cambiar dónde van las copias del sistema</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1115"/>
+        <location filename="../qml/DataBackupView.qml" line="1123"/>
         <source>Keep</source>
         <translation>Conservar</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/DataBackupView.qml" line="1116"/>
+        <location filename="../qml/DataBackupView.qml" line="1124"/>
         <source>The last %n backup(s)</source>
         <translation>
             <numerusform>La última copia</numerusform>
@@ -618,27 +623,27 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1120"/>
+        <location filename="../qml/DataBackupView.qml" line="1128"/>
         <source>Keep fewer system backups</source>
         <translation>Conservar menos copias del sistema</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1126"/>
+        <location filename="../qml/DataBackupView.qml" line="1134"/>
         <source>Keep more system backups</source>
         <translation>Conservar más copias del sistema</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1132"/>
+        <location filename="../qml/DataBackupView.qml" line="1140"/>
         <source>Left out</source>
         <translation>Fuera</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1133"/>
+        <location filename="../qml/DataBackupView.qml" line="1141"/>
         <source>Nothing: the whole system and your home</source>
         <translation>Nada: todo el sistema y tu carpeta personal</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/DataBackupView.qml" line="1134"/>
+        <location filename="../qml/DataBackupView.qml" line="1142"/>
         <source>%n folder(s)</source>
         <translation>
             <numerusform>%n carpeta</numerusform>
@@ -646,57 +651,57 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1138"/>
+        <location filename="../qml/DataBackupView.qml" line="1146"/>
         <source>Change the folders left out of the system backup</source>
         <translation>Cambiar las carpetas fuera de la copia del sistema</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1147"/>
+        <location filename="../qml/DataBackupView.qml" line="1155"/>
         <source>Before updating</source>
         <translation>Antes de actualizar</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1148"/>
+        <location filename="../qml/DataBackupView.qml" line="1156"/>
         <source>System backup offered</source>
         <translation>Se ofrece copia del sistema</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1149"/>
+        <location filename="../qml/DataBackupView.qml" line="1157"/>
         <source>Ticked by default, it can be skipped</source>
         <translation>Marcada por defecto, se puede omitir</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1161"/>
+        <location filename="../qml/DataBackupView.qml" line="1169"/>
         <source>Untick what the system backup can leave out, such as images already kept elsewhere. Locked folders are needed by AstroArch.</source>
         <translation>Desmarca lo que la copia del sistema puede dejar fuera, como imágenes ya guardadas en otro sitio. Las carpetas bloqueadas las necesita AstroArch.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1177"/>
+        <location filename="../qml/DataBackupView.qml" line="1185"/>
         <source>Done</source>
         <translation>Hecho</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1180"/>
+        <location filename="../qml/DataBackupView.qml" line="1188"/>
         <source>Could not save the folders: %1</source>
         <translation>No se pudieron guardar las carpetas: %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1278"/>
+        <location filename="../qml/DataBackupView.qml" line="1286"/>
         <source>System backup progress</source>
         <translation>Progreso de la copia del sistema</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1295"/>
+        <location filename="../qml/DataBackupView.qml" line="1303"/>
         <source>Restore from a system backup…</source>
         <translation>Restaurar desde una copia del sistema…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1306"/>
+        <location filename="../qml/DataBackupView.qml" line="1314"/>
         <source>Measuring…</source>
         <translation>Midiendo…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1306"/>
+        <location filename="../qml/DataBackupView.qml" line="1314"/>
         <source>Back up the system now</source>
         <translation>Copiar el sistema ahora</translation>
     </message>
