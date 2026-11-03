@@ -15,6 +15,8 @@ ColumnLayout {
 
     // The setup changed: the Control Center reads the system again
     signal setupChanged()
+    // "Restore from a system backup…": the Restore page, source "A system backup" (Main.qml)
+    signal restoreAsked()
     // Where the wizard's buttons go, pinned under the page (Main.qml); null: in the view
     property Item navHost: null
     readonly property bool navShown: view.profile === "data" && view.mode === "wizard"
@@ -1287,6 +1289,12 @@ ColumnLayout {
         RowLayout {
             Layout.fillWidth: true
             spacing: 10
+            // Its profiles, settings and images, or the whole system: the Restore page
+            CardButton {
+                enabled: view.sysState === "" && !system.isRunning
+                text: qsTr("Restore from a system backup…")
+                onClicked: view.restoreAsked()
+            }
             Item { Layout.fillWidth: true }
             CardButton {
                 visible: system.isRunning

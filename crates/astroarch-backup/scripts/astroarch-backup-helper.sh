@@ -33,6 +33,9 @@
 # Subcommands:
 #   measure --dest DIR [--exclude PATH]...   (PATH: absolute, in your home directory or /srv/astro-data)
 #   backup  --dest DIR --size BYTES --cancel-file FILE [--keep N] [--exclude PATH]...
+#           [--release-browse own]   (backup and restore: the caller's own read-only browse
+#                                     mount of the backup is released first, see
+#                                     refuse_if_browsing; without it, such a mount refuses)
 #   shrink  --dest DIR [--size BYTES|auto]
 #   explain --dest DIR [--exclude PATH]...   (what the backup would contain, by size)
 #   mount   --dest DIR                      (browse the backup, READ-ONLY; one location at a
@@ -44,7 +47,7 @@
 #   prune   --dest DIR --keep N             (keep only the last N snapshots; IRREVERSIBLE)
 #   snapshots --dest DIR                    (list of snapshots: SNAPSHOT:<name>:<1 if /boot is
 #                                            present>:<architecture>, then HOST:<architecture>)
-#   restore --dest DIR --snapshot NAME --confirm RESTORE
+#   restore --dest DIR --snapshot NAME --confirm RESTORE [--release-browse own]
 #                                         (FULL RESTORE of the running system, see below;
 #                                          refused with 44 for a snapshot of another architecture)
 #   nas-add --kind smb|nfs --server HOST --share NAME|/EXPORT [--user NAME]
@@ -209,6 +212,7 @@ parse_args() {
     KEEP=""
     SNAPSHOT=""
     CONFIRM=""
+    RELEASE_BROWSE=""
     NAS_KIND=""
     NAS_SERVER=""
     NAS_SHARE=""
@@ -223,6 +227,7 @@ parse_args() {
             --keep)        KEEP=$2 ;;
             --snapshot)    SNAPSHOT=$2 ;;
             --confirm)     CONFIRM=$2 ;;
+            --release-browse) RELEASE_BROWSE=$2 ;;
             --exclude)     EXCLUDES+=("$2") ;;
             --kind)        NAS_KIND=$2 ;;
             --server)      NAS_SERVER=$2 ;;
@@ -532,10 +537,16 @@ auto_shrink() {
     PENDING_TRUNCATE=$floor
 }
 
-# An image mounted for reading should not be remounted for writing
+# An image mounted for reading should not be remounted for writing. With
+# --release-browse own, the program that opened it asks itself (the Control Center's
+# Restore page: a safety backup, then the whole system from the snapshot it shows): its own
+# mount is released first. Another program's mount, or any without the option, refuses
 refuse_if_browsing() {
-    release_stale_browse \
-        || fail 30 "a backup is open for browsing at $BROWSE (the Control Center's Restore page or helper mount): close it first (helper umount)"
+    release_stale_browse && return 0
+    if [[ "$RELEASE_BROWSE" == own && "$(cat -- "$BROWSE_HOLDER" 2>/dev/null)" == "$(caller_id)" ]]; then
+        unmount_browse && return 0
+    fi
+    fail 30 "a backup is open for browsing at $BROWSE (the Control Center's Restore page or helper mount): close it first (helper umount)"
 }
 
 prune_snapshots() {

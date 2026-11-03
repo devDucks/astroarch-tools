@@ -36,7 +36,10 @@ You can **quit** at any time (using the button or the window's close icon). If y
 
 ## Full System Restore
 
-From the main page: "Restore a backup..." → select backup location
+In the Control Center: page "Restore from a backup", source "A system backup", open it,
+then "Restore the whole system…" on a snapshot (the same restore, with the same safety backup
+and `RESTORE` confirmation). In this tool's own window (`astroarch-backup`, no menu entry any
+more): "Restore a backup..." → select backup location
 (main disk or external drive) → choose snapshot → warning + confirmation
 (enter `RESTORE`) → restoration performed **on the running system**, without requiring a separate system.
 
@@ -63,6 +66,10 @@ system unusable; this risk is assumed by the user (a warning is provided before 
   The list shows such a snapshot as "settings and data only": its KStars, INDI and PHD2
   settings and its images can be restored by the Control Center's "Restore from a backup"
   page (source "A system backup").
+- A backup open for browsing (the Control Center's Restore page, `mount`) blocks backups and
+  restores with error 30, except with `--release-browse own` when the program that opened it
+  asks (BackupManager's `releaseBrowse`, set only by the Restore page): its own mount is
+  released first.
 - The log is copied to `/var/backups/astroarch-restore-<date>.log` when
 backups are stored on the main disk.
 

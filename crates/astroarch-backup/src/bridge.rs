@@ -41,6 +41,10 @@ pub mod qobject {
         #[qproperty(i32, progress_percent, cxx_name = "progressPercent")]
         #[qproperty(QString, current_file, cxx_name = "currentFile")]
         #[qproperty(bool, is_running, cxx_name = "isRunning")]
+        // true: start_backup and start_restore may release this program's own read-only
+        // browse mount of the backup first (helper --release-browse own); the Control
+        // Center's Restore page sets it for its whole-system restore
+        #[qproperty(bool, release_browse, cxx_name = "releaseBrowse")]
 
         type BackupManager = super::BackupManagerRust;
 
@@ -169,6 +173,7 @@ pub struct BackupManagerRust {
     /// shrinking, finishing): QML translates it
     pub current_file: cxx_qt_lib::QString,
     pub is_running: bool,
+    pub release_browse: bool,
     backup_canceled: Arc<AtomicBool>,
     /// Bytes to back up, as measured by the last successful scan
     data_size: Arc<AtomicU64>,
@@ -392,6 +397,7 @@ impl qobject::BackupManager {
             let _ = ConfigManager::save(&config);
         }
 
+        let release_browse = self.release_browse;
         let canceled = self.backup_canceled.clone();
         canceled.store(false, Ordering::SeqCst);
         let qt_thread = self.qt_thread();
@@ -426,6 +432,9 @@ impl qobject::BackupManager {
                 .arg(&cancel_file);
             for folder in &excluded {
                 cmd.arg("--exclude").arg(folder);
+            }
+            if release_browse {
+                cmd.arg("--release-browse").arg("own");
             }
             cmd.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
 
@@ -578,9 +587,10 @@ impl qobject::BackupManager {
     ) {
         let dest = destination.to_string();
         let snap = snapshot.to_string();
+        let release_browse = self.release_browse;
         let qt_thread = self.qt_thread();
 
-        std::thread::spawn(move || match run_helper_restore(&dest, &snap) {
+        std::thread::spawn(move || match run_helper_restore(&dest, &snap, release_browse) {
             Ok(()) => {
                 qt_thread
                     .queue(move |mut qobject| {
@@ -758,16 +768,12 @@ fn run_helper(args: &[&str]) -> Result<String, (i32, String)> {
     }
 }
 
-fn run_helper_restore(dest: &str, snapshot: &str) -> Result<(), (i32, String)> {
-    let stdout = run_helper(&[
-        "restore",
-        "--dest",
-        dest,
-        "--snapshot",
-        snapshot,
-        "--confirm",
-        "RESTORE",
-    ])?;
+fn run_helper_restore(dest: &str, snapshot: &str, release_browse: bool) -> Result<(), (i32, String)> {
+    let mut args = vec!["restore", "--dest", dest, "--snapshot", snapshot, "--confirm", "RESTORE"];
+    if release_browse {
+        args.extend(["--release-browse", "own"]);
+    }
+    let stdout = run_helper(&args)?;
     if stdout.lines().any(|l| l.trim() == "RESULT:restore-started") {
         Ok(())
     } else {

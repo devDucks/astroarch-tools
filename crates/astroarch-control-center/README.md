@@ -35,7 +35,7 @@ and tools, in one window. **100 % Rust** with a QML interface, built with Cargo 
 | `qml/LanguageView.qml`, `qml/PickList.qml`, `src/locale_bridge.rs` | The Language page's "Change…" and "Choose…": a wizard Country → Language → Keyboard → Apply with astroarch-locale-module's code (`locale_bridge.rs` is a link to its `bridge.rs`; `geolocation.rs`, `keyboard.rs`, `locale_gen.rs` are compiled in from that crate). See "Language view" below |
 | `qml/ServicesView.qml`, `src/service_manager.rs` | The Services page: Bluetooth, file transfer (FTP) and USB power, read and switched by astroarch-sys-manager's code (`service_manager.rs` is a link to its `bridge.rs`); its state is polled only while the page is shown |
 | `qml/StorageView.qml`, `src/storage_manager.rs` | Image storage page: moves the shared folder `/srv/astro-data` to a drive and back. The drive list is the backup tool's (`media.rs`, `storage.rs` of astroarch-backup, compiled in) |
-| `qml/RestoreView.qml`, `src/restore.rs` | The Restore page: KStars, INDI, PHD2 profiles and settings (and images) from a data backup snapshot, a system backup snapshot, an old AstroArch disk or AstroMonitor. What it offers is the data backup's catalog and plan (`data_profile.rs`, read in the backup instead of the system); the places and the network folder form are the Data backup page's (`DataBackup`, `ShareForm.qml`) |
+| `qml/RestoreView.qml`, `src/restore.rs` | The Restore page: KStars, INDI, PHD2 profiles and settings (and images) from a data backup snapshot, a system backup snapshot, an old AstroArch disk or AstroMonitor; and the whole system from a system backup snapshot of this computer (the backup tool's restore). What it offers is the data backup's catalog and plan (`data_profile.rs`, read in the backup instead of the system); the places and the network folder form are the Data backup page's (`DataBackup`, `ShareForm.qml`) |
 | `scripts/astroarch-restore-helper.sh` | The Restore page's code run as root (pkexec, `scripts/org.astroarch.control-center.restore.policy`): mounts an old disk read-only, and copies: read as root only from a read-only mount made by root (the old disk), anything else as the main user; the user (or its kiosk user) writes; what was there is moved aside to `~/.local/share/astroarch/restore-DATE` and can be put back. Installed as `/usr/lib/astroarch-control-center/astroarch-restore-helper` |
 | `scripts/astroarch-storage-helper.sh` | The Image storage page's code run as root (pkexec, `scripts/org.astroarch.control-center.storage.policy`): copies the folder, writes its `/etc/fstab` entry and udev rule. Installed as `/usr/lib/astroarch-control-center/astroarch-storage-helper`, the policy in `/usr/share/polkit-1/actions` |
 
@@ -93,7 +93,18 @@ it read-only with the backup helper's `mount --dest DIR` (`BackupManager.browse`
 with `umount` when the page leaves the source or closes) and reads
 `/run/astroarch-backup/browse/snapshots/<name>`. A snapshot made on another architecture (a
 Raspberry Pi's on a PC) cannot be restored whole by the backup tool (its helper refuses it,
-error 44); here it is offered like any other, with "settings and data only". Only the
+error 44); here it is offered like any other, with "settings and data only". A snapshot
+of this computer's kind with its boot partition (`restorable` and `boot` in the snapshot
+list) also gets **"Restore the whole system…"**: the page shows the backup tool's warnings, an
+optional safety backup (on by default: `measure_data`, `evaluate_destination`,
+`start_backup(dest, excluded, 100, false)` with the system backup's own folders left out), a
+field where `RESTORE` is typed, then `BackupManager.start_restore`, the backup tool's full
+restore (same helper, same checks: architecture, PARTUUID, boot partition; text mode on
+tty1, then a reboot). With `releaseBrowse` (helper `--release-browse own`, this page's
+BackupManager only) the helper releases the page's own read-only browse mount first; the
+page forgets it meanwhile and calls `release` after a failure. The Data backup page's System
+profile has "Restore from a system backup…", which opens this page on that source (in a
+single-page window too). Only the
 catalog's paths are copied, never system files: the restore helper reads only under a
 root's `home/` and `srv/astro-data`, and under `/run` accepts only an old disk it mounted or
 a snapshot of the browse mount. Each source is resolved once when checked and only that

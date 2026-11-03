@@ -4,326 +4,326 @@
 <context>
     <name>DataBackupView</name>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="70"/>
+        <location filename="../qml/DataBackupView.qml" line="72"/>
         <source>What is included</source>
         <translation>Was enthalten ist</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="70"/>
+        <location filename="../qml/DataBackupView.qml" line="72"/>
         <source>Where to keep the backups</source>
         <translation>Wo die Sicherungen liegen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="70"/>
+        <location filename="../qml/DataBackupView.qml" line="72"/>
         <source>When</source>
         <translation>Wann</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="121"/>
-        <location filename="../qml/DataBackupView.qml" line="1029"/>
-        <location filename="../qml/DataBackupView.qml" line="1206"/>
+        <location filename="../qml/DataBackupView.qml" line="123"/>
+        <location filename="../qml/DataBackupView.qml" line="1031"/>
+        <location filename="../qml/DataBackupView.qml" line="1208"/>
         <source>This disk</source>
         <translation>Dieser Datenträger</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="122"/>
-        <location filename="../qml/DataBackupView.qml" line="1031"/>
-        <location filename="../qml/DataBackupView.qml" line="1206"/>
+        <location filename="../qml/DataBackupView.qml" line="124"/>
+        <location filename="../qml/DataBackupView.qml" line="1033"/>
+        <location filename="../qml/DataBackupView.qml" line="1208"/>
         <source>USB drive %1</source>
         <translation>USB-Laufwerk %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="123"/>
+        <location filename="../qml/DataBackupView.qml" line="125"/>
         <source>Network folder %1</source>
         <translation>Netzwerkordner %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="124"/>
+        <location filename="../qml/DataBackupView.qml" line="126"/>
         <source>Your computer, with Syncthing</source>
         <translation>Ihr Computer, mit Syncthing</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="130"/>
+        <location filename="../qml/DataBackupView.qml" line="132"/>
         <source>Ready now. It protects from mistakes, not from a broken SD card or disk.</source>
         <translation>Sofort bereit. Schützt vor Fehlern, nicht vor einer defekten SD-Karte oder Festplatte.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="132"/>
+        <location filename="../qml/DataBackupView.qml" line="134"/>
         <source>Kept on this disk and sent to your computer, which keeps the old versions.</source>
         <translation>Auf diesem Datenträger gehalten und an Ihren Computer gesendet, der die alten Versionen aufbewahrt.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="137"/>
+        <location filename="../qml/DataBackupView.qml" line="139"/>
         <source>%1 free</source>
         <translation>%1 frei</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="138"/>
-        <location filename="../qml/DataBackupView.qml" line="1022"/>
+        <location filename="../qml/DataBackupView.qml" line="140"/>
+        <location filename="../qml/DataBackupView.qml" line="1024"/>
         <source>Not enough space: %1 free</source>
         <translation>Nicht genug Platz: %1 frei</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="139"/>
+        <location filename="../qml/DataBackupView.qml" line="141"/>
         <source>Not mounted</source>
         <translation>Nicht eingehängt</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="140"/>
-        <location filename="../qml/DataBackupView.qml" line="1021"/>
+        <location filename="../qml/DataBackupView.qml" line="142"/>
+        <location filename="../qml/DataBackupView.qml" line="1023"/>
         <source>FAT32: cannot be used</source>
         <translation>FAT32: nicht verwendbar</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="141"/>
+        <location filename="../qml/DataBackupView.qml" line="143"/>
         <source>exFAT or NTFS keeps no history: cannot be used</source>
         <translation>exFAT oder NTFS behält keinen Verlauf: nicht verwendbar</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="142"/>
+        <location filename="../qml/DataBackupView.qml" line="144"/>
         <source>Your user cannot write here</source>
         <translation>Ihr Benutzer kann hier nicht schreiben</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="143"/>
+        <location filename="../qml/DataBackupView.qml" line="145"/>
         <source>Connected, mounted when used</source>
         <translation>Verbunden, wird bei Bedarf eingehängt</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="171"/>
+        <location filename="../qml/DataBackupView.qml" line="173"/>
         <source>Saving…</source>
         <translation>Wird gespeichert…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="181"/>
+        <location filename="../qml/DataBackupView.qml" line="183"/>
         <source>Backing up now. You can close the window: it goes on.</source>
         <translation>Sicherung läuft. Sie können das Fenster schließen: sie läuft weiter.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="183"/>
+        <location filename="../qml/DataBackupView.qml" line="185"/>
         <source>A backup is already running.</source>
         <translation>Eine Sicherung läuft bereits.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="185"/>
+        <location filename="../qml/DataBackupView.qml" line="187"/>
         <source>The backup tool (astroarch-backup) is not installed.</source>
         <translation>Das Sicherungswerkzeug (astroarch-backup) ist nicht installiert.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="192"/>
+        <location filename="../qml/DataBackupView.qml" line="194"/>
         <source>%1 is not a folder on this system.</source>
         <translation>%1 ist kein Ordner auf diesem System.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="193"/>
+        <location filename="../qml/DataBackupView.qml" line="195"/>
         <source>%1 is too wide: choose a folder inside it.</source>
         <translation>%1 ist zu umfassend: wählen Sie einen Ordner darin.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="194"/>
+        <location filename="../qml/DataBackupView.qml" line="196"/>
         <source>%1 holds the backups themselves.</source>
         <translation>%1 enthält die Sicherungen selbst.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="206"/>
+        <location filename="../qml/DataBackupView.qml" line="208"/>
         <source>Backing up now: images and data…</source>
         <translation>Sicherung läuft: Bilder und Daten…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="206"/>
+        <location filename="../qml/DataBackupView.qml" line="208"/>
         <source>Backing up now: settings…</source>
         <translation>Sicherung läuft: Einstellungen…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="208"/>
+        <location filename="../qml/DataBackupView.qml" line="210"/>
         <source>Done · %1</source>
         <translation>Erledigt · %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="209"/>
+        <location filename="../qml/DataBackupView.qml" line="211"/>
         <source>Done · %1 · some files could not be read</source>
         <translation>Erledigt · %1 · einige Dateien konnten nicht gelesen werden</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="211"/>
+        <location filename="../qml/DataBackupView.qml" line="213"/>
         <source>Failed · %1: the destination is not there. Is the drive plugged in, is the NAS on?</source>
         <translation>Fehlgeschlagen · %1: das Ziel fehlt. Ist das Laufwerk angeschlossen, das NAS eingeschaltet?</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="212"/>
+        <location filename="../qml/DataBackupView.qml" line="214"/>
         <source>Failed · %1: %2</source>
         <translation>Fehlgeschlagen · %1: %2</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="213"/>
+        <location filename="../qml/DataBackupView.qml" line="215"/>
         <source>Skipped · %1: a session was in progress</source>
         <translation>Übersprungen · %1: eine Sitzung lief</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="214"/>
+        <location filename="../qml/DataBackupView.qml" line="216"/>
         <source>Stopped before the end · %1</source>
         <translation>Vor dem Ende angehalten · %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="216"/>
+        <location filename="../qml/DataBackupView.qml" line="218"/>
         <source>No backup yet</source>
         <translation>Noch keine Sicherung</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="228"/>
-        <location filename="../qml/DataBackupView.qml" line="1077"/>
+        <location filename="../qml/DataBackupView.qml" line="230"/>
+        <location filename="../qml/DataBackupView.qml" line="1079"/>
         <source>Could not mount the drive: %1</source>
         <translation>Das Laufwerk konnte nicht eingehängt werden: %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="251"/>
+        <location filename="../qml/DataBackupView.qml" line="253"/>
         <source>Authentication cancelled or refused.</source>
         <translation>Authentifizierung abgebrochen oder abgelehnt.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="244"/>
+        <location filename="../qml/DataBackupView.qml" line="246"/>
         <source>Network folder connected. It is mounted when a backup needs it, and the Pi starts without it.</source>
         <translation>Netzwerkordner verbunden. Er wird eingehängt, wenn eine Sicherung ihn braucht, und der Pi startet auch ohne ihn.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="246"/>
+        <location filename="../qml/DataBackupView.qml" line="248"/>
         <source>Network folder removed.</source>
         <translation>Netzwerkordner entfernt.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="252"/>
+        <location filename="../qml/DataBackupView.qml" line="254"/>
         <source>Could not turn on the backup: %1</source>
         <translation>Die Sicherung konnte nicht eingeschaltet werden: %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="258"/>
+        <location filename="../qml/DataBackupView.qml" line="260"/>
         <source>The data backup is set up.</source>
         <translation>Die Datensicherung ist eingerichtet.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="375"/>
+        <location filename="../qml/DataBackupView.qml" line="377"/>
         <source>Data and settings</source>
         <translation>Daten und Einstellungen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="375"/>
+        <location filename="../qml/DataBackupView.qml" line="377"/>
         <source>KStars, PHD2, INDI, kiosk and your images · every 2 hours</source>
         <translation>KStars, PHD2, INDI, Kiosk und Ihre Bilder · alle 2 Stunden</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="376"/>
+        <location filename="../qml/DataBackupView.qml" line="378"/>
         <source>System</source>
         <translation>System</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="376"/>
+        <location filename="../qml/DataBackupView.qml" line="378"/>
         <source>The whole system, to undo an update · on request and before updating</source>
         <translation>Das ganze System, um ein Update rückgängig zu machen · auf Wunsch und vor Updates</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="439"/>
+        <location filename="../qml/DataBackupView.qml" line="441"/>
         <source>Not set up yet. Choose what to keep and where: it takes a minute, and the first backup starts right away.</source>
         <translation>Noch nicht eingerichtet. Wählen Sie, was und wohin gesichert wird: Es dauert eine Minute, und die erste Sicherung startet sofort.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="446"/>
+        <location filename="../qml/DataBackupView.qml" line="448"/>
         <source>Set up the data backup…</source>
         <translation>Datensicherung einrichten…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="453"/>
+        <location filename="../qml/DataBackupView.qml" line="455"/>
         <source>Last backup</source>
         <translation>Letzte Sicherung</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="457"/>
+        <location filename="../qml/DataBackupView.qml" line="459"/>
         <source>Last complete one: %1</source>
         <translation>Letzte vollständige: %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="460"/>
+        <location filename="../qml/DataBackupView.qml" line="462"/>
         <source>Backing up…</source>
         <translation>Sicherung läuft…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="460"/>
+        <location filename="../qml/DataBackupView.qml" line="462"/>
         <source>Back up now</source>
         <translation>Jetzt sichern</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="466"/>
+        <location filename="../qml/DataBackupView.qml" line="468"/>
         <source>Schedule</source>
         <translation>Zeitplan</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="467"/>
+        <location filename="../qml/DataBackupView.qml" line="469"/>
         <source>Not available: the timer is not installed</source>
         <translation>Nicht verfügbar: der Timer ist nicht installiert</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="469"/>
+        <location filename="../qml/DataBackupView.qml" line="471"/>
         <source>Every 2 hours · next at %1</source>
         <translation>Alle 2 Stunden · nächste um %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="470"/>
+        <location filename="../qml/DataBackupView.qml" line="472"/>
         <source>Every 2 hours</source>
         <translation>Alle 2 Stunden</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="471"/>
+        <location filename="../qml/DataBackupView.qml" line="473"/>
         <source>Off: only when you press “Back up now”</source>
         <translation>Aus: nur wenn Sie „Jetzt sichern“ drücken</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="472"/>
+        <location filename="../qml/DataBackupView.qml" line="474"/>
         <source>Skipped while KStars and INDI run a session, so imaging is never slowed down</source>
         <translation>Übersprungen, während KStars und INDI eine Sitzung ausführen, damit die Aufnahme nie gebremst wird</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="475"/>
+        <location filename="../qml/DataBackupView.qml" line="477"/>
         <source>Turn off</source>
         <translation>Ausschalten</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="475"/>
+        <location filename="../qml/DataBackupView.qml" line="477"/>
         <source>Turn on</source>
         <translation>Einschalten</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="478"/>
+        <location filename="../qml/DataBackupView.qml" line="480"/>
         <source>Could not change the schedule: %1</source>
         <translation>Der Zeitplan konnte nicht geändert werden: %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="486"/>
-        <location filename="../qml/DataBackupView.qml" line="898"/>
-        <location filename="../qml/DataBackupView.qml" line="1098"/>
+        <location filename="../qml/DataBackupView.qml" line="488"/>
+        <location filename="../qml/DataBackupView.qml" line="900"/>
+        <location filename="../qml/DataBackupView.qml" line="1100"/>
         <source>Where</source>
         <translation>Wo</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="490"/>
-        <location filename="../qml/DataBackupView.qml" line="501"/>
-        <location filename="../qml/DataBackupView.qml" line="1102"/>
-        <location filename="../qml/DataBackupView.qml" line="1134"/>
+        <location filename="../qml/DataBackupView.qml" line="492"/>
+        <location filename="../qml/DataBackupView.qml" line="503"/>
+        <location filename="../qml/DataBackupView.qml" line="1104"/>
+        <location filename="../qml/DataBackupView.qml" line="1136"/>
         <source>Change…</source>
         <translation>Ändern…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="491"/>
+        <location filename="../qml/DataBackupView.qml" line="493"/>
         <source>Change where the backups go</source>
         <translation>Ändern, wohin die Sicherungen gehen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="497"/>
-        <location filename="../qml/DataBackupView.qml" line="893"/>
+        <location filename="../qml/DataBackupView.qml" line="499"/>
+        <location filename="../qml/DataBackupView.qml" line="895"/>
         <source>What</source>
         <translation>Was</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/DataBackupView.qml" line="498"/>
-        <location filename="../qml/DataBackupView.qml" line="894"/>
+        <location filename="../qml/DataBackupView.qml" line="500"/>
+        <location filename="../qml/DataBackupView.qml" line="896"/>
         <source>%n item(s) · %1</source>
         <translation>
             <numerusform>%n Element · %1</numerusform>
@@ -331,7 +331,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/DataBackupView.qml" line="499"/>
+        <location filename="../qml/DataBackupView.qml" line="501"/>
         <source>Settings keep their last %n version(s); images are only added to</source>
         <translation>
             <numerusform>Einstellungen behalten ihre letzte Version; Bilder werden nur ergänzt</numerusform>
@@ -339,122 +339,122 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="502"/>
+        <location filename="../qml/DataBackupView.qml" line="504"/>
         <source>Change what is backed up</source>
         <translation>Ändern, was gesichert wird</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="532"/>
+        <location filename="../qml/DataBackupView.qml" line="534"/>
         <source>The important settings of your astronomy apps are already selected. Only the first backup copies everything: the next ones copy what changed.</source>
         <translation>Die wichtigen Einstellungen Ihrer Astronomie-Apps sind bereits ausgewählt. Nur die erste Sicherung kopiert alles: die nächsten kopieren, was sich geändert hat.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="537"/>
+        <location filename="../qml/DataBackupView.qml" line="539"/>
         <source>Selected: %1</source>
         <translation>Ausgewählt: %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="558"/>
+        <location filename="../qml/DataBackupView.qml" line="560"/>
         <source>Other folders</source>
         <translation>Weitere Ordner</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="583"/>
-        <location filename="../qml/DataBackupView.qml" line="735"/>
+        <location filename="../qml/DataBackupView.qml" line="585"/>
+        <location filename="../qml/DataBackupView.qml" line="737"/>
         <source>Remove</source>
         <translation>Entfernen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="584"/>
+        <location filename="../qml/DataBackupView.qml" line="586"/>
         <source>Remove %1</source>
         <translation>%1 entfernen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="600"/>
+        <location filename="../qml/DataBackupView.qml" line="602"/>
         <source>A folder to add, e.g. %1</source>
         <translation>Ein Ordner zum Hinzufügen, z. B. %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="604"/>
+        <location filename="../qml/DataBackupView.qml" line="606"/>
         <source>Folder to add</source>
         <translation>Hinzuzufügender Ordner</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="614"/>
+        <location filename="../qml/DataBackupView.qml" line="616"/>
         <source>Add</source>
         <translation>Hinzufügen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="616"/>
+        <location filename="../qml/DataBackupView.qml" line="618"/>
         <source>Add this folder</source>
         <translation>Diesen Ordner hinzufügen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="634"/>
+        <location filename="../qml/DataBackupView.qml" line="636"/>
         <source>Add %1</source>
         <translation>%1 hinzufügen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="650"/>
+        <location filename="../qml/DataBackupView.qml" line="652"/>
         <source>About %1 to copy the first time. The list follows the drives you plug in.</source>
         <translation>Beim ersten Mal etwa %1 zu kopieren. Die Liste folgt den Laufwerken, die Sie anschließen.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="711"/>
+        <location filename="../qml/DataBackupView.qml" line="713"/>
         <source>a backup is already there</source>
         <translation>dort liegt bereits eine Sicherung</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="728"/>
-        <location filename="../qml/DataBackupView.qml" line="1229"/>
+        <location filename="../qml/DataBackupView.qml" line="730"/>
+        <location filename="../qml/DataBackupView.qml" line="1231"/>
         <source>Mount</source>
         <translation>Einhängen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="729"/>
+        <location filename="../qml/DataBackupView.qml" line="731"/>
         <source>Mount %1</source>
         <translation>%1 einhängen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="744"/>
-        <location filename="../qml/DataBackupView.qml" line="1237"/>
+        <location filename="../qml/DataBackupView.qml" line="746"/>
+        <location filename="../qml/DataBackupView.qml" line="1239"/>
         <source>Chosen</source>
         <translation>Gewählt</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="744"/>
-        <location filename="../qml/DataBackupView.qml" line="1237"/>
+        <location filename="../qml/DataBackupView.qml" line="746"/>
+        <location filename="../qml/DataBackupView.qml" line="1239"/>
         <source>Choose</source>
         <translation>Wählen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="794"/>
-        <location filename="../qml/DataBackupView.qml" line="801"/>
+        <location filename="../qml/DataBackupView.qml" line="796"/>
+        <location filename="../qml/DataBackupView.qml" line="803"/>
         <source>Back up every 2 hours</source>
         <translation>Alle 2 Stunden sichern</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="811"/>
+        <location filename="../qml/DataBackupView.qml" line="813"/>
         <source>Skipped while KStars and INDI run a session, so imaging is never slowed down. Unticked: only when you press “Back up now”.</source>
         <translation>Übersprungen, während KStars und INDI eine Sitzung ausführen, damit die Aufnahme nie gebremst wird. Ohne Haken: nur wenn Sie „Jetzt sichern“ drücken.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="830"/>
+        <location filename="../qml/DataBackupView.qml" line="832"/>
         <source>Versions of the settings to keep</source>
         <translation>Aufzubewahrende Versionen der Einstellungen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="837"/>
+        <location filename="../qml/DataBackupView.qml" line="839"/>
         <source>One per backup; a version costs only what changed. Images are only added to: a file deleted here stays in the backup.</source>
         <translation>Eine pro Sicherung; eine Version kostet nur, was sich geändert hat. Bilder werden nur ergänzt: eine hier gelöschte Datei bleibt in der Sicherung.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="848"/>
+        <location filename="../qml/DataBackupView.qml" line="850"/>
         <source>Fewer versions</source>
         <translation>Weniger Versionen</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/DataBackupView.qml" line="857"/>
+        <location filename="../qml/DataBackupView.qml" line="859"/>
         <source>%n version(s)</source>
         <translation>
             <numerusform>%n Version</numerusform>
@@ -462,155 +462,155 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="862"/>
+        <location filename="../qml/DataBackupView.qml" line="864"/>
         <source>More versions</source>
         <translation>Mehr Versionen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="875"/>
-        <location filename="../qml/DataBackupView.qml" line="880"/>
+        <location filename="../qml/DataBackupView.qml" line="877"/>
+        <location filename="../qml/DataBackupView.qml" line="882"/>
         <source>Make the first backup now</source>
         <translation>Erste Sicherung jetzt machen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="906"/>
+        <location filename="../qml/DataBackupView.qml" line="908"/>
         <source>The backup folder is created once with administrator rights: your password may be asked.</source>
         <translation>Der Sicherungsordner wird einmal mit Administratorrechten angelegt: Ihr Passwort kann abgefragt werden.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="929"/>
+        <location filename="../qml/DataBackupView.qml" line="931"/>
         <source>Back</source>
         <translation>Zurück</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="937"/>
-        <location filename="../qml/DataBackupView.qml" line="1252"/>
-        <location filename="../qml/DataBackupView.qml" line="1293"/>
+        <location filename="../qml/DataBackupView.qml" line="939"/>
+        <location filename="../qml/DataBackupView.qml" line="1254"/>
+        <location filename="../qml/DataBackupView.qml" line="1301"/>
         <source>Cancel</source>
         <translation>Abbrechen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="736"/>
+        <location filename="../qml/DataBackupView.qml" line="738"/>
         <source>Remove the network folder %1</source>
         <translation>Netzwerkordner %1 entfernen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="756"/>
+        <location filename="../qml/DataBackupView.qml" line="758"/>
         <source>Connect a network folder…</source>
         <translation>Netzwerkordner verbinden…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="773"/>
+        <location filename="../qml/DataBackupView.qml" line="775"/>
         <source>To send the backup to your computer, install Syncthing in “More software”.</source>
         <translation>Um die Sicherung an Ihren Computer zu senden, installieren Sie Syncthing unter „Weitere Software“.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="949"/>
+        <location filename="../qml/DataBackupView.qml" line="951"/>
         <source>Next</source>
         <translation>Weiter</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="950"/>
+        <location filename="../qml/DataBackupView.qml" line="952"/>
         <source>Save</source>
         <translation>Speichern</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="950"/>
+        <location filename="../qml/DataBackupView.qml" line="952"/>
         <source>Turn on the backup</source>
         <translation>Sicherung einschalten</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1023"/>
+        <location filename="../qml/DataBackupView.qml" line="1025"/>
         <source>Read-only</source>
         <translation>Schreibgeschützt</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1024"/>
+        <location filename="../qml/DataBackupView.qml" line="1026"/>
         <source>This format cannot be used</source>
         <translation>Dieses Format kann nicht verwendet werden</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1034"/>
+        <location filename="../qml/DataBackupView.qml" line="1036"/>
         <source>Preparing the backup file…</source>
         <translation>Sicherungsdatei wird vorbereitet…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1034"/>
+        <location filename="../qml/DataBackupView.qml" line="1036"/>
         <source>Copying files…</source>
         <translation>Dateien werden kopiert…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1035"/>
+        <location filename="../qml/DataBackupView.qml" line="1037"/>
         <source>Copying the boot partition…</source>
         <translation>Boot-Partition wird kopiert…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1035"/>
+        <location filename="../qml/DataBackupView.qml" line="1037"/>
         <source>Creating the snapshot…</source>
         <translation>Snapshot wird erstellt…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1036"/>
+        <location filename="../qml/DataBackupView.qml" line="1038"/>
         <source>Verifying the backup…</source>
         <translation>Sicherung wird geprüft…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1036"/>
+        <location filename="../qml/DataBackupView.qml" line="1038"/>
         <source>Removing old backups…</source>
         <translation>Alte Sicherungen werden entfernt…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1037"/>
+        <location filename="../qml/DataBackupView.qml" line="1039"/>
         <source>Shrinking the backup file…</source>
         <translation>Sicherungsdatei wird verkleinert…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1037"/>
+        <location filename="../qml/DataBackupView.qml" line="1039"/>
         <source>Finishing…</source>
         <translation>Wird abgeschlossen…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1041"/>
+        <location filename="../qml/DataBackupView.qml" line="1043"/>
         <source>Measuring what to back up… Your password is asked.</source>
         <translation>Messen, was gesichert wird… Ihr Passwort wird abgefragt.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1056"/>
+        <location filename="../qml/DataBackupView.qml" line="1058"/>
         <source>Could not measure the data: %1</source>
         <translation>Die Daten konnten nicht gemessen werden: %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1063"/>
+        <location filename="../qml/DataBackupView.qml" line="1065"/>
         <source>Not enough space at %1 (%2 needed): choose another place.</source>
         <translation>Nicht genug Platz auf %1 (%2 nötig): wählen Sie einen anderen Ort.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1073"/>
+        <location filename="../qml/DataBackupView.qml" line="1075"/>
         <source>System backup complete.</source>
         <translation>Systemsicherung abgeschlossen.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1073"/>
+        <location filename="../qml/DataBackupView.qml" line="1075"/>
         <source>The system backup failed: %1</source>
         <translation>Die Systemsicherung ist fehlgeschlagen: %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1087"/>
+        <location filename="../qml/DataBackupView.qml" line="1089"/>
         <source>System backup cancelled. The previous backups are untouched.</source>
         <translation>Systemsicherung abgebrochen. Die vorherigen Sicherungen bleiben unberührt.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1104"/>
+        <location filename="../qml/DataBackupView.qml" line="1106"/>
         <source>Change where the system backups go</source>
         <translation>Ändern, wohin die Systemsicherungen gehen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1113"/>
+        <location filename="../qml/DataBackupView.qml" line="1115"/>
         <source>Keep</source>
         <translation>Behalten</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/DataBackupView.qml" line="1114"/>
+        <location filename="../qml/DataBackupView.qml" line="1116"/>
         <source>The last %n backup(s)</source>
         <translation>
             <numerusform>Die letzte Sicherung</numerusform>
@@ -618,27 +618,27 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1118"/>
+        <location filename="../qml/DataBackupView.qml" line="1120"/>
         <source>Keep fewer system backups</source>
         <translation>Weniger Systemsicherungen behalten</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1124"/>
+        <location filename="../qml/DataBackupView.qml" line="1126"/>
         <source>Keep more system backups</source>
         <translation>Mehr Systemsicherungen behalten</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1130"/>
+        <location filename="../qml/DataBackupView.qml" line="1132"/>
         <source>Left out</source>
         <translation>Ausgelassen</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1131"/>
+        <location filename="../qml/DataBackupView.qml" line="1133"/>
         <source>Nothing: the whole system and your home</source>
         <translation>Nichts: das ganze System und Ihr persönlicher Ordner</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/DataBackupView.qml" line="1132"/>
+        <location filename="../qml/DataBackupView.qml" line="1134"/>
         <source>%n folder(s)</source>
         <translation>
             <numerusform>%n Ordner</numerusform>
@@ -646,52 +646,57 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1136"/>
+        <location filename="../qml/DataBackupView.qml" line="1138"/>
         <source>Change the folders left out of the system backup</source>
         <translation>Die von der Systemsicherung ausgelassenen Ordner ändern</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1145"/>
+        <location filename="../qml/DataBackupView.qml" line="1147"/>
         <source>Before updating</source>
         <translation>Vor einem Update</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1146"/>
+        <location filename="../qml/DataBackupView.qml" line="1148"/>
         <source>System backup offered</source>
         <translation>Systemsicherung angeboten</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1147"/>
+        <location filename="../qml/DataBackupView.qml" line="1149"/>
         <source>Ticked by default, it can be skipped</source>
         <translation>Standardmäßig angehakt, kann übersprungen werden</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1159"/>
+        <location filename="../qml/DataBackupView.qml" line="1161"/>
         <source>Untick what the system backup can leave out, such as images already kept elsewhere. Locked folders are needed by AstroArch.</source>
         <translation>Entfernen Sie den Haken bei allem, was die Systemsicherung auslassen kann, etwa Bilder, die schon anderswo liegen. Gesperrte Ordner braucht AstroArch.</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1175"/>
+        <location filename="../qml/DataBackupView.qml" line="1177"/>
         <source>Done</source>
         <translation>Fertig</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1178"/>
+        <location filename="../qml/DataBackupView.qml" line="1180"/>
         <source>Could not save the folders: %1</source>
         <translation>Die Ordner konnten nicht gespeichert werden: %1</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1276"/>
+        <location filename="../qml/DataBackupView.qml" line="1278"/>
         <source>System backup progress</source>
         <translation>Fortschritt der Systemsicherung</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1298"/>
+        <location filename="../qml/DataBackupView.qml" line="1295"/>
+        <source>Restore from a system backup…</source>
+        <translation>Aus einer Systemsicherung wiederherstellen…</translation>
+    </message>
+    <message>
+        <location filename="../qml/DataBackupView.qml" line="1306"/>
         <source>Measuring…</source>
         <translation>Wird gemessen…</translation>
     </message>
     <message>
-        <location filename="../qml/DataBackupView.qml" line="1298"/>
+        <location filename="../qml/DataBackupView.qml" line="1306"/>
         <source>Back up the system now</source>
         <translation>System jetzt sichern</translation>
     </message>
@@ -1039,8 +1044,8 @@
     <name>Main</name>
     <message>
         <location filename="../qml/Main.qml" line="31"/>
-        <location filename="../qml/Main.qml" line="781"/>
-        <location filename="../qml/Main.qml" line="789"/>
+        <location filename="../qml/Main.qml" line="782"/>
+        <location filename="../qml/Main.qml" line="790"/>
         <source>AstroArch Control Center</source>
         <translation>AstroArch-Kontrollzentrum</translation>
     </message>
@@ -1079,7 +1084,7 @@
         <translation>Weiteres</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/Main.qml" line="517"/>
+        <location filename="../qml/Main.qml" line="518"/>
         <source>%n profile(s) · e.g. %1</source>
         <translation>
             <numerusform>%n Profil · z. B. %1</numerusform>
@@ -1087,12 +1092,12 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="556"/>
+        <location filename="../qml/Main.qml" line="557"/>
         <source>Connected to %1</source>
         <translation>Verbunden mit %1</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="557"/>
+        <location filename="../qml/Main.qml" line="558"/>
         <source>Connected to a network</source>
         <translation>Mit einem Netzwerk verbunden</translation>
     </message>
@@ -1119,7 +1124,7 @@
     <message>
         <location filename="../qml/Main.qml" line="76"/>
         <location filename="../qml/Main.qml" line="121"/>
-        <location filename="../qml/Main.qml" line="484"/>
+        <location filename="../qml/Main.qml" line="485"/>
         <source>Not set up</source>
         <translation>Nicht eingerichtet</translation>
     </message>
@@ -1211,6 +1216,11 @@
         <translation>Standard: astro</translation>
     </message>
     <message>
+        <location filename="../qml/Main.qml" line="163"/>
+        <source>Bring back your KStars, INDI and PHD2 profiles and settings, and your images if you want, from a data backup, a system backup, an old AstroArch disk or AstroMonitor. A system backup of this computer can also bring the whole system back, to undo an update.</source>
+        <translation>Holen Sie Ihre KStars-, INDI- und PHD2-Profile und -Einstellungen zurück, auf Wunsch auch Ihre Bilder: aus einer Datensicherung, einer Systemsicherung, einem alten AstroArch-Datenträger oder AstroMonitor. Eine Systemsicherung dieses Computers kann auch das gesamte System zurückholen, um ein Update rückgängig zu machen.</translation>
+    </message>
+    <message>
         <location filename="../qml/Main.qml" line="197"/>
         <source>A lighter second desktop for the field: it opens only the one or two imaging programs you use, and can reopen them if they close. Reach it by remote desktop on port 3390, next to the main desktop.</source>
         <translation>Ein leichterer zweiter Desktop für unterwegs: Er öffnet nur die ein oder zwei Aufnahmeprogramme, die Sie verwenden, und kann sie wieder öffnen, wenn sie sich schließen. Erreichbar per Remote-Desktop auf Port 3390, neben dem Haupt-Desktop.</translation>
@@ -1271,7 +1281,7 @@
         <translation>Auf dem AstroArch-Server, um sie auf jedem Rechner wiederherzustellen</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="474"/>
+        <location filename="../qml/Main.qml" line="475"/>
         <source>Cannot be checked</source>
         <translation>Nicht prüfbar</translation>
     </message>
@@ -1529,11 +1539,6 @@
         <translation>Die Zeitzone konnte nicht eingestellt werden.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="163"/>
-        <source>Bring back your KStars, INDI and PHD2 profiles and settings, and your images if you want, from a data backup, a system backup, an old AstroArch disk or AstroMonitor.</source>
-        <translation>Holen Sie Ihre KStars-, INDI- und PHD2-Profile und -Einstellungen zurück, auf Wunsch auch Ihre Bilder: aus einer Datensicherung, einer Systemsicherung, einem alten AstroArch-Datenträger oder AstroMonitor.</translation>
-    </message>
-    <message>
         <location filename="../qml/Main.qml" line="165"/>
         <source>I’m starting fresh</source>
         <translation>Ich fange neu an</translation>
@@ -1661,194 +1666,194 @@
         <translation>Optional</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="472"/>
+        <location filename="../qml/Main.qml" line="473"/>
         <source>Reading…</source>
         <translation>Wird gelesen…</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="474"/>
+        <location filename="../qml/Main.qml" line="475"/>
         <source>Unknown</source>
         <translation>Unbekannt</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="487"/>
+        <location filename="../qml/Main.qml" line="488"/>
         <source>System default</source>
         <translation>Systemstandard</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="495"/>
+        <location filename="../qml/Main.qml" line="496"/>
         <source>On</source>
         <translation>An</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="495"/>
+        <location filename="../qml/Main.qml" line="496"/>
         <source>Off</source>
         <translation>Aus</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="495"/>
+        <location filename="../qml/Main.qml" line="496"/>
         <source>Not installed</source>
         <translation>Nicht installiert</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="504"/>
+        <location filename="../qml/Main.qml" line="505"/>
         <source>local time %1</source>
         <translation>Ortszeit %1</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="509"/>
+        <location filename="../qml/Main.qml" line="510"/>
         <source>Unnamed site</source>
         <translation>Unbenannter Ort</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="527"/>
+        <location filename="../qml/Main.qml" line="528"/>
         <source>Unknown while the drive is not connected</source>
         <translation>Unbekannt, solange das Laufwerk nicht angeschlossen ist</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="528"/>
+        <location filename="../qml/Main.qml" line="529"/>
         <source>%1 free</source>
         <translation>%1 frei</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="530"/>
+        <location filename="../qml/Main.qml" line="531"/>
         <source>%1 used</source>
         <translation>%1 belegt</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="534"/>
+        <location filename="../qml/Main.qml" line="535"/>
         <source>Internal disk</source>
         <translation>Internes Laufwerk</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="535"/>
+        <location filename="../qml/Main.qml" line="536"/>
         <source>Drive “%1” · %2</source>
         <translation>Laufwerk „%1“ · %2</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="536"/>
+        <location filename="../qml/Main.qml" line="537"/>
         <source>Drive “%1” · not connected</source>
         <translation>Laufwerk „%1“ · nicht angeschlossen</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="600"/>
+        <location filename="../qml/Main.qml" line="601"/>
         <source>Copied %1.</source>
         <translation>Kopiert: %1.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="610"/>
+        <location filename="../qml/Main.qml" line="611"/>
         <source>“%1” is open in its own window. When you have finished, come back here: this page updates by itself.</source>
         <translation>„%1“ wurde in einem eigenen Fenster geöffnet. Wenn Sie fertig sind, kehren Sie hierher zurück: Diese Seite aktualisiert sich von selbst.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="612"/>
+        <location filename="../qml/Main.qml" line="613"/>
         <source>“%1” is already open.</source>
         <translation>„%1“ ist bereits geöffnet.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="614"/>
+        <location filename="../qml/Main.qml" line="615"/>
         <source>“%1” is not installed on this system.</source>
         <translation>„%1“ ist auf diesem System nicht installiert.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="616"/>
+        <location filename="../qml/Main.qml" line="617"/>
         <source>“%1” could not be started.</source>
         <translation>„%1“ konnte nicht gestartet werden.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="791"/>
+        <location filename="../qml/Main.qml" line="792"/>
         <source>Settings and tools of your AstroArch</source>
         <translation>Einstellungen und Werkzeuge Ihres AstroArch</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="792"/>
+        <location filename="../qml/Main.qml" line="793"/>
         <source>Setup: %1 of %2 done · you can stop at any time</source>
         <translation>Einrichtung: %1 von %2 erledigt · Sie können jederzeit aufhören</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="843"/>
+        <location filename="../qml/Main.qml" line="844"/>
         <source>%1 · anytime</source>
         <translation>%1 · jederzeit</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="845"/>
-        <location filename="../qml/Main.qml" line="1394"/>
+        <location filename="../qml/Main.qml" line="846"/>
+        <location filename="../qml/Main.qml" line="1402"/>
         <source>Done</source>
         <translation>Fertig</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="845"/>
+        <location filename="../qml/Main.qml" line="846"/>
         <source>%1 of %2</source>
         <translation>%1 von %2</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="892"/>
-        <location filename="../qml/Main.qml" line="1381"/>
+        <location filename="../qml/Main.qml" line="893"/>
+        <location filename="../qml/Main.qml" line="1389"/>
         <source>Set up later</source>
         <translation>Später</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="893"/>
+        <location filename="../qml/Main.qml" line="894"/>
         <source>Not needed</source>
         <translation>Nicht benötigt</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="894"/>
+        <location filename="../qml/Main.qml" line="895"/>
         <source>On hold</source>
         <translation>Zurückgestellt</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="896"/>
+        <location filename="../qml/Main.qml" line="897"/>
         <source>Kept the defaults</source>
         <translation>Standardwerte beibehalten</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="902"/>
+        <location filename="../qml/Main.qml" line="903"/>
         <source>done</source>
         <translation>erledigt</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="902"/>
+        <location filename="../qml/Main.qml" line="903"/>
         <source>set up later</source>
         <translation>später</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="903"/>
+        <location filename="../qml/Main.qml" line="904"/>
         <source>not needed</source>
         <translation>nicht benötigt</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="903"/>
+        <location filename="../qml/Main.qml" line="904"/>
         <source>on hold</source>
         <translation>zurückgestellt</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="903"/>
+        <location filename="../qml/Main.qml" line="904"/>
         <source>to do</source>
         <translation>offen</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="972"/>
+        <location filename="../qml/Main.qml" line="973"/>
         <source>Show setup</source>
         <translation>Einrichtung anzeigen</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="972"/>
+        <location filename="../qml/Main.qml" line="973"/>
         <source>I’m done, hide setup</source>
         <translation>Fertig, Einrichtung ausblenden</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="998"/>
+        <location filename="../qml/Main.qml" line="999"/>
         <source>You can show the setup again from here.</source>
         <translation>Von hier aus können Sie die Einrichtung wieder anzeigen.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="1102"/>
+        <location filename="../qml/Main.qml" line="1103"/>
         <source>On hold: the AstroArch team asks not to update for now (“%1”). This step unlocks by itself when the notice is withdrawn.</source>
         <translation>Zurückgestellt: Das AstroArch-Team bittet darum, vorerst nicht zu aktualisieren („%1“). Dieser Schritt wird automatisch freigegeben, sobald der Hinweis zurückgezogen wird.</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="485"/>
+        <location filename="../qml/Main.qml" line="486"/>
         <source>Default kept</source>
         <translation>Standard beibehalten</translation>
     </message>
@@ -1858,52 +1863,52 @@
         <translation>Astro monitor öffnen</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="483"/>
+        <location filename="../qml/Main.qml" line="484"/>
         <source>Changed</source>
         <translation>Geändert</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="1201"/>
+        <location filename="../qml/Main.qml" line="1202"/>
         <source>Set before first boot</source>
         <translation>Vor dem ersten Start eingestellt</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="1226"/>
+        <location filename="../qml/Main.qml" line="1227"/>
         <source>Kept</source>
         <translation>Beibehalten</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="1227"/>
+        <location filename="../qml/Main.qml" line="1228"/>
         <source>%1 (not installed)</source>
         <translation>%1 (nicht installiert)</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="1228"/>
+        <location filename="../qml/Main.qml" line="1229"/>
         <source>%1 (not available for this user)</source>
         <translation>%1 (für diesen Benutzer nicht verfügbar)</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="1229"/>
+        <location filename="../qml/Main.qml" line="1230"/>
         <source>%1 (checking…)</source>
         <translation>%1 (wird geprüft…)</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="1386"/>
+        <location filename="../qml/Main.qml" line="1394"/>
         <source>I don’t need this</source>
         <translation>Brauche ich nicht</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="1392"/>
+        <location filename="../qml/Main.qml" line="1400"/>
         <source>Finish</source>
         <translation>Abschließen</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="1393"/>
+        <location filename="../qml/Main.qml" line="1401"/>
         <source>Next step</source>
         <translation>Nächster Schritt</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="1394"/>
+        <location filename="../qml/Main.qml" line="1402"/>
         <source>Continue</source>
         <translation>Weiter</translation>
     </message>
@@ -1934,220 +1939,296 @@
 <context>
     <name>RestoreView</name>
     <message>
-        <location filename="../qml/RestoreView.qml" line="59"/>
+        <location filename="../qml/RestoreView.qml" line="69"/>
         <source>Where from</source>
         <translation>Woher</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="59"/>
+        <location filename="../qml/RestoreView.qml" line="69"/>
         <source>What to restore</source>
         <translation>Was wiederherstellen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="59"/>
-        <location filename="../qml/RestoreView.qml" line="986"/>
+        <location filename="../qml/RestoreView.qml" line="69"/>
+        <location filename="../qml/RestoreView.qml" line="1244"/>
         <source>Restore</source>
         <translation>Wiederherstellen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="78"/>
+        <location filename="../qml/RestoreView.qml" line="88"/>
         <source>Latest copy (Syncthing)</source>
         <translation>Letzte Kopie (Syncthing)</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="85"/>
+        <location filename="../qml/RestoreView.qml" line="95"/>
         <source>Raspberry Pi</source>
         <translation>Raspberry Pi</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="85"/>
+        <location filename="../qml/RestoreView.qml" line="95"/>
         <source>PC</source>
         <translation>PC</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="85"/>
+        <location filename="../qml/RestoreView.qml" line="95"/>
         <source>32-bit ARM</source>
         <translation>32-Bit-ARM</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="87"/>
+        <location filename="../qml/RestoreView.qml" line="97"/>
         <source>From a %1 system (%2): settings and data only</source>
         <translation>Von einem %1-System (%2): nur Einstellungen und Daten</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="88"/>
+        <location filename="../qml/RestoreView.qml" line="98"/>
         <source>From a %1 system (%2), like this one</source>
         <translation>Von einem %1-System (%2), wie dieses</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="91"/>
+        <location filename="../qml/RestoreView.qml" line="101"/>
         <source>INDI server</source>
         <translation>den INDI-Server</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="95"/>
+        <location filename="../qml/RestoreView.qml" line="105"/>
         <source>a data backup</source>
         <translation>einer Datensicherung</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="95"/>
+        <location filename="../qml/RestoreView.qml" line="105"/>
         <source>an old AstroArch disk</source>
         <translation>einem alten AstroArch-Datenträger</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="95"/>
+        <location filename="../qml/RestoreView.qml" line="105"/>
         <source>a system backup</source>
         <translation>einer Systemsicherung</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="100"/>
+        <location filename="../qml/RestoreView.qml" line="110"/>
         <source>Authentication cancelled or refused.</source>
         <translation>Authentifizierung abgebrochen oder abgelehnt.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="101"/>
-        <location filename="../qml/RestoreView.qml" line="884"/>
+        <location filename="../qml/RestoreView.qml" line="111"/>
+        <location filename="../qml/RestoreView.qml" line="1024"/>
         <source>Close %1 first: they would write over the restored files.</source>
         <translation>Schließen Sie zuerst %1: Sie würden die wiederhergestellten Dateien überschreiben.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="102"/>
+        <location filename="../qml/RestoreView.qml" line="112"/>
         <source>The restore helper is not installed (%1).</source>
         <translation>Das Wiederherstellungs-Hilfsprogramm ist nicht installiert (%1).</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="103"/>
+        <location filename="../qml/RestoreView.qml" line="113"/>
         <source>No AstroMonitor backup was found for this token.</source>
         <translation>Für dieses Token wurde keine AstroMonitor-Sicherung gefunden.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="104"/>
+        <location filename="../qml/RestoreView.qml" line="114"/>
         <source>The AstroArch server could not be reached: %1</source>
         <translation>Der AstroArch-Server ist nicht erreichbar: %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="105"/>
+        <location filename="../qml/RestoreView.qml" line="115"/>
         <source>This token is not valid: copy it again from the AstroMonitor bot.</source>
         <translation>Dieses Token ist ungültig: Kopieren Sie es erneut aus dem AstroMonitor-Bot.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="106"/>
+        <location filename="../qml/RestoreView.qml" line="116"/>
         <source>Nothing to restore: tick at least one row that is in the backup.</source>
         <translation>Nichts wiederherzustellen: Haken Sie mindestens eine Zeile an, die in der Sicherung ist.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="107"/>
+        <location filename="../qml/RestoreView.qml" line="117"/>
         <source>This is the disk AstroArch runs from.</source>
         <translation>Von diesem Datenträger läuft AstroArch gerade.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="108"/>
+        <location filename="../qml/RestoreView.qml" line="118"/>
         <source>This partition cannot hold an AstroArch system (%1).</source>
         <translation>Diese Partition kann kein AstroArch-System enthalten (%1).</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="109"/>
+        <location filename="../qml/RestoreView.qml" line="119"/>
         <source>The disk could not be opened: %1</source>
         <translation>Der Datenträger konnte nicht geöffnet werden: %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="110"/>
+        <location filename="../qml/RestoreView.qml" line="120"/>
         <source>Some files could not be put back: they stay in “Earlier restores”, to try again.</source>
         <translation>Einige Dateien konnten nicht zurückgeholt werden: Sie bleiben unter „Frühere Wiederherstellungen“, für einen neuen Versuch.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="111"/>
+        <location filename="../qml/RestoreView.qml" line="121"/>
         <source>It did not work: %1</source>
         <translation>Das hat nicht funktioniert: %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="200"/>
+        <location filename="../qml/RestoreView.qml" line="211"/>
         <source>No AstroArch home folder was found in this backup.</source>
         <translation>In dieser Sicherung wurde kein AstroArch-Benutzerordner gefunden.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="272"/>
+        <location filename="../qml/RestoreView.qml" line="229"/>
+        <source>The system backup was closed: open it again to choose a date.</source>
+        <translation>Die Systemsicherung wurde geschlossen: öffnen Sie sie erneut, um ein Datum zu wählen.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="239"/>
+        <source>Type %1 in capital letters, as shown.</source>
+        <extracomment>%1 is the word RESTORE, to type as it is: never translate it</extracomment>
+        <translation>Geben Sie %1 in Großbuchstaben ein, wie angezeigt.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="245"/>
+        <source>Measuring the current system for the safety backup… Your password may be asked.</source>
+        <translation>Das aktuelle System wird für die Sicherheitskopie gemessen… Möglicherweise wird Ihr Passwort abgefragt.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="253"/>
+        <source>Checking the backup and preparing the restore… Your password may be asked.</source>
+        <translation>Die Sicherung wird geprüft und die Wiederherstellung vorbereitet… Möglicherweise wird Ihr Passwort abgefragt.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="342"/>
         <source>No AstroArch home folder was found on this partition: is it the system partition of your old AstroArch?</source>
         <translation>Auf dieser Partition wurde kein AstroArch-Benutzerordner gefunden: Ist es die Systempartition Ihres alten AstroArch?</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="275"/>
+        <location filename="../qml/RestoreView.qml" line="345"/>
         <source>Your AstroMonitor backup was downloaded. Continue to choose what to restore.</source>
         <translation>Ihre AstroMonitor-Sicherung wurde heruntergeladen. Fahren Sie fort, um auszuwählen, was wiederhergestellt wird.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="282"/>
+        <location filename="../qml/RestoreView.qml" line="352"/>
         <source>What was there before the restore is back.</source>
         <translation>Was vor der Wiederherstellung da war, ist zurück.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="299"/>
+        <location filename="../qml/RestoreView.qml" line="371"/>
         <source>The system backup could not be opened: %1</source>
         <translation>Die Systemsicherung konnte nicht geöffnet werden: %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="304"/>
+        <location filename="../qml/RestoreView.qml" line="376"/>
         <source>This system backup holds no snapshot yet.</source>
         <translation>Diese Systemsicherung enthält noch keinen Snapshot.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="308"/>
-        <location filename="../qml/RestoreView.qml" line="322"/>
+        <location filename="../qml/RestoreView.qml" line="380"/>
+        <location filename="../qml/RestoreView.qml" line="449"/>
         <source>Could not mount the drive: %1</source>
         <translation>Das Laufwerk konnte nicht eingehängt werden: %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="442"/>
+        <location filename="../qml/RestoreView.qml" line="392"/>
+        <source>The safety backup could not be measured, so nothing was restored: %1</source>
+        <translation>Die Sicherheitskopie konnte nicht gemessen werden, daher wurde nichts wiederhergestellt: %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="398"/>
+        <source>Not enough space for the safety backup (%1 needed, %2 free), so nothing was restored. Free some space, or untick the safety backup.</source>
+        <translation>Nicht genug Platz für die Sicherheitskopie (%1 nötig, %2 frei), daher wurde nichts wiederhergestellt. Geben Sie Speicherplatz frei oder deaktivieren Sie die Sicherheitskopie.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="413"/>
+        <source>The safety backup failed, so nothing was restored: %1</source>
+        <translation>Die Sicherheitskopie ist fehlgeschlagen, daher wurde nichts wiederhergestellt: %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="426"/>
+        <source>Safety backup cancelled. Nothing was restored.</source>
+        <translation>Sicherheitskopie abgebrochen. Es wurde nichts wiederhergestellt.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="430"/>
+        <source>The restore has started. The desktop closes now; the restore runs in text mode on the screen of the computer, then it restarts by itself. Do not switch it off.</source>
+        <translation>Die Wiederherstellung hat begonnen. Der Desktop wird jetzt geschlossen; die Wiederherstellung läuft im Textmodus auf dem Bildschirm des Computers, danach startet er von selbst neu. Schalten Sie ihn nicht aus.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="435"/>
+        <source>The restore did not start, the system was not changed (the safety backup was made): %1</source>
+        <translation>Die Wiederherstellung wurde nicht gestartet, das System wurde nicht geändert (die Sicherheitskopie wurde erstellt): %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="436"/>
+        <source>The restore did not start, nothing was changed: %1</source>
+        <translation>Die Wiederherstellung wurde nicht gestartet, nichts wurde geändert: %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="569"/>
         <source>Where are your profiles? What you have now is never lost: it is set aside, and can be put back.</source>
         <translation>Wo sind Ihre Profile? Was Sie jetzt haben, geht nie verloren: Es wird beiseitegelegt und kann zurückgeholt werden.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="448"/>
+        <location filename="../qml/RestoreView.qml" line="575"/>
         <source>A data backup</source>
         <translation>Eine Datensicherung</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="449"/>
+        <location filename="../qml/RestoreView.qml" line="576"/>
         <source>Made by the Control Center, on a USB drive, a network folder or this disk</source>
         <translation>Vom Kontrollzentrum erstellt, auf einem USB-Laufwerk, einem Netzwerkordner oder diesem Datenträger</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="450"/>
+        <location filename="../qml/RestoreView.qml" line="577"/>
         <source>A system backup</source>
         <translation>Eine Systemsicherung</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="451"/>
-        <source>The whole system, saved by the AstroArch backup tool, even on another kind of computer. Only its profiles, settings and images are restored here, never its system.</source>
-        <translation>Das gesamte System, gesichert vom AstroArch-Sicherungsprogramm, auch auf einem anderen Computertyp. Hier werden nur seine Profile, Einstellungen und Bilder wiederhergestellt, nie sein System.</translation>
+        <location filename="../qml/RestoreView.qml" line="1115"/>
+        <source>any folders left out of the backups are emptied (the folders themselves stay);</source>
+        <translation>von den Sicherungen ausgeschlossene Ordner werden geleert (die Ordner selbst bleiben);</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="452"/>
+        <location filename="../qml/RestoreView.qml" line="1275"/>
+        <source>Measuring…</source>
+        <translation>Wird gemessen…</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1276"/>
+        <source>Starting the restore…</source>
+        <translation>Wiederherstellung wird gestartet…</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1277"/>
+        <source>Restore the system</source>
+        <translation>System wiederherstellen</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="579"/>
         <source>An old AstroArch disk</source>
         <translation>Ein alter AstroArch-Datenträger</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="453"/>
+        <location filename="../qml/RestoreView.qml" line="578"/>
+        <source>The whole system, as saved on the Data backup page (System). From a backup of this computer, the whole system can come back, to undo an update. From any computer, its profiles, settings and images.</source>
+        <translation>Das gesamte System, wie auf der Seite „Datensicherung“ (System) gesichert. Aus einer Sicherung dieses Computers kann das gesamte System zurückkommen, um ein Update rückgängig zu machen. Von jedem Computer seine Profile, Einstellungen und Bilder.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="580"/>
         <source>The SD card or drive of your previous AstroArch, plugged in. It is only read, never changed.</source>
         <translation>Die SD-Karte oder das Laufwerk Ihres bisherigen AstroArch, angeschlossen. Es wird nur gelesen, nie verändert.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="455"/>
+        <location filename="../qml/RestoreView.qml" line="582"/>
         <source>The KStars, INDI and PHD2 profiles AstroMonitor keeps on the AstroArch server</source>
         <translation>Die KStars-, INDI- und PHD2-Profile, die AstroMonitor auf dem AstroArch-Server aufbewahrt</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="519"/>
+        <location filename="../qml/RestoreView.qml" line="646"/>
         <source>Earlier restores</source>
         <translation>Frühere Wiederherstellungen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="536"/>
+        <location filename="../qml/RestoreView.qml" line="663"/>
         <source>%1, from %2</source>
         <translation>%1, aus %2</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="538"/>
+        <location filename="../qml/RestoreView.qml" line="665"/>
         <source>%n file(s) restored. What they replaced is kept here.</source>
         <translation>
             <numerusform>%n Datei wiederhergestellt. Was sie ersetzt hat, wird hier aufbewahrt.</numerusform>
@@ -2155,51 +2236,51 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="541"/>
-        <location filename="../qml/RestoreView.qml" line="977"/>
+        <location filename="../qml/RestoreView.qml" line="668"/>
+        <location filename="../qml/RestoreView.qml" line="1235"/>
         <source>Put back what was there before</source>
         <translation>Vorherigen Stand zurückholen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="569"/>
+        <location filename="../qml/RestoreView.qml" line="696"/>
         <source>Plug in the drive of the backup, or connect its network folder. Then choose the date to go back to.</source>
         <translation>Schließen Sie das Laufwerk der Sicherung an oder verbinden Sie ihren Netzwerkordner. Wählen Sie dann das Datum, zu dem Sie zurückkehren möchten.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="576"/>
+        <location filename="../qml/RestoreView.qml" line="703"/>
         <source>No data backup found yet. The list follows the drives you plug in.</source>
         <translation>Noch keine Datensicherung gefunden. Die Liste folgt den Laufwerken, die Sie anschließen.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="594"/>
-        <location filename="../qml/RestoreView.qml" line="702"/>
+        <location filename="../qml/RestoreView.qml" line="721"/>
+        <location filename="../qml/RestoreView.qml" line="829"/>
         <source>This disk</source>
         <translation>Dieser Datenträger</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="594"/>
-        <location filename="../qml/RestoreView.qml" line="702"/>
+        <location filename="../qml/RestoreView.qml" line="721"/>
+        <location filename="../qml/RestoreView.qml" line="829"/>
         <source>USB drive %1</source>
         <translation>USB-Laufwerk %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="594"/>
+        <location filename="../qml/RestoreView.qml" line="721"/>
         <source>Network folder %1</source>
         <translation>Netzwerkordner %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="596"/>
-        <location filename="../qml/RestoreView.qml" line="704"/>
+        <location filename="../qml/RestoreView.qml" line="723"/>
+        <location filename="../qml/RestoreView.qml" line="831"/>
         <source>Not mounted</source>
         <translation>Nicht eingehängt</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="597"/>
+        <location filename="../qml/RestoreView.qml" line="724"/>
         <source>No data backup here</source>
         <translation>Hier keine Datensicherung</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="597"/>
+        <location filename="../qml/RestoreView.qml" line="724"/>
         <source>%n backup(s) here</source>
         <translation>
             <numerusform>%n Sicherung hier</numerusform>
@@ -2207,18 +2288,18 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="602"/>
-        <location filename="../qml/RestoreView.qml" line="712"/>
+        <location filename="../qml/RestoreView.qml" line="729"/>
+        <location filename="../qml/RestoreView.qml" line="839"/>
         <source>Mount</source>
         <translation>Einhängen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="618"/>
+        <location filename="../qml/RestoreView.qml" line="745"/>
         <source>this AstroArch</source>
         <translation>dieses AstroArch</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="620"/>
+        <location filename="../qml/RestoreView.qml" line="747"/>
         <source>Settings from %1 · %n date(s) to choose from</source>
         <translation>
             <numerusform>Einstellungen vom %1 · %n Zeitpunkt zur Auswahl</numerusform>
@@ -2226,43 +2307,38 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="622"/>
+        <location filename="../qml/RestoreView.qml" line="749"/>
         <source>Images only</source>
         <translation>Nur Bilder</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="625"/>
-        <location filename="../qml/RestoreView.qml" line="738"/>
+        <location filename="../qml/RestoreView.qml" line="752"/>
+        <location filename="../qml/RestoreView.qml" line="870"/>
         <source>Choose</source>
         <translation>Wählen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="655"/>
+        <location filename="../qml/RestoreView.qml" line="782"/>
         <source>Connect a network folder…</source>
         <translation>Netzwerkordner verbinden…</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="677"/>
-        <source>Plug in the drive of the system backup if it is on one, open the backup (read-only: nothing in it is changed), then choose the date to go back to.</source>
-        <translation>Schließen Sie das Laufwerk der Systemsicherung an, falls sie auf einem liegt, öffnen Sie die Sicherung (schreibgeschützt: darin wird nichts geändert) und wählen Sie dann das Datum, zu dem Sie zurückkehren möchten.</translation>
-    </message>
-    <message>
-        <location filename="../qml/RestoreView.qml" line="684"/>
+        <location filename="../qml/RestoreView.qml" line="811"/>
         <source>No system backup found yet. The list follows the drives you plug in.</source>
         <translation>Noch keine Systemsicherung gefunden. Die Liste folgt den Laufwerken, die Sie anschließen.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="702"/>
+        <location filename="../qml/RestoreView.qml" line="829"/>
         <source>Folder</source>
         <translation>Ordner</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="705"/>
+        <location filename="../qml/RestoreView.qml" line="832"/>
         <source>Reading the backup… Your password is asked.</source>
         <translation>Sicherung wird gelesen… Ihr Passwort wird abgefragt.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="706"/>
+        <location filename="../qml/RestoreView.qml" line="833"/>
         <source>%n snapshot(s)</source>
         <translation>
             <numerusform>%n Snapshot</numerusform>
@@ -2270,165 +2346,254 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="707"/>
+        <location filename="../qml/RestoreView.qml" line="834"/>
         <source>System backup</source>
         <translation>Systemsicherung</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="756"/>
+        <location filename="../qml/RestoreView.qml" line="896"/>
         <source>Plug in the SD card (with a card reader) or the drive of your old AstroArch, then open its system partition. It is opened read-only: nothing on it is changed, and nothing of its system is copied, only your profiles and images.</source>
         <translation>Schließen Sie die SD-Karte (mit einem Kartenleser) oder das Laufwerk Ihres alten AstroArch an und öffnen Sie dann seine Systempartition. Sie wird schreibgeschützt geöffnet: Nichts darauf wird verändert, und nichts von seinem System wird kopiert, nur Ihre Profile und Bilder.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="763"/>
+        <location filename="../qml/RestoreView.qml" line="903"/>
         <source>No disk found yet. The list follows the disks you plug in.</source>
         <translation>Noch kein Datenträger gefunden. Die Liste folgt den Datenträgern, die Sie anschließen.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="786"/>
+        <location filename="../qml/RestoreView.qml" line="926"/>
         <source>AstroArch</source>
         <translation>AstroArch</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="787"/>
+        <location filename="../qml/RestoreView.qml" line="927"/>
         <source>user %1</source>
         <translation>Benutzer %1</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="788"/>
+        <location filename="../qml/RestoreView.qml" line="928"/>
         <source>with a kiosk desktop</source>
         <translation>mit Kiosk-Desktop</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="789"/>
+        <location filename="../qml/RestoreView.qml" line="929"/>
         <source>No AstroArch home folder on this partition</source>
         <translation>Kein AstroArch-Benutzerordner auf dieser Partition</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="790"/>
+        <location filename="../qml/RestoreView.qml" line="930"/>
         <source>Looks like an AstroArch system</source>
         <translation>Sieht nach einem AstroArch-System aus</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="795"/>
+        <location filename="../qml/RestoreView.qml" line="935"/>
         <source>Waiting for the password…</source>
         <translation>Warten auf das Passwort…</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="718"/>
-        <location filename="../qml/RestoreView.qml" line="795"/>
-        <location filename="../qml/RestoreView.qml" line="796"/>
+        <location filename="../qml/RestoreView.qml" line="845"/>
+        <location filename="../qml/RestoreView.qml" line="935"/>
+        <location filename="../qml/RestoreView.qml" line="936"/>
         <source>Open read-only</source>
         <translation>Schreibgeschützt öffnen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="819"/>
+        <location filename="../qml/RestoreView.qml" line="804"/>
+        <source>Plug in the drive of the system backup if it is on one, open the backup (read-only: nothing in it is changed), then choose the date to go back to: “Choose” brings back its profiles, settings and images, “Restore the whole system…” the whole system.</source>
+        <translation>Schließen Sie das Laufwerk der Systemsicherung an, falls sie auf einem liegt, öffnen Sie die Sicherung (schreibgeschützt: darin wird nichts geändert) und wählen Sie dann das Datum, zu dem Sie zurückkehren möchten: „Wählen“ holt seine Profile, Einstellungen und Bilder zurück, „Gesamtes System wiederherstellen…“ das gesamte System.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="864"/>
+        <source>Made without the boot partition: the whole system cannot come back from it</source>
+        <translation>Ohne die Boot-Partition erstellt: daraus kann das gesamte System nicht zurückkommen</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="878"/>
+        <source>Restore the whole system…</source>
+        <translation>Gesamtes System wiederherstellen…</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="959"/>
         <source>AstroMonitor keeps your profiles under your token, the one the Telegram bot @AstroMonitorBot gave you with /register. On a new AstroArch, paste it here.</source>
         <translation>AstroMonitor bewahrt Ihre Profile unter Ihrem Token auf, dem, das Ihnen der Telegram-Bot @AstroMonitorBot mit /register gegeben hat. Fügen Sie es auf einem neuen AstroArch hier ein.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="826"/>
+        <location filename="../qml/RestoreView.qml" line="966"/>
         <source>Token</source>
         <translation>Token</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="830"/>
+        <location filename="../qml/RestoreView.qml" line="970"/>
         <source>AstroMonitor token</source>
         <translation>AstroMonitor-Token</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="837"/>
+        <location filename="../qml/RestoreView.qml" line="977"/>
         <source>Downloading…</source>
         <translation>Wird heruntergeladen…</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="837"/>
+        <location filename="../qml/RestoreView.qml" line="977"/>
         <source>Download</source>
         <translation>Herunterladen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="843"/>
+        <location filename="../qml/RestoreView.qml" line="983"/>
         <source>It holds KStars profiles, equipment and settings, INDI driver settings and the PHD2 profile, as of your last “Take Backup” in AstroMonitor.</source>
         <translation>Sie enthält KStars-Profile, -Ausrüstung und -Einstellungen, die INDI-Treibereinstellungen und das PHD2-Profil, Stand Ihres letzten „Take Backup“ in AstroMonitor.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="857"/>
+        <location filename="../qml/RestoreView.qml" line="997"/>
         <source>From the backup of %1, as it was on %2.</source>
         <translation>Aus der Sicherung von %1, Stand %2.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="858"/>
+        <location filename="../qml/RestoreView.qml" line="998"/>
         <source>From the system backup, as it was on %1.</source>
         <translation>Aus der Systemsicherung, Stand %1.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="859"/>
+        <location filename="../qml/RestoreView.qml" line="999"/>
         <source>From the disk %1.</source>
         <translation>Vom Datenträger %1.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="860"/>
+        <location filename="../qml/RestoreView.qml" line="1000"/>
         <source>From your AstroMonitor backup.</source>
         <translation>Aus Ihrer AstroMonitor-Sicherung.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="869"/>
-        <location filename="../qml/RestoreView.qml" line="870"/>
+        <location filename="../qml/RestoreView.qml" line="1009"/>
+        <location filename="../qml/RestoreView.qml" line="1010"/>
         <source>Not in this backup</source>
         <translation>Nicht in dieser Sicherung</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="875"/>
+        <location filename="../qml/RestoreView.qml" line="1015"/>
         <source>Each file replaced is first moved to ~/.local/share/astroarch/restore-DATE: this page can put it back. Images are only added: those already here are kept.</source>
         <translation>Jede ersetzte Datei wird zuerst nach ~/.local/share/astroarch/restore-DATUM verschoben: Diese Seite kann sie zurückholen. Bilder werden nur hinzugefügt: Vorhandene bleiben erhalten.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="896"/>
+        <location filename="../qml/RestoreView.qml" line="1036"/>
         <source>Waiting for your password…</source>
         <translation>Warte auf Ihr Passwort…</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="897"/>
+        <location filename="../qml/RestoreView.qml" line="1037"/>
         <source>Restoring… %1%</source>
         <translation>Wird wiederhergestellt… %1 %</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="897"/>
+        <location filename="../qml/RestoreView.qml" line="1037"/>
         <source>Restoring…</source>
         <translation>Wird wiederhergestellt…</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="921"/>
+        <location filename="../qml/RestoreView.qml" line="1061"/>
         <source>Restored. KStars, PHD2 and the Equipment page now find your profiles.</source>
         <translation>Wiederhergestellt. KStars, PHD2 und die Seite Ausrüstung finden jetzt Ihre Profile.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="929"/>
+        <location filename="../qml/RestoreView.qml" line="1069"/>
         <source>What was there before is kept in %1.</source>
         <translation>Der vorherige Stand wird in %1 aufbewahrt.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="936"/>
+        <location filename="../qml/RestoreView.qml" line="1076"/>
         <source>Some kiosk profiles were left as they are here: the Kiosk page sets whether the kiosk shares the profiles of the main desktop.</source>
         <translation>Einige Kiosk-Profile blieben hier unverändert: Die Kiosk-Seite legt fest, ob der Kiosk die Profile des Hauptdesktops teilt.</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="970"/>
+        <location filename="../qml/RestoreView.qml" line="1097"/>
+        <source>Restore the whole system</source>
+        <translation>Gesamtes System wiederherstellen</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1104"/>
+        <source>Back to the system as it was on %1, from the system backup in %2.</source>
+        <translation>Zurück zum System, wie es am %1 war, aus der Systemsicherung in %2.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1113"/>
+        <source>The whole system is replaced by its state in this backup:</source>
+        <translation>Das gesamte System wird durch seinen Zustand in dieser Sicherung ersetzt:</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1114"/>
+        <source>everything changed since then is lost: files, installed programs and updates, settings;</source>
+        <translation>alles, was sich seitdem geändert hat, geht verloren: Dateien, installierte Programme und Updates, Einstellungen;</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1116"/>
+        <source>the desktop closes, the restore runs in text mode on the computer’s screen for several minutes, then the computer restarts by itself;</source>
+        <translation>der Desktop wird geschlossen, die Wiederherstellung läuft einige Minuten im Textmodus auf dem Bildschirm des Computers, dann startet der Computer von selbst neu;</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1117"/>
+        <source>do not switch it off or unplug it meanwhile: a power cut can leave the system unusable;</source>
+        <translation>schalten Sie ihn währenddessen nicht aus und trennen Sie ihn nicht vom Strom: ein Stromausfall kann das System unbrauchbar machen;</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1118"/>
+        <source>it only works on the disk the backup was made from: otherwise it is refused before anything changes.</source>
+        <translation>es funktioniert nur auf dem Datenträger, von dem die Sicherung stammt: sonst wird es abgelehnt, bevor sich etwas ändert.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1119"/>
+        <source>The backups in this place and the drives mounted separately are not touched.</source>
+        <translation>Die Sicherungen an diesem Ort und separat eingehängte Laufwerke bleiben unberührt.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1125"/>
+        <source>Left out of the system backups: %1. What they hold is not in the safety backup either, so it is lost.</source>
+        <translation>Von den Systemsicherungen ausgeschlossen: %1. Ihr Inhalt ist auch nicht in der Sicherheitskopie und geht daher verloren.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1145"/>
+        <source>First make a safety backup of the current system, in the same place (recommended)</source>
+        <translation>Zuerst eine Sicherheitskopie des aktuellen Systems am selben Ort erstellen (empfohlen)</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1151"/>
+        <source>Restoring it the same way undoes this restore.</source>
+        <translation>Wird sie auf dieselbe Weise wiederhergestellt, macht das diese Wiederherstellung rückgängig.</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1163"/>
+        <location filename="../qml/RestoreView.qml" line="1172"/>
+        <source>Type %1 to confirm</source>
+        <extracomment>%1 is the word RESTORE, to type as it is: never translate it</extracomment>
+        <translation>Geben Sie %1 ein, um zu bestätigen</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1183"/>
+        <source>Safety backup… %1%</source>
+        <translation>Sicherheitskopie… %1%</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1192"/>
+        <source>Safety backup progress</source>
+        <translation>Fortschritt der Sicherheitskopie</translation>
+    </message>
+    <message>
+        <location filename="../qml/RestoreView.qml" line="1228"/>
+        <location filename="../qml/RestoreView.qml" line="1267"/>
         <source>Cancel</source>
         <translation>Abbrechen</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="970"/>
+        <location filename="../qml/RestoreView.qml" line="1228"/>
+        <location filename="../qml/RestoreView.qml" line="1262"/>
         <source>Back</source>
         <translation>Zurück</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="986"/>
+        <location filename="../qml/RestoreView.qml" line="1244"/>
         <source>Next</source>
         <translation>Weiter</translation>
     </message>
     <message>
-        <location filename="../qml/RestoreView.qml" line="992"/>
+        <location filename="../qml/RestoreView.qml" line="1250"/>
         <source>Finish</source>
         <translation>Abschließen</translation>
     </message>
@@ -2657,14 +2822,14 @@
     </message>
     <message>
         <location filename="../qml/ServicesView.qml" line="83"/>
-        <location filename="../qml/ServicesView.qml" line="177"/>
+        <location filename="../qml/ServicesView.qml" line="178"/>
         <source>Turn on</source>
         <translation>Einschalten</translation>
     </message>
     <message>
         <location filename="../qml/ServicesView.qml" line="88"/>
         <location filename="../qml/ServicesView.qml" line="98"/>
-        <location filename="../qml/ServicesView.qml" line="181"/>
+        <location filename="../qml/ServicesView.qml" line="184"/>
         <source>“%1” opens in a terminal, which may ask for your password.</source>
         <translation>„%1“ öffnet sich in einem Terminal, das nach Ihrem Passwort fragen kann.</translation>
     </message>
@@ -2685,8 +2850,8 @@
     </message>
     <message>
         <location filename="../qml/ServicesView.qml" line="154"/>
-        <location filename="../qml/ServicesView.qml" line="178"/>
-        <location filename="../qml/ServicesView.qml" line="181"/>
+        <location filename="../qml/ServicesView.qml" line="179"/>
+        <location filename="../qml/ServicesView.qml" line="184"/>
         <source>USB power</source>
         <translation>USB-Strom</translation>
     </message>
@@ -2696,7 +2861,7 @@
         <translation>Voller Strom an den USB-Anschlüssen des Raspberry Pi 5, nach einem Neustart</translation>
     </message>
     <message>
-        <location filename="../qml/ServicesView.qml" line="192"/>
+        <location filename="../qml/ServicesView.qml" line="195"/>
         <source>The AstroArch plugins were not found: the services cannot be changed from here.</source>
         <translation>Die AstroArch-Plugins wurden nicht gefunden: Die Dienste können hier nicht geändert werden.</translation>
     </message>
