@@ -160,7 +160,7 @@ ApplicationWindow {
         {
             id: "restore", setup: "recommended", topic: "data",
             title: qsTr("Restore from a backup"),
-            intro: qsTr("Bring back your KStars, INDI and PHD2 profiles and settings, and your images if you want, from a data backup, a system backup, an old AstroArch disk or AstroMonitor."),
+            intro: qsTr("Bring back your KStars, INDI and PHD2 profiles and settings, and your images if you want, from a data backup, a system backup, an old AstroArch disk or AstroMonitor. A system backup of this computer can also bring the whole system back, to undo an update."),
             // Before Equipment: restored profiles are then found there
             primary: qsTr("I’m starting fresh"),
             // The wizard of the page (RestoreView.qml)
@@ -313,9 +313,10 @@ ApplicationWindow {
     // The view shows its own primary button now (its property ownsPrimary, e.g. the kiosk's
     // "Apply"): the footer's is then not highlighted, and Enter alone does nothing
     readonly property bool viewOwnsPrimary: !!currentView && currentView.ownsPrimary === true
-    // The view runs a wizard (its property mode, "wizard"): its own Back / Next are the
-    // page's only navigation, the footer is hidden
-    readonly property bool viewWizard: !!currentView && currentView.mode === "wizard"
+    // The view runs a wizard (its property mode, "wizard", or the Restore page's "whole",
+    // the whole-system restore): its own Back / Next are the page's only navigation, the
+    // footer is hidden
+    readonly property bool viewWizard: !!currentView && (currentView.mode === "wizard" || currentView.mode === "whole")
     // The view shows buttons pinned under it (its property navShown, wizardNav)
     readonly property bool viewNavShown: !!currentView && currentView.navShown === true
 
@@ -1300,6 +1301,13 @@ ApplicationWindow {
                                 sourceComponent: DataBackupView {
                                     navHost: wizardNav
                                     onSetupChanged: root.runProbes()
+                                    // The Restore page, its source "A system backup" already chosen
+                                    // (in a single-page window too: the window shows that page then)
+                                    onRestoreAsked: {
+                                        root.userPicked = true
+                                        root.go("restore")
+                                        Qt.callLater(() => { if (restoreView.item) restoreView.item.start("system") })
+                                    }
                                     onScrollToTop: pageScroll.contentItem.contentY = 0
                                     onReveal: (item) => root.reveal(item)
                                 }

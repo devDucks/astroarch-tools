@@ -1160,10 +1160,10 @@ ApplicationWindow {
                             font.bold: true
                         }
 
+                        // No placeholder text: a grey RESTORE in the field looked typed already
                         TextField {
                             id: confirmField
                             Layout.preferredWidth: 160
-                            placeholderText: "RESTORE"
                         }
                     }
 

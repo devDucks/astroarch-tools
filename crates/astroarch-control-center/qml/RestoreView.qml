@@ -7,7 +7,9 @@ import AstroArchControlCenter
 // The Restore page: KStars/Ekos, INDI and PHD2 profiles and settings (and images) brought
 // back from a data backup, a system backup (a snapshot of the backup tool's image, mounted
 // read-only by its BackupManager; even one of another architecture), an old AstroArch disk
-// or AstroMonitor. What can be restored is
+// or AstroMonitor. A snapshot of the system backup made on this computer can also bring the
+// WHOLE system back (mode "whole": the backup tool's own restore, BackupManager.start_restore,
+// after an optional safety backup). What can be restored otherwise is
 // the catalog of the data backup (the same tick list, SelectionList); the logic is
 // RestoreManager (src/restore.rs), the copy its root helper. A wizard of three steps in
 // the card, as the Data backup page
@@ -21,16 +23,16 @@ ColumnLayout {
     signal reveal(Item item)
     // Where the message and the wizard's buttons go, pinned under the page (Main.qml)
     property Item navHost: null
-    readonly property bool navShown: view.mode === "wizard" || view.message !== ""
+    readonly property bool navShown: view.mode !== "start" || view.message !== ""
     // The wizard's Next / Restore / Finish is the primary button meanwhile (Main.qml)
-    readonly property bool ownsPrimary: view.mode === "wizard"
+    readonly property bool ownsPrimary: view.mode !== "start"
     // The network folder form is open in step 1: its Connect and Cancel are the actions
     readonly property bool formOpen: view.mode === "wizard" && view.step === 1 && view.kind === "backup" && view.shareForm
 
     spacing: 14
 
     // ------------------------------------------------------------------ state
-    property string mode: "start"          // "start" | "wizard"
+    property string mode: "start"          // "start" | "wizard" | "whole"
     property int step: 1                   // 1 where from, 2 what, 3 restore
     property string kind: ""               // "backup" | "system" | "disk" | "astromonitor"
     property var source: null              // the spec RestoreManager takes, once chosen
@@ -46,6 +48,14 @@ ColumnLayout {
     property string sysDest: ""
     property bool sysLoading: false
     property var sysSnapshots: []
+    // system: the WHOLE system brought back from a snapshot of this computer (mode "whole"):
+    // the backup tool's restore replaces the running system, then the computer restarts
+    property var whole: null               // {dest, name} of the snapshot
+    property bool wholeSafety: true        // a safety backup of the current state first
+    property string wholeState: ""         // "" | measuring | backup | restoring | started
+    property string wholeExcluded: ""      // the system backup's folders left out (its config)
+    property bool wholeSafetyMade: false   // a safety backup was made for this snapshot already
+    readonly property bool wholeBusy: view.wholeState !== ""
     property bool shareForm: false
     property var groups: []
     property var excluded: ({})
@@ -137,6 +147,7 @@ ColumnLayout {
             restore.unmountDisk()
         // The system backup too: while it is mounted, no system backup can be made
         view.releaseSystem()
+        view.whole = null
         view.mode = "start"
         view.kind = ""
         view.source = null
@@ -198,6 +209,65 @@ ColumnLayout {
         view.openSource({ kind: "system", root: snap.root, name: view.snapshotText(snap.name) })
         if (!view.about.found)
             view.say(qsTr("No AstroArch home folder was found in this backup."), true)
+    }
+    // The whole system from a snapshot of this computer: its confirmation first
+    function openWhole(snap) {
+        view.say("")
+        view.whole = { dest: view.sysDest, name: snap.name }
+        view.wholeSafety = true
+        view.wholeSafetyMade = false
+        view.wholeState = ""
+        confirmField.text = ""
+        // The folders the system backup leaves out: the safety backup leaves them out too
+        systemBackup.load_config()
+        view.mode = "whole"
+        Qt.callLater(() => confirmField.forceActiveFocus())
+    }
+    function closeWhole() {
+        if (view.wholeBusy)
+            return
+        view.say(view.sysDest === "" ? qsTr("The system backup was closed: open it again to choose a date.") : "")
+        view.whole = null
+        view.mode = "wizard"
+    }
+    function beginWhole() {
+        if (view.wholeBusy || !view.whole)
+            return
+        if (confirmField.text !== "RESTORE") {
+            if (confirmField.text !== "")
+                //: %1 is the word RESTORE, to type as it is: never translate it
+                view.say(qsTr("Type %1 in capital letters, as shown.").arg("RESTORE"), true)
+            return
+        }
+        view.say("")
+        if (view.wholeSafety) {
+            view.wholeState = "measuring"
+            view.say(qsTr("Measuring the current system for the safety backup… Your password may be asked."))
+            systemBackup.measure_data(view.wholeExcluded)
+        } else {
+            view.startWhole()
+        }
+    }
+    function startWhole() {
+        view.wholeState = "restoring"
+        view.say(qsTr("Checking the backup and preparing the restore… Your password may be asked."))
+        view.forgetSystem()
+        systemBackup.start_restore(view.whole.dest, view.whole.name)
+    }
+    // The backup tool's helper releases this page's read-only mount itself before it writes
+    // to the backup or restores from it (releaseBrowse: the same program asks): the page
+    // forgets it meanwhile. After a failure the mount may still be there (the helper did not
+    // run, or stopped before): it is released (nothing happens when it is gone already)
+    function dropSystem() {
+        systemBackup.release()
+        view.forgetSystem()
+    }
+    function forgetSystem() {
+        view.sysDest = ""
+        view.sysSnapshots = []
+        view.sysLoading = false
+        view.source = null
+        view.snapshot = ""
     }
     function chooseSnapshot(system, name) {
         view.chosenSystem = system
@@ -290,6 +360,8 @@ ColumnLayout {
     // read-only and lists it
     BackupManager {
         id: systemBackup
+        // Its safety backup and restore release the page's own read-only mount first
+        releaseBrowse: true
         onSnapshotsListed: (json, error) => {
             view.sysLoading = false
             if (view.kind !== "system" || view.sysDest === "")
@@ -308,10 +380,65 @@ ColumnLayout {
                 view.say(qsTr("Could not mount the drive: %1").arg(error), true)
             view.refreshPlaces()
         }
+        // The whole system: the safety backup (as the Data backup page's System profile
+        // makes one, without saving its place, retention or folders: persist false; keep
+        // 100, as the backup tool does, so no older backup is pruned), then the restore
+        onConfigLoaded: (keep, excluded) => view.wholeExcluded = excluded
+        onDataMeasured: (bytes, error) => {
+            if (view.wholeState !== "measuring")
+                return
+            if (error !== "") {
+                view.wholeState = ""
+                view.say(qsTr("The safety backup could not be measured, so nothing was restored: %1").arg(error), true)
+                return
+            }
+            const ev = JSON.parse(systemBackup.evaluate_destination(view.whole.dest))
+            if (!ev.enough) {
+                view.wholeState = ""
+                view.say(qsTr("Not enough space for the safety backup (%1 needed, %2 free), so nothing was restored. Free some space, or untick the safety backup.")
+                         .arg(view.fmt(ev.needed)).arg(view.fmt(ev.available)), true)
+                return
+            }
+            view.wholeState = "backup"
+            view.say("")
+            view.forgetSystem()
+            systemBackup.start_backup(view.whole.dest, view.wholeExcluded, 100, false)
+        }
+        onBackupFinished: (success, error) => {
+            if (view.wholeState !== "backup")
+                return
+            if (!success) {
+                view.wholeState = ""
+                view.dropSystem()
+                view.say(qsTr("The safety backup failed, so nothing was restored: %1").arg(error), true)
+                return
+            }
+            // Made: a new try does not make another one
+            view.wholeSafetyMade = true
+            view.wholeSafety = false
+            view.startWhole()
+        }
+        onBackupCanceled: {
+            if (view.wholeState !== "backup")
+                return
+            view.wholeState = ""
+            view.dropSystem()
+            view.say(qsTr("Safety backup cancelled. Nothing was restored."))
+        }
+        onRestoreStarted: {
+            view.wholeState = "started"
+            view.say(qsTr("The restore has started. The desktop closes now; the restore runs in text mode on the screen of the computer, then it restarts by itself. Do not switch it off."))
+        }
+        onRestoreFailed: (code, error) => {
+            view.wholeState = ""
+            view.dropSystem()
+            view.say((view.wholeSafetyMade ? qsTr("The restore did not start, the system was not changed (the safety backup was made): %1")
+                                           : qsTr("The restore did not start, nothing was changed: %1")).arg(error), true)
+        }
     }
     // Another page shown: the system backup is released (during a restore, which reads it,
-    // when it finishes: onFinished)
-    onVisibleChanged: if (!visible && view.kind === "system" && !restore.busy) view.leave()
+    // when it finishes: onFinished). Not while the whole system is being restored
+    onVisibleChanged: if (!visible && view.kind === "system" && !restore.busy && !view.wholeBusy) view.leave()
 
     // The places of the data backup, and how to connect a network folder: the Data backup
     // page's own code
@@ -448,7 +575,7 @@ ColumnLayout {
                 { id: "backup", icon: "document-save", title: qsTr("A data backup"),
                   sub: qsTr("Made by the Control Center, on a USB drive, a network folder or this disk") },
                 { id: "system", icon: "drive-harddisk", title: qsTr("A system backup"),
-                  sub: qsTr("The whole system, saved by the AstroArch backup tool, even on another kind of computer. Only its profiles, settings and images are restored here, never its system.") },
+                  sub: qsTr("The whole system, as saved on the Data backup page (System). From a backup of this computer, the whole system can come back, to undo an update. From any computer, its profiles, settings and images.") },
                 { id: "disk", icon: "drive-removable-media", title: qsTr("An old AstroArch disk"),
                   sub: qsTr("The SD card or drive of your previous AstroArch, plugged in. It is only read, never changed.") },
                 { id: "astromonitor", icon: "folder-cloud", title: "AstroMonitor",
@@ -674,7 +801,7 @@ ColumnLayout {
             spacing: 10
             Label {
                 Layout.fillWidth: true
-                text: qsTr("Plug in the drive of the system backup if it is on one, open the backup (read-only: nothing in it is changed), then choose the date to go back to.")
+                text: qsTr("Plug in the drive of the system backup if it is on one, open the backup (read-only: nothing in it is changed), then choose the date to go back to: “Choose” brings back its profiles, settings and images, “Restore the whole system…” the whole system.")
                 color: "#34495e"
                 wrapMode: Text.Wrap
             }
@@ -730,7 +857,12 @@ ColumnLayout {
                                 icon: "computer"
                                 chosen: view.snapshot === modelData.name && !!view.source
                                 title: view.snapshotText(modelData.name)
-                                note: view.archNote(modelData)
+                                // The whole system needs this computer's kind and its boot partition
+                                readonly property bool wholeOk: modelData.restorable === true && modelData.boot === true
+                                note: [view.archNote(modelData),
+                                       modelData.restorable === true && modelData.boot !== true
+                                           ? qsTr("Made without the boot partition: the whole system cannot come back from it") : ""]
+                                      .filter(t => t !== "").join(" · ")
                                 noteColor: modelData.foreign ? "#9a5b00" : "#5d6d7e"
                                 CardButton {
                                     visible: !sysSnap.chosen
@@ -738,6 +870,14 @@ ColumnLayout {
                                     text: qsTr("Choose")
                                     Accessible.name: text + " · " + sysSnap.title
                                     onClicked: view.chooseSystemSnapshot(sysSnap.modelData)
+                                }
+                                CardButton {
+                                    visible: sysSnap.wholeOk
+                                    destructive: true
+                                    enabled: !restore.busy
+                                    text: qsTr("Restore the whole system…")
+                                    Accessible.name: text + " · " + sysSnap.title
+                                    onClicked: view.openWhole(sysSnap.modelData)
                                 }
                             }
                         }
@@ -942,6 +1082,124 @@ ColumnLayout {
 
     }
 
+    // ========================================================== WHOLE SYSTEM
+    // A snapshot of this computer brought back whole by the backup tool's restore: its
+    // helper checks the backup (same disk, same kind of computer, boot partition), replaces
+    // the running system from a copy in RAM, in text mode, and restarts the computer.
+    // Typing RESTORE confirms it, as in the backup tool
+    ColumnLayout {
+        Layout.fillWidth: true
+        visible: view.mode === "whole"
+        spacing: 12
+
+        Label {
+            Layout.fillWidth: true
+            text: qsTr("Restore the whole system")
+            color: "#b8333f"
+            font.bold: true
+            wrapMode: Text.Wrap
+        }
+        Label {
+            Layout.fillWidth: true
+            text: view.whole ? qsTr("Back to the system as it was on %1, from the system backup in %2.")
+                                   .arg(view.snapshotText(view.whole.name)).arg(view.whole.dest) : ""
+            color: "#34495e"
+            wrapMode: Text.Wrap
+        }
+        Kirigami.InlineMessage {
+            Layout.fillWidth: true
+            visible: true
+            type: Kirigami.MessageType.Error
+            text: qsTr("The whole system is replaced by its state in this backup:") + "\n• " + [
+                qsTr("everything changed since then is lost: files, installed programs and updates, settings;"),
+                qsTr("any folders left out of the backups are emptied (the folders themselves stay);"),
+                qsTr("the desktop closes, the restore runs in text mode on the computer’s screen for several minutes, then the computer restarts by itself;"),
+                qsTr("do not switch it off or unplug it meanwhile: a power cut can leave the system unusable;"),
+                qsTr("it only works on the disk the backup was made from: otherwise it is refused before anything changes.")
+            ].join("\n• ") + "\n" + qsTr("The backups in this place and the drives mounted separately are not touched.")
+        }
+        // The folders left out now: emptied by the restore, and not in the safety backup
+        Label {
+            Layout.fillWidth: true
+            visible: view.wholeExcluded.trim() !== ""
+            text: qsTr("Left out of the system backups: %1. What they hold is not in the safety backup either, so it is lost.")
+                      .arg(view.wholeExcluded.split("\n").filter(p => p !== "").join(", "))
+            color: "#b8333f"
+            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
+            TickBox {
+                tickState: view.wholeSafety ? Qt.Checked : Qt.Unchecked
+                enabled: !view.wholeBusy
+                Accessible.name: safetyLabel.text
+                onClicked: view.wholeSafety = !view.wholeSafety
+            }
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 1
+                Label {
+                    id: safetyLabel
+                    Layout.fillWidth: true
+                    text: qsTr("First make a safety backup of the current system, in the same place (recommended)")
+                    color: "#1f2d3a"
+                    wrapMode: Text.Wrap
+                }
+                Label {
+                    Layout.fillWidth: true
+                    text: qsTr("Restoring it the same way undoes this restore.")
+                    color: "#5d6d7e"
+                    font: Kirigami.Theme.smallFont
+                    wrapMode: Text.Wrap
+                }
+            }
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
+            Label {
+                //: %1 is the word RESTORE, to type as it is: never translate it
+                text: qsTr("Type %1 to confirm").arg("RESTORE")
+                color: "#4f5a64"
+                font.bold: true
+            }
+            CardField {
+                id: confirmField
+                Layout.preferredWidth: 180
+                enabled: !view.wholeBusy
+                //: %1 is the word RESTORE, to type as it is: never translate it
+                Accessible.name: qsTr("Type %1 to confirm").arg("RESTORE")
+                onAccepted: view.beginWhole()
+            }
+            Item { Layout.fillWidth: true }
+        }
+        // Progress of the safety backup
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: view.wholeState === "backup"
+            spacing: 6
+            Label {
+                text: qsTr("Safety backup… %1%").arg(Math.max(0, systemBackup.progressPercent))
+                color: "#1f2d3a"
+            }
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 10
+                radius: 5
+                color: "#c9d3db"
+                Accessible.role: Accessible.ProgressBar
+                Accessible.name: qsTr("Safety backup progress")
+                Rectangle {
+                    width: parent.width * Math.max(0, Math.min(100, systemBackup.progressPercent)) / 100
+                    height: parent.height
+                    radius: 5
+                    color: "#1d6fa5"
+                }
+            }
+        }
+    }
+
     // The message and the wizard's buttons, pinned under the page (Main.qml's navHost)
     ColumnLayout {
         id: navBar
@@ -991,6 +1249,33 @@ ColumnLayout {
                 highlighted: true
                 text: qsTr("Finish")
                 onClicked: view.leave()
+            }
+        }
+        // The whole system: Back to the snapshots, or the restore once RESTORE is typed
+        RowLayout {
+            Layout.fillWidth: true
+            visible: view.mode === "whole"
+            spacing: 10
+            CardButton {
+                visible: view.wholeState !== "backup"
+                enabled: !view.wholeBusy
+                text: qsTr("Back")
+                onClicked: view.closeWhole()
+            }
+            CardButton {
+                visible: view.wholeState === "backup"
+                text: qsTr("Cancel")
+                onClicked: systemBackup.cancel_backup()
+            }
+            Item { Layout.fillWidth: true }
+            CardButton {
+                highlighted: true
+                destructive: true
+                enabled: confirmField.text === "RESTORE" && !view.wholeBusy
+                text: view.wholeState === "measuring" ? qsTr("Measuring…")
+                    : view.wholeState === "restoring" || view.wholeState === "started" ? qsTr("Starting the restore…")
+                    : qsTr("Restore the system")
+                onClicked: view.beginWhole()
             }
         }
     }
