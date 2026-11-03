@@ -26,8 +26,10 @@ pub const SYSTEM_BACKUP_DIR: &str = "/var/backups";
 pub const SHARED_DATA_DIR: &str = "/srv/astro-data";
 
 /// Files in the personal folder that are essential for proper operation: they (and their
-/// contents) cannot be excluded from the backup. Same list as the helper
-pub const PROTECTED_HOME_DIRS: [&str; 5] = ["Desktop", ".astroarch", ".config", ".local", ".oh-my-zsh"];
+/// contents) cannot be excluded from the backup, even inside an excluded folder
+/// (Pictures/wallpapers: the images of the desktop slideshow). Same list as the helper
+pub const PROTECTED_HOME_DIRS: [&str; 6] =
+    ["Desktop", ".astroarch", ".config", ".local", ".oh-my-zsh", "Pictures/wallpapers"];
 
 /// Is `path` one of these folders, or located inside one of them?
 pub fn is_protected_path(home: &str, path: &str) -> bool {
@@ -272,6 +274,10 @@ mod tests {
         assert!(is_protected_path(home, "/home/astronaut/.local/share/x"));
         assert!(is_protected_path(home, "/home/astronaut/.oh-my-zsh"));
         assert!(is_protected_path(home, "/home/astronaut/.astroarch/assets"));
+        assert!(is_protected_path(home, "/home/astronaut/Pictures/wallpapers"));
+        assert!(is_protected_path(home, "/home/astronaut/Pictures/wallpapers/bubble"));
+        assert!(!is_protected_path(home, "/home/astronaut/Pictures"));
+        assert!(!is_protected_path(home, "/home/astronaut/Pictures/M31"));
         assert!(!is_protected_path(home, "/home/astronaut/Documents"));
         assert!(!is_protected_path(home, "/home/astronaut/Desktopx"));
         assert!(!is_protected_path(home, "/home/astronaut/.cache"));

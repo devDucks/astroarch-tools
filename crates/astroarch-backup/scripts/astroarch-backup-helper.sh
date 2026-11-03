@@ -98,8 +98,9 @@ readonly HOST_MARGIN=$((128 * 1024 * 1024))
 readonly DATA_PROFILE="single"
 
 # Files in the personal folder that are essential for proper operation: they (and their
-# contents) must NOT be excluded from the backup
-readonly PROTECTED_HOME_DIRS=(Desktop .astroarch .config .local .oh-my-zsh)
+# contents) must NOT be excluded from the backup, even inside an excluded folder
+# (Pictures/wallpapers: the images of the desktop slideshow)
+readonly PROTECTED_HOME_DIRS=(Desktop .astroarch .config .local .oh-my-zsh Pictures/wallpapers)
 
 LAST_ERR=""
 PENDING_TRUNCATE=""
@@ -333,13 +334,19 @@ build_rsync_args() {
     for m in "${BOOT_MOUNTS[@]}"; do
         RSYNC_ARGS+=(--exclude="$m/*")
     done
+    # Never back up images of the main disk or the destination
+    # itself (image on the source disk)
+    RSYNC_ARGS+=(--exclude="/var/backups/*" --exclude="$DEST/*")
+    # Essential folders are kept even inside a folder excluded by the user
+    # (Pictures/wallpapers when Pictures is excluded): before the user's exclusions,
+    # after the destination (rsync applies the first rule that matches)
+    for d in "${PROTECTED_HOME_DIRS[@]}"; do
+        RSYNC_ARGS+=(--include="$CALLER_HOME/$d/***")
+    done
     # Folder excluded by the user (absolute path): the folder is kept, but not its contents
     for n in "${EXCLUDES[@]}"; do
         RSYNC_ARGS+=(--include="$n/" --exclude="$n/**")
     done
-    # Never back up images of the main disk or the destination
-    # itself (image on the source disk)
-    RSYNC_ARGS+=(--exclude="/var/backups/*" --exclude="$DEST/*")
 }
 
 # Options for copying a boot partition (FAT: no ACLs or extended attributes)
