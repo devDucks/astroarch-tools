@@ -9,6 +9,7 @@
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 pub const MIB: u64 = 1024 * 1024;
 pub const GIB: u64 = 1024 * MIB;
@@ -240,6 +241,29 @@ pub fn helper_path() -> Option<PathBuf> {
         }
     }
     None
+}
+
+/// true: the helper runs through sudo instead of pkexec (see `use_sudo`)
+static USE_SUDO: AtomicBool = AtomicBool::new(false);
+
+/// Called by the terminal commands (src/cli.rs): sudo asks the password in the terminal,
+/// also over SSH, where pkexec refuses (the polkit action allows only the local session)
+pub fn use_sudo() {
+    USE_SUDO.store(true, Ordering::SeqCst);
+}
+
+/// The command that runs the root helper: `pkexec <helper>`, or `sudo -- <helper>` for the
+/// terminal commands. The arguments of the helper follow
+pub fn helper_command(helper: &Path) -> Command {
+    let mut cmd;
+    if USE_SUDO.load(Ordering::SeqCst) {
+        cmd = Command::new("sudo");
+        cmd.arg("--");
+    } else {
+        cmd = Command::new("pkexec");
+    }
+    cmd.arg(helper);
+    cmd
 }
 
 #[cfg(test)]

@@ -73,6 +73,29 @@ system unusable; this risk is assumed by the user (a warning is provided before 
 - The log is copied to `/var/backups/astroarch-restore-<date>.log` when
 backups are stored on the main disk.
 
+## From a terminal (also over SSH)
+
+The system backup and the full restore also run without the window, with the settings the
+window saved in `~/.backup_dest` (location, folders left out, snapshots kept): they are
+chosen in the window (Control Center, Data backup, System), the terminal only runs them.
+AstroArch's zsh commands `backup-astroarch` and `restore-astroarch` call these.
+
+```
+astroarch-backup --system-backup                 # one system backup, progress on one line
+astroarch-backup --system-restore [--dest DIR]   # choose a snapshot, safety backup, RESTORE
+```
+
+- The helper runs through **sudo**, which asks the password in the terminal: the polkit action
+  allows only the local session, so pkexec refuses over SSH. The helper takes the caller from
+  `PKEXEC_UID` or, with sudo, `SUDO_UID`.
+- Same steps as the window: measure, check the place (space, FAT32, network, read-only), then
+  `backup`; Ctrl+C stops it (the helper cleans up, the snapshots made before stay).
+- Restore: the snapshots of this kind of computer that hold `/boot`, newest first; the same
+  warning as the window; the safety backup (default yes) keeps every snapshot (`--keep 100`);
+  `RESTORE` typed in capital letters; then the helper's `restore`, and the computer restarts.
+  `--dest DIR`: a backup in another folder than the saved one (e.g. a drive mounted by hand).
+- Without `~/.backup_dest` (never set up in the window), `--system-backup` stops and says so.
+
 ## "Data and settings" profile (data backup)
 
 The tool's second profile, next to the system backup: the settings of KStars, PHD2, INDI
@@ -138,7 +161,8 @@ build.rs             cxx-qt bridge + QML module + translation compilation (lrele
 install.sh           installation (binary, helper, polkit, launcher)
 org.astroarch.backup.desktop   launcher (icon, application name)
 src/
-main.rs            startup: QGuiApplication + loading Main.qml
+main.rs            startup: QGuiApplication + loading Main.qml (or a terminal command)
+cli.rs             --system-backup / --system-restore from a terminal (sudo)
 bridge.rs          BackupManager QObject exposed to QML (invokes the helper)
 storage.rs         location checks, space estimation, helper interaction
 media.rs           external drive detection (lsblk) and mounting (udisks)
@@ -150,7 +174,7 @@ data-profile.toml  what the data backup offers
 systemd/
 astroarch-data-backup.service, .timer   user units (every 2 hours)
 scripts/
-astroarch-backup-helper.sh  the ONLY code executed as root (via pkexec)
+astroarch-backup-helper.sh  the ONLY code executed as root (via pkexec, or sudo from cli.rs)
 org.astroarch.backup.policy Polkit action (password remains valid for a few minutes)
 qml/
 Main.qml               wizard (5 screens) and dialogs

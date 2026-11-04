@@ -14,6 +14,8 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 # data/data-profile.toml (src/data_profile.rs)
 toml = "0.8"
+# src/cli.rs: Ctrl+C during a backup from the terminal
+libc = "0.2"
 
 [build-dependencies]
 astroarch-build = { workspace = true }
