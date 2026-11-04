@@ -69,7 +69,7 @@ with a safety backup first.
 | Crate | What it is |
 |---|---|
 | [`astroarch-control-center`](crates/astroarch-control-center) | The Control Center: the setup and the settings in one window, the pages Network and remote access, Language and time zone, Passwords, Update, Location and time, Equipment, Data backup, Restore from a backup, Kiosk, Image storage, More software, Services, Astro monitor, How to connect. Pages are data (`qml/Main.qml`); the system is read by a probe script; root actions go through small helpers and polkit |
-| [`astroarch-backup`](crates/astroarch-backup) | Two backup profiles. **System**: the whole system in a preallocated Btrfs image with read-only snapshots, offered before updates, and the full system restore. **Data and settings**: KStars, PHD2, INDI, the kiosk and the images, every 2 hours, as rsync snapshots on a USB drive, a network folder, this disk or Syncthing |
+| [`astroarch-backup`](crates/astroarch-backup) | Two backup profiles. **System**: the whole system in a preallocated Btrfs image with read-only snapshots, made when you ask (this page, or `backup-astroarch` in a terminal), and the full system restore. **Data and settings**: KStars, PHD2, INDI, the kiosk and the images, every 2 hours, as rsync snapshots on a USB drive, a network folder, this disk or Syncthing |
 | [`astroarch-locale-module`](crates/astroarch-locale-module) | Country, language, keyboard layout and variant (`locale-gen`, `localectl`, the Plasma session layout) |
 | [`astroarch-software-installer`](crates/astroarch-software-installer) | Extra astronomy software, from a TOML list, installed or removed with pacman |
 | `astroarch-sys-manager` | Services: Bluetooth, file transfer (FTP), USB power (and gpsd in its own window) |

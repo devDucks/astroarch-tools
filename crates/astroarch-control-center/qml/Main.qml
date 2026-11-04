@@ -136,13 +136,14 @@ ApplicationWindow {
         {
             id: "update", setup: "recommended", topic: "system", hold: "update-hold",
             title: qsTr("Update"),
-            intro: qsTr("Bring AstroArch up to date. A system backup is offered first."),
+            intro: qsTr("Bring AstroArch up to date. The update makes no backup: make one first if you want a way back."),
             rows: [
                 { label: qsTr("Installed"), probe: "version", format: "version",
                   actions: [ { label: qsTr("Update now"), command: "update-astroarch", terminal: true, needs: "update-command",
                                tool: qsTr("Update") } ] },
-                { label: qsTr("Before updating"), value: qsTr("System backup offered"),
-                  sub: qsTr("Ticked by default, it can be skipped"), actions: [] }
+                { label: qsTr("Before updating"), value: qsTr("The update makes no backup"),
+                  sub: qsTr("To have a way back, make a system backup first"),
+                  actions: [ { label: qsTr("Back up…"), kind: "go", page: "backup", profile: "system" } ] }
             ]
         },
         {
@@ -587,6 +588,9 @@ ApplicationWindow {
         if (action.kind === "go") {
             root.userPicked = true
             root.go(action.page)
+            // A card of the Data backup page (the Update page opens System)
+            if (action.profile)
+                Qt.callLater(() => { if (backupView.item) backupView.item.chooseProfile(action.profile) })
             return
         }
         if (action.kind === "view") {

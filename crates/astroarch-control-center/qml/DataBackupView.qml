@@ -158,6 +158,14 @@ ColumnLayout {
     }
 
     // ---------------------------------------------------------------- actions
+    // "data" or "system": the card shown (also asked by the Update page's "Back up…")
+    function chooseProfile(id) {
+        view.profile = id
+        view.say("")
+        if (id === "system")
+            system.load_config()
+    }
+
     function startWizard(atStep) {
         view.reload()
         view.mode = "wizard"
@@ -375,7 +383,7 @@ ColumnLayout {
         Repeater {
             model: [
                 { id: "data", title: qsTr("Data and settings"), sub: qsTr("KStars, PHD2, INDI, kiosk and your images · every 2 hours") },
-                { id: "system", title: qsTr("System"), sub: qsTr("The whole system, to undo an update · on request and before updating") }
+                { id: "system", title: qsTr("System"), sub: qsTr("The whole system, to undo an update · when you ask") }
             ]
             AbstractButton {
                 id: choice
@@ -390,12 +398,7 @@ ColumnLayout {
                 Accessible.checked: current
                 Accessible.name: modelData.title
                 Accessible.onPressAction: clicked()
-                onClicked: {
-                    view.profile = modelData.id
-                    view.say("")
-                    if (modelData.id === "system")
-                        system.load_config()
-                }
+                onClicked: view.chooseProfile(modelData.id)
                 background: Rectangle {
                     radius: 8
                     color: choice.current ? "#e3f0f8" : (choice.hovered ? "#f4f8fb" : "#ffffff")
@@ -1153,8 +1156,8 @@ ColumnLayout {
             Separator {}
             InfoRow {
                 label: qsTr("Before updating")
-                value: qsTr("System backup offered")
-                sub: qsTr("Ticked by default, it can be skipped")
+                value: qsTr("The update makes no backup")
+                sub: qsTr("To have a way back, back up here first, or run backup-astroarch in a terminal")
             }
         }
 

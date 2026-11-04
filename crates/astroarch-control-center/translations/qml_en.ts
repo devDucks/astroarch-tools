@@ -4,8 +4,8 @@
 <context>
     <name>DataBackupView</name>
     <message numerus="yes">
-        <location filename="../qml/DataBackupView.qml" line="498"/>
-        <location filename="../qml/DataBackupView.qml" line="894"/>
+        <location filename="../qml/DataBackupView.qml" line="503"/>
+        <location filename="../qml/DataBackupView.qml" line="899"/>
         <source>%n item(s) · %1</source>
         <translation>
             <numerusform>%n item · %1</numerusform>
@@ -13,7 +13,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/DataBackupView.qml" line="499"/>
+        <location filename="../qml/DataBackupView.qml" line="504"/>
         <source>Settings keep their last %n version(s); images are only added to</source>
         <translation>
             <numerusform>Settings keep their last version; images are only added to</numerusform>
@@ -21,7 +21,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/DataBackupView.qml" line="857"/>
+        <location filename="../qml/DataBackupView.qml" line="862"/>
         <source>%n version(s)</source>
         <translation>
             <numerusform>%n version</numerusform>
@@ -29,7 +29,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/DataBackupView.qml" line="1114"/>
+        <location filename="../qml/DataBackupView.qml" line="1127"/>
         <source>The last %n backup(s)</source>
         <translation>
             <numerusform>The last backup</numerusform>
@@ -37,7 +37,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/DataBackupView.qml" line="1132"/>
+        <location filename="../qml/DataBackupView.qml" line="1145"/>
         <source>%n folder(s)</source>
         <translation>
             <numerusform>%n folder</numerusform>
@@ -48,7 +48,7 @@
 <context>
     <name>Main</name>
     <message numerus="yes">
-        <location filename="../qml/Main.qml" line="517"/>
+        <location filename="../qml/Main.qml" line="519"/>
         <source>%n profile(s) · e.g. %1</source>
         <translation>
             <numerusform>%n profile · e.g. %1</numerusform>
@@ -59,7 +59,7 @@
 <context>
     <name>RestoreView</name>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="538"/>
+        <location filename="../qml/RestoreView.qml" line="665"/>
         <source>%n file(s) restored. What they replaced is kept here.</source>
         <translation>
             <numerusform>%n file restored. What it replaced is kept here.</numerusform>
@@ -67,7 +67,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="597"/>
+        <location filename="../qml/RestoreView.qml" line="724"/>
         <source>%n backup(s) here</source>
         <translation>
             <numerusform>%n backup here</numerusform>
@@ -75,7 +75,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="620"/>
+        <location filename="../qml/RestoreView.qml" line="747"/>
         <source>Settings from %1 · %n date(s) to choose from</source>
         <translation>
             <numerusform>Settings from %1 · %n date to choose from</numerusform>
@@ -83,7 +83,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/RestoreView.qml" line="706"/>
+        <location filename="../qml/RestoreView.qml" line="833"/>
         <source>%n snapshot(s)</source>
         <translation>
             <numerusform>%n snapshot</numerusform>
