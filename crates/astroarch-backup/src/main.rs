@@ -8,6 +8,7 @@
 use cxx_qt_lib::{QGuiApplication, QQmlApplicationEngine, QString, QUrl};
 
 mod bridge;
+mod cli;
 mod config;
 mod data_profile;
 mod disk_analysis;
@@ -26,6 +27,17 @@ fn main() {
     if std::env::args().any(|a| a == "--data-backup") {
         let manual = std::env::args().any(|a| a == "--manual");
         std::process::exit(data_profile::run(manual));
+    }
+
+    // The system backup and the full restore from a terminal (zsh commands backup-astroarch
+    // and restore-astroarch), with the settings saved by the window: see src/cli.rs
+    let args: Vec<String> = std::env::args().collect();
+    if args.iter().any(|a| a == "--system-backup") {
+        std::process::exit(cli::system_backup());
+    }
+    if args.iter().any(|a| a == "--system-restore") {
+        let dest = args.iter().position(|a| a == "--dest").and_then(|i| args.get(i + 1)).cloned();
+        std::process::exit(cli::system_restore(dest));
     }
 
     let mut app = QGuiApplication::new();

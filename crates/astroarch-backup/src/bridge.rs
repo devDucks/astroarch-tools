@@ -419,9 +419,8 @@ impl qobject::BackupManager {
             let cancel_file = cancel_file_path();
             let _ = std::fs::remove_file(&cancel_file);
 
-            let mut cmd = StdCommand::new("pkexec");
-            cmd.arg(&helper)
-                .arg("backup")
+            let mut cmd = storage::helper_command(&helper);
+            cmd.arg("backup")
                 .arg("--dest")
                 .arg(&dest)
                 .arg("--size")
@@ -724,7 +723,7 @@ fn snapshots_json(stdout: &str, mountpoint: Option<&str>) -> String {
 }
 
 /// Remove the folders that are essential to the system from the exclusions
-fn drop_protected(paths: Vec<String>) -> Vec<String> {
+pub(crate) fn drop_protected(paths: Vec<String>) -> Vec<String> {
     let home = home_dir().to_string_lossy().to_string();
     paths
         .into_iter()
@@ -738,7 +737,7 @@ fn drop_protected(paths: Vec<String>) -> Vec<String> {
         .collect()
 }
 
-fn helper_error_text(stdout: &str) -> Option<String> {
+pub(crate) fn helper_error_text(stdout: &str) -> Option<String> {
     for line in stdout.lines() {
         if let Some(rest) = line.trim().strip_prefix("ERROR:") {
             return Some(rest.splitn(2, ':').nth(1).unwrap_or(rest).to_string());
@@ -749,11 +748,10 @@ fn helper_error_text(stdout: &str) -> Option<String> {
 
 /// Runs the helper via pkexec and returns its standard output (Err = its exit code, -1 when
 /// it did not run, and a readable message)
-fn run_helper(args: &[&str]) -> Result<String, (i32, String)> {
+pub(crate) fn run_helper(args: &[&str]) -> Result<String, (i32, String)> {
     let helper = storage::helper_path()
         .ok_or_else(|| (-1, "Helper script not found (astroarch-backup-helper).".to_string()))?;
-    let out = StdCommand::new("pkexec")
-        .arg(&helper)
+    let out = storage::helper_command(&helper)
         .args(args)
         .stdin(Stdio::null())
         .output()
@@ -768,7 +766,7 @@ fn run_helper(args: &[&str]) -> Result<String, (i32, String)> {
     }
 }
 
-fn run_helper_restore(dest: &str, snapshot: &str, release_browse: bool) -> Result<(), (i32, String)> {
+pub(crate) fn run_helper_restore(dest: &str, snapshot: &str, release_browse: bool) -> Result<(), (i32, String)> {
     let mut args = vec!["restore", "--dest", dest, "--snapshot", snapshot, "--confirm", "RESTORE"];
     if release_browse {
         args.extend(["--release-browse", "own"]);
@@ -817,7 +815,7 @@ fn report(qt_thread: &BackupThread, outcome: Outcome) {
         .ok();
 }
 
-fn failure_message(code: Option<i32>, helper_error: &str, stderr: &str) -> String {
+pub(crate) fn failure_message(code: Option<i32>, helper_error: &str, stderr: &str) -> String {
     match code {
         // pkexec : 126 = not allowed, 127 = password window closed
         Some(126) | Some(127) => "Authorization was refused or cancelled.".to_string(),
@@ -834,7 +832,7 @@ fn failure_message(code: Option<i32>, helper_error: &str, stderr: &str) -> Strin
 }
 
 /// File through which the app notifies the root helper of the cancellation
-fn cancel_file_path() -> PathBuf {
+pub(crate) fn cancel_file_path() -> PathBuf {
     if let Ok(dir) = std::env::var("XDG_RUNTIME_DIR") {
         if !dir.is_empty() {
             return PathBuf::from(dir).join("astroarch-backup.cancel");
@@ -933,7 +931,7 @@ fn parse_excluded(input: &str) -> Vec<String> {
 
 /// Reads a stream by splitting it on \n AND \r (rsync updates its
 /// progress bar with \r characters)
-fn read_records<R: Read>(mut reader: R, mut on_record: impl FnMut(&str)) {
+pub(crate) fn read_records<R: Read>(mut reader: R, mut on_record: impl FnMut(&str)) {
     let mut buf = [0u8; 4096];
     let mut pending: Vec<u8> = Vec::new();
     loop {
@@ -959,7 +957,7 @@ fn read_records<R: Read>(mut reader: R, mut on_record: impl FnMut(&str)) {
 }
 
 /// Overall percentage for a line `--info=progress2`: “  1.2G  45%  50MB/s ...”
-fn parse_progress(record: &str) -> Option<i32> {
+pub(crate) fn parse_progress(record: &str) -> Option<i32> {
     let idx = record.find('%')?;
     let token = record[..idx].split_whitespace().last()?;
     let value: i32 = token.parse().ok()?;
@@ -970,7 +968,7 @@ fn parse_progress(record: &str) -> Option<i32> {
     }
 }
 
-fn format_bytes(bytes: u64) -> String {
+pub(crate) fn format_bytes(bytes: u64) -> String {
     const UNITS: &[&str] = &["B", "KiB", "MiB", "GiB", "TiB"];
     let mut size = bytes as f64;
     let mut unit_idx = 0;

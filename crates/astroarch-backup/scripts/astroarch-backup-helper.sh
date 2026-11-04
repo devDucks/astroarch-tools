@@ -1,7 +1,8 @@
 #!/bin/bash
 # astroarch-backup-helper
 #
-# Run as root (via pkexec) by the astroarch-backup application. This is the
+# Run as root (via pkexec) by the astroarch-backup application, or via sudo by its terminal
+# commands (astroarch-backup --system-backup / --system-restore). This is the
 # ONLY place that interacts with the disk: the graphical interface does not perform any
 # privileged operations itself.
 #
@@ -250,8 +251,8 @@ resolve_keep() {
 
 validate_common() {
     (( EUID == 0 )) || fail 10 "must run as root"
-    CALLER_UID=${PKEXEC_UID:-}
-    is_uint "$CALLER_UID" || fail 10 "must be started through pkexec"
+    CALLER_UID=$(caller_uid)
+    is_uint "$CALLER_UID" || fail 10 "must be started through pkexec or sudo"
     CALLER_HOME=$(getent passwd "$CALLER_UID" | cut -d: -f6)
     [[ -n "$CALLER_HOME" && -d "$CALLER_HOME" ]] || fail 10 "home directory not found"
 
@@ -1423,10 +1424,13 @@ readonly NAS_BASE=/mnt/astroarch-nas
 readonly NAS_CRED_DIR=/etc/astroarch-backup
 readonly NAS_MARK="# astroarch-backup nas"
 
+# The user who asked: pkexec sets PKEXEC_UID, sudo sets SUDO_UID (the terminal commands)
+caller_uid() { say "${PKEXEC_UID:-${SUDO_UID:-}}"; }
+
 nas_caller() {
     (( EUID == 0 )) || fail 10 "must run as root"
-    CALLER_UID=${PKEXEC_UID:-}
-    is_uint "$CALLER_UID" || fail 10 "must be started through pkexec"
+    CALLER_UID=$(caller_uid)
+    is_uint "$CALLER_UID" || fail 10 "must be started through pkexec or sudo"
     CALLER_GID=$(id -g -- "$CALLER_UID") || fail 10 "unknown user"
 }
 
