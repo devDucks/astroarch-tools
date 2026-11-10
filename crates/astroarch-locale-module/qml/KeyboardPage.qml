@@ -7,14 +7,63 @@ ColumnLayout {
     required property var bridge
     spacing: 16
 
+    // The whole list of layouts, not the proposed ones
+    property bool otherKeyboard: false
+
+    // Keyboards proposed for the country and the language
+    readonly property var proposals: Array.from(bridge.keyboard_suggestion_layouts)
+        .map((layout, i) => ({ layout: layout, variant: bridge.keyboard_suggestion_variants[i] || "",
+                               name: bridge.keyboard_suggestion_names[i] || layout }))
+    readonly property bool proposalSelected: proposals.some(p =>
+        p.layout === bridge.selected_layout_code && p.variant === bridge.selected_variant_code)
+    // The whole list: asked for, or the keyboard is none of the proposed ones
+    readonly property bool listShown: otherKeyboard || proposals.length === 0 || !proposalSelected
+
     Label {
         text: qsTr("Choose your keyboard layout")
         font.pixelSize: 20
         font.bold: true
     }
 
+    // Proposed for the country and the language; another one for a keyboard bought abroad
+    ColumnLayout {
+        Layout.fillWidth: true
+        visible: root.proposals.length > 0
+        spacing: 6
+
+        Label {
+            text: qsTr("Proposed for your country and language.")
+            font.bold: true
+        }
+        Repeater {
+            model: root.proposals
+            RadioButton {
+                required property var modelData
+                text: modelData.name
+                checked: modelData.layout === bridge.selected_layout_code
+                         && modelData.variant === bridge.selected_variant_code
+                onClicked: {
+                    bridge.choose_keyboard(modelData.layout, modelData.variant)
+                    bridge.apply_keyboard_for_testing()
+                    root.otherKeyboard = false
+                }
+            }
+        }
+        Button {
+            visible: !root.listShown
+            text: qsTr("Another keyboard…")
+            onClicked: root.otherKeyboard = true
+        }
+        Button {
+            visible: root.listShown && root.otherKeyboard && root.proposalSelected
+            text: qsTr("Back to the proposed keyboards")
+            onClicked: root.otherKeyboard = false
+        }
+    }
+
     RowLayout {
         Layout.fillWidth: true
+        visible: root.listShown
         spacing: 12
 
         ColumnLayout {

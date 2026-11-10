@@ -24,6 +24,8 @@ ColumnLayout {
     property int step: 1                   // 1 country, 2 language, 3 keyboard, 4 apply
     property bool suggested: false         // the country is the one of the network
     property bool busy: false
+    property bool otherLanguage: false     // the whole list of languages, not the country's
+    property bool otherKeyboard: false     // the whole list of layouts, not the proposed ones
     property string message: ""
     property bool warning: false
 
@@ -80,6 +82,25 @@ ColumnLayout {
         Array.from(view.bridge.keyboard_variant_codes)
             .map((code, i) => ({ code: code, name: view.bridge.keyboard_variant_names[i] || code, detail: "" })))
 
+    // Languages of the chosen country (restcountries.com, else the installed locales)
+    readonly property var countryLanguages: Array.from(view.bridge.country_language_codes)
+        .map(code => ({ code: code, name: view.languageName(code), detail: "" }))
+    readonly property string countryName: view.nameIn(view.countries, view.bridge.selected_country_code)
+    // The language is chosen: one of the country's, or any from the whole list
+    readonly property bool showCountryLanguages: view.bridge.selected_country_code !== "" && !view.otherLanguage
+        && (view.countryLanguages.length > 0 || view.bridge.languages_source === "loading")
+    readonly property bool languagePicked: view.bridge.languages_source !== "loading" && (!view.showCountryLanguages
+        || view.countryLanguages.some(l => l.code === view.bridge.selected_language_code))
+    // Keyboards proposed for the country and the language
+    readonly property var keyboardProposals: Array.from(view.bridge.keyboard_suggestion_layouts)
+        .map((layout, i) => ({ layout: layout, variant: view.bridge.keyboard_suggestion_variants[i] || "",
+                               name: view.bridge.keyboard_suggestion_names[i] || layout }))
+    readonly property bool proposalSelected: view.keyboardProposals.some(p =>
+        p.layout === view.bridge.selected_layout_code && p.variant === view.bridge.selected_variant_code)
+    // The whole list of layouts: asked for, or the keyboard is none of the proposed ones
+    readonly property bool keyboardListShown: view.otherKeyboard || view.keyboardProposals.length === 0
+        || !view.proposalSelected
+
     function nameIn(list, code) {
         const e = list.find(i => i.code === code)
         return e ? e.name : code
@@ -102,6 +123,8 @@ ColumnLayout {
         view.bridge.initialize(false)
         view.message = ""
         view.warning = false
+        view.otherLanguage = false
+        view.otherKeyboard = false
         for (const list of [countryPick, languagePick, layoutPick, variantPick])
             list.clear()
         // The country of the network (probe country-suggest, found only while language,
@@ -167,6 +190,14 @@ ColumnLayout {
         }
     }
 
+    // The languages of the country come from restcountries.com: read when they are there
+    Timer {
+        interval: 200
+        repeat: true
+        running: view.bridge.languages_source === "loading"
+        onTriggered: view.bridge.poll_country_languages()
+    }
+
     // A layout being tried goes back when the page is left (another page shown) or the
     // window closes without "Apply"
     onVisibleChanged: if (!visible) view.untry()
@@ -196,8 +227,8 @@ ColumnLayout {
             Label {
                 Layout.fillWidth: true
                 text: view.suggested && view.bridge.selected_country_code !== ""
-                      ? qsTr("The country of your network is chosen. Language and keyboard follow the country: you check them in the next steps.")
-                      : qsTr("Choose your country: language and keyboard follow it, and you check them in the next steps. You can also skip this step.")
+                      ? qsTr("The country of your network is proposed. Its languages and keyboards are proposed in the next steps.")
+                      : qsTr("Choose your country: its languages and keyboards are proposed in the next steps. You can also skip this step.")
                 color: "#34495e"
                 wrapMode: Text.Wrap
             }
@@ -215,7 +246,7 @@ ColumnLayout {
             }
         }
 
-        // ---- Step 2: the language
+        // ---- Step 2: the language: the country's, or any other
         ColumnLayout {
             Layout.fillWidth: true
             visible: view.step === 2
@@ -226,14 +257,70 @@ ColumnLayout {
                 color: "#34495e"
                 wrapMode: Text.Wrap
             }
-            PickList {
-                id: languagePick
+
+            // The country's languages: one is chosen from them
+            ColumnLayout {
                 Layout.fillWidth: true
-                items: view.languages
-                current: view.bridge.selected_language_code
-                accessibleName: qsTr("Language")
-                placeholder: qsTr("Search a language…")
-                onPicked: (code) => view.bridge.set_language(code)
+                visible: view.showCountryLanguages
+                spacing: 6
+                Label {
+                    Layout.fillWidth: true
+                    visible: view.bridge.languages_source === "loading"
+                    text: qsTr("Looking up the languages of %1…").arg(view.countryName)
+                    color: "#4f5a64"
+                    wrapMode: Text.Wrap
+                }
+                Label {
+                    Layout.fillWidth: true
+                    visible: view.countryLanguages.length > 0
+                    text: qsTr("Languages of %1: choose yours.").arg(view.countryName)
+                    color: "#4f5a64"
+                    font.bold: true
+                    wrapMode: Text.Wrap
+                }
+                Label {
+                    Layout.fillWidth: true
+                    visible: view.bridge.languages_source === "offline" && view.countryLanguages.length > 0
+                    text: qsTr("No connection: these are the languages installed for %1.").arg(view.countryName)
+                    color: "#b58900"
+                    wrapMode: Text.Wrap
+                }
+                Repeater {
+                    model: view.countryLanguages
+                    RadioButton {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        text: modelData.name
+                        checked: modelData.code === view.bridge.selected_language_code
+                        onClicked: view.bridge.set_language(modelData.code)
+                    }
+                }
+                CardButton {
+                    visible: view.bridge.languages_source !== "loading"
+                    text: qsTr("Another language…")
+                    onClicked: view.otherLanguage = true
+                }
+            }
+
+            // Any language: no country chosen, none of the country's, or a foreign one
+            ColumnLayout {
+                Layout.fillWidth: true
+                visible: !view.showCountryLanguages
+                spacing: 6
+                CardButton {
+                    visible: view.otherLanguage && view.countryLanguages.length > 0
+                    text: qsTr("Back to the languages of %1").arg(view.countryName)
+                    onClicked: view.otherLanguage = false
+                }
+                PickList {
+                    id: languagePick
+                    Layout.fillWidth: true
+                    items: view.languages
+                    current: view.bridge.selected_language_code
+                    accessibleName: qsTr("Language")
+                    placeholder: qsTr("Search a language…")
+                    onPicked: (code) => view.bridge.set_language(code)
+                }
             }
         }
 
@@ -243,7 +330,47 @@ ColumnLayout {
             visible: view.step === 3
             spacing: 10
 
+            // Proposed for the country and the language: one is chosen, or another keyboard
+            // (a keyboard bought in another country) from the whole list
+            ColumnLayout {
+                Layout.fillWidth: true
+                visible: view.keyboardProposals.length > 0
+                spacing: 6
+                Label {
+                    Layout.fillWidth: true
+                    text: qsTr("Proposed for your country and language.")
+                    color: "#4f5a64"
+                    font.bold: true
+                    wrapMode: Text.Wrap
+                }
+                Repeater {
+                    model: view.keyboardProposals
+                    RadioButton {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        text: modelData.name
+                        checked: modelData.layout === view.bridge.selected_layout_code
+                                 && modelData.variant === view.bridge.selected_variant_code
+                        onClicked: {
+                            view.bridge.choose_keyboard(modelData.layout, modelData.variant)
+                            view.otherKeyboard = false
+                        }
+                    }
+                }
+                CardButton {
+                    visible: !view.keyboardListShown
+                    text: qsTr("Another keyboard…")
+                    onClicked: view.otherKeyboard = true
+                }
+                CardButton {
+                    visible: view.keyboardListShown && view.otherKeyboard && view.proposalSelected
+                    text: qsTr("Back to the proposed keyboards")
+                    onClicked: view.otherKeyboard = false
+                }
+            }
+
             GridLayout {
+                visible: view.keyboardListShown
                 Layout.fillWidth: true
                 columns: view.width >= 560 ? 2 : 1
                 columnSpacing: 16
@@ -408,7 +535,8 @@ ColumnLayout {
             Item { Layout.fillWidth: true }
             CardButton {
                 highlighted: true
-                enabled: !view.busy
+                // With the country's languages shown, one of them has to be chosen
+                enabled: !view.busy && (view.step !== 2 || view.languagePicked)
                 text: view.step === 4 ? qsTr("Apply") : qsTr("Next")
                 onClicked: view.next()
             }

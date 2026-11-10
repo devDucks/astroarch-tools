@@ -40,6 +40,8 @@ mod service_manager;
 mod restore;
 // The Language page: astroarch-locale-module's LocaleBridge (a link to its bridge.rs) and
 // the modules it uses, compiled in from that crate
+#[path = "../../astroarch-locale-module/src/countries.rs"]
+mod countries;
 #[path = "../../astroarch-locale-module/src/geolocation.rs"]
 mod geolocation;
 #[path = "../../astroarch-locale-module/src/keyboard.rs"]

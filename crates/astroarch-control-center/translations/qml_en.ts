@@ -91,4 +91,47 @@
         </translation>
     </message>
 </context>
+<context>
+    <name>LanguageView</name>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Looking up the languages of %1…</source>
+        <translation>Looking up the languages of %1…</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Languages of %1: choose yours.</source>
+        <translation>Languages of %1: choose yours.</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>No connection: these are the languages installed for %1.</source>
+        <translation>No connection: these are the languages installed for %1.</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Another language…</source>
+        <translation>Another language…</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Back to the languages of %1</source>
+        <translation>Back to the languages of %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Proposed for your country and language.</source>
+        <translation>Proposed for your country and language.</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Another keyboard…</source>
+        <translation>Another keyboard…</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Back to the proposed keyboards</source>
+        <translation>Back to the proposed keyboards</translation>
+    </message>
+</context>
 </TS>

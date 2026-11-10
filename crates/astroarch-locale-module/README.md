@@ -26,8 +26,10 @@ src/main.rs               QGuiApplication + QQmlApplicationEngine, nothing else
 src/bridge.rs             LocaleBridge QObject exposed to QML (via cxx-qt)
 src/locale_gen.rs         locale.gen, language/country names, persist_locale (using pkexec)
 src/keyboard.rs           XKB layouts, live testing (setxkbmap on X11; kxkbrc + D-Bus on Wayland), localectl (for persistence)
-src/geolocation.rs        Country/timezone detection via IP (geoip.kde.org); cargo feature `geoip`
+src/geolocation.rs        Country detection via IP (geoip.kde.org); cargo feature `geoip`
                           (default; reqwest), off in the AstroArch Control Center
+src/countries.rs          Languages of a country: request to https://restcountries.com (curl), matched
+                          with the locales of locale.gen; without network, the locales of locale.gen
 qml/                      Main, LanguagePage, LocationPage, KeyboardPage, WorldMapView
 translations/qml_<langue>.ts   fr, it, es, de + en
 gen_map.py, map-source/   Regenerates country outlines for WorldMapView.qml
@@ -41,6 +43,22 @@ Changing the language at runtime is handled in QML via `Qt.uiLanguage` (see `Mai
 
 To add a language: create a `translations/qml_xx.ts` file (by copying an existing `.ts` file and translating its contents), then add `"xx"` to the `translatedLanguages` list in `Main.qml`.
 
-## Pre-filling and application of choices
+## Proposals and application of choices
 
-Upon launch, the system language is set, followed by country, keyboard layout, and language—determined based on the IP address, provided a network connection is available. Selecting "Finish" triggers an authorization request (via `pkexec`), then enables the locale in `/etc/locale.gen`, runs `locale-gen`, applies the settings using `localectl set-locale` and `localectl set-x11-keymap`, and updates `~/.config/plasma-localerc`. You must log out and log back in for the new language to take effect in applications that are already open (a full system reboot is not required).
+Three steps, each one a **proposal** the user confirms or changes. Nothing is decided
+automatically from a table.
+
+1. **Country**: proposed from the IP address (`geolocation.rs`) when a network is available;
+   the user keeps it or picks another one (list or map).
+2. **Language**: the languages of the country are asked of `https://restcountries.com`
+   (`countries.rs`, only the country code is sent) and matched with the locales `locale.gen`
+   can generate. A single language is selected; with several, the user chooses; "Another
+   language…" gives the whole list (a foreigner, a language that is not the country's). Without
+   a network, the proposals are the locales `locale.gen` has for the country.
+3. **Keyboard**: layouts proposed from the country and the language (`keyboard.rs`, `suggest`):
+   the country's layout with the variant made for the language (Swiss French: `ch` + `fr`), the
+   layout the language is typed on in its own country (English: `us` or `gb`), the country's
+   default layout. "Another keyboard…" gives every layout and variant (a keyboard from another
+   country). A keyboard the user chose is never replaced by a later proposal.
+
+Selecting "Finish" triggers an authorization request (via `pkexec`), then enables the locale in `/etc/locale.gen`, runs `locale-gen`, applies the settings using `localectl set-locale` and `localectl set-x11-keymap`, and updates `~/.config/plasma-localerc`. You must log out and log back in for the new language to take effect in applications that are already open (a full system reboot is not required).

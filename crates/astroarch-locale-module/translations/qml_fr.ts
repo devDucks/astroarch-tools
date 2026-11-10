@@ -33,6 +33,21 @@
         <source>Type something...</source>
         <translation>Tapez quelque chose...</translation>
     </message>
+    <message>
+        <location filename="../qml/KeyboardPage.qml" line="0"/>
+        <source>Proposed for your country and language.</source>
+        <translation>Proposés pour votre pays et votre langue.</translation>
+    </message>
+    <message>
+        <location filename="../qml/KeyboardPage.qml" line="0"/>
+        <source>Another keyboard…</source>
+        <translation>Un autre clavier…</translation>
+    </message>
+    <message>
+        <location filename="../qml/KeyboardPage.qml" line="0"/>
+        <source>Back to the proposed keyboards</source>
+        <translation>Retour aux claviers proposés</translation>
+    </message>
 </context>
 <context>
     <name>LanguagePage</name>
@@ -43,8 +58,33 @@
     </message>
     <message>
         <location filename="../qml/LanguagePage.qml" line="78"/>
-        <source>No internet connection detected — defaulting to English.</source>
-        <translation>Aucune connexion internet détectée — anglais par défaut.</translation>
+        <source>No internet connection detected: the country and its languages cannot be looked up.</source>
+        <translation>Aucune connexion Internet détectée : le pays et ses langues ne peuvent pas être recherchés.</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguagePage.qml" line="0"/>
+        <source>Looking up the languages of %1…</source>
+        <translation>Recherche des langues de %1…</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguagePage.qml" line="0"/>
+        <source>Languages of %1: choose yours.</source>
+        <translation>Langues de %1 : choisissez la vôtre.</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguagePage.qml" line="0"/>
+        <source>No connection: these are the languages installed for %1.</source>
+        <translation>Pas de connexion : ce sont les langues installées pour %1.</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguagePage.qml" line="0"/>
+        <source>Another language…</source>
+        <translation>Une autre langue…</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguagePage.qml" line="0"/>
+        <source>Back to the languages of %1</source>
+        <translation>Retour aux langues de %1</translation>
     </message>
 </context>
 <context>
