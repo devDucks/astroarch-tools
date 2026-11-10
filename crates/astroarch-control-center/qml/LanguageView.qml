@@ -12,6 +12,30 @@ import AstroArchControlCenter
 ColumnLayout {
     id: view
 
+    // Light radio buttons, as in KioskSetup: the Plasma style draws them with the dark theme
+    // (an unchecked one looks checked on the light card)
+    component CardRadio: RadioButton {
+        id: radio
+        indicator: Rectangle {
+            x: radio.leftPadding
+            y: radio.topPadding + (radio.availableHeight - height) / 2
+            implicitWidth: 20
+            implicitHeight: 20
+            radius: 10
+            color: "#ffffff"
+            border.width: 2
+            border.color: radio.visualFocus ? "#3daee9" : (radio.checked ? "#1d6fa5" : "#7d8994")
+            Rectangle {
+                anchors.centerIn: parent
+                width: 10
+                height: 10
+                radius: 5
+                color: "#1d6fa5"
+                visible: radio.checked
+            }
+        }
+    }
+
     property var probes: ({})
     property Item navHost: null
     signal systemChanged()
@@ -287,7 +311,7 @@ ColumnLayout {
                 }
                 Repeater {
                     model: view.countryLanguages
-                    RadioButton {
+                    CardRadio {
                         required property var modelData
                         Layout.fillWidth: true
                         text: modelData.name
@@ -345,7 +369,7 @@ ColumnLayout {
                 }
                 Repeater {
                     model: view.keyboardProposals
-                    RadioButton {
+                    CardRadio {
                         required property var modelData
                         Layout.fillWidth: true
                         text: modelData.name
