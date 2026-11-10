@@ -60,6 +60,8 @@ Three steps, each one a **proposal** the user confirms or changes; nothing is ap
    the country's layout with the variant made for the language (Swiss French: `ch` + `fr`), the
    layout the language is typed on in its own country (English: `us` or `gb`), the country's
    default layout. "Another keyboard…" gives every layout and variant (a keyboard from another
-   country). A keyboard the user chose is never replaced by a later proposal.
+   country). Once a country is chosen, the first proposal is selected; changing only the
+   language keeps the keyboard in use. A keyboard the user chose is never replaced by a later
+   proposal.
 
 Selecting "Finish" triggers an authorization request (via `pkexec`), then enables the locale in `/etc/locale.gen`, runs `locale-gen`, applies the settings using `localectl set-locale` and `localectl set-x11-keymap`, and updates `~/.config/plasma-localerc`. You must log out and log back in for the new language to take effect in applications that are already open (a full system reboot is not required).

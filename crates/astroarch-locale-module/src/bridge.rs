@@ -122,8 +122,10 @@ pub struct LocaleBridgeRust {
     lang_rx: Option<mpsc::Receiver<Option<Vec<countries::Language>>>>,
     lang_cache: HashMap<String, Vec<countries::Language>>,
     /// The keyboard follows the country and the language (their first proposal is
-    /// selected) until the user chooses one: what the user chose is never replaced
+    /// selected) once a country is chosen, until the user chooses one. Changing only the
+    /// language keeps the keyboard in use; what the user chose is never replaced
     keyboard_follows: bool,
+    keyboard_chosen: bool,
     /// Layouts of base.lst
     layouts_known: Vec<String>,
 
@@ -158,6 +160,7 @@ impl Default for LocaleBridgeRust {
             lang_rx: None,
             lang_cache: HashMap::new(),
             keyboard_follows: false,
+            keyboard_chosen: false,
             layouts_known: Vec::new(),
             available: Vec::new(),
             countries: Vec::new(),
@@ -276,8 +279,8 @@ impl qobject::LocaleBridge {
 
     pub fn set_language(mut self: Pin<&mut Self>, code: &QString) {
         self.as_mut().set_selected_language_code(code.clone());
-        // The keyboard proposals depend on the language
-        self.as_mut().rust_mut().keyboard_follows = true;
+        // The keyboard proposals depend on the language; the selected keyboard changes
+        // with them only after a country was chosen (see country_chosen)
         self.as_mut().refresh_keyboard_suggestions();
     }
 
@@ -289,7 +292,10 @@ impl qobject::LocaleBridge {
 
     /// A country is chosen, by the user or from the IP address: asks for its languages
     fn country_chosen(mut self: Pin<&mut Self>, country: &str) {
-        self.as_mut().rust_mut().keyboard_follows = true;
+        // Its keyboard is proposed and selected, unless the user already chose one
+        if !self.rust().keyboard_chosen {
+            self.as_mut().rust_mut().keyboard_follows = true;
+        }
         self.as_mut().start_country_languages(country);
     }
 
@@ -414,16 +420,19 @@ impl qobject::LocaleBridge {
 
     pub fn set_keyboard_layout(mut self: Pin<&mut Self>, code: &QString) {
         self.as_mut().rust_mut().keyboard_follows = false;
+        self.as_mut().rust_mut().keyboard_chosen = true;
         self.as_mut().select_layout(&code.to_string(), "");
     }
 
     pub fn set_keyboard_variant(mut self: Pin<&mut Self>, code: &QString) {
         self.as_mut().rust_mut().keyboard_follows = false;
+        self.as_mut().rust_mut().keyboard_chosen = true;
         self.as_mut().set_selected_variant_code(code.clone());
     }
 
     pub fn choose_keyboard(mut self: Pin<&mut Self>, layout: &QString, variant: &QString) {
         self.as_mut().rust_mut().keyboard_follows = false;
+        self.as_mut().rust_mut().keyboard_chosen = true;
         self.as_mut().select_layout(&layout.to_string(), &variant.to_string());
     }
 
