@@ -26,7 +26,7 @@ pub mod qobject {
         #[qproperty(QStringList, keyboard_layout_codes)]
         #[qproperty(QStringList, keyboard_layout_names)]
         #[qproperty(QString, selected_layout_code)]
-        // Locale codes of the languages of the selected country (restcountries.com, else
+        // Locale codes of the languages of the selected country (countries.dev, else
         // locale.gen), main first; `languages_source`: "none", "loading", "online" or "offline"
         #[qproperty(QStringList, country_language_codes)]
         #[qproperty(QString, languages_source)]
@@ -119,8 +119,8 @@ pub struct LocaleBridgeRust {
 
     geo_rx: Option<mpsc::Receiver<Option<geolocation::GeoInfo>>>,
     /// The request for the languages of the selected country, and the answers already had
-    lang_rx: Option<mpsc::Receiver<Option<Vec<String>>>>,
-    lang_cache: HashMap<String, Vec<String>>,
+    lang_rx: Option<mpsc::Receiver<Option<Vec<countries::Language>>>>,
+    lang_cache: HashMap<String, Vec<countries::Language>>,
     /// The keyboard follows the country and the language (their first proposal is
     /// selected) until the user chooses one: what the user chose is never replaced
     keyboard_follows: bool,
@@ -294,7 +294,7 @@ impl qobject::LocaleBridge {
     }
 
     /// The languages of a country: from the answers already had, else asked of
-    /// restcountries.com in a thread (the answer is read by `poll_country_languages`)
+    /// countries.dev in a thread (the answer is read by `poll_country_languages`)
     fn start_country_languages(mut self: Pin<&mut Self>, country: &str) {
         self.as_mut().rust_mut().lang_rx = None;
         let country = country.to_uppercase();
@@ -337,7 +337,7 @@ impl qobject::LocaleBridge {
 
     /// Offers the languages of the country: the ones of the API, else (no network) the ones
     /// locale.gen has for it. A single language is selected; with several, the user chooses
-    fn show_country_languages(mut self: Pin<&mut Self>, country: &str, api: Option<Vec<String>>) {
+    fn show_country_languages(mut self: Pin<&mut Self>, country: &str, api: Option<Vec<countries::Language>>) {
         let available = self.rust().available.clone();
         // The country's locales, its own language first
         let order: Vec<String> = self

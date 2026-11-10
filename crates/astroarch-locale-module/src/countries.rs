@@ -1,117 +1,120 @@
-//! Languages of a country, from https://restcountries.com, as locale codes.
+//! Languages of a country, from https://countries.dev, as locale codes.
 //!
 //! The country (chosen by the user, or guessed from the IP address) is the only thing
-//! sent. The API answers with ISO 639-3 codes ("fra", "gsw", "ita"); they are matched
-//! with the locales /etc/locale.gen can generate ("fr_CH", "gsw_CH", "it_CH"). Without a
+//! sent. The API answers with ISO 639-1 and 639-2 codes ("fr"/"fra", "roh"); they are
+//! matched with the locales /etc/locale.gen can generate ("fr_CH", "it_CH"). Without a
 //! network, the languages are the ones locale.gen has for the country.
 //!
 //! The request is made with `curl`, as the Control Center's probe does: no HTTP client
 //! has to be compiled in the Control Center.
 
+use std::collections::HashMap;
 use std::process::Command;
+use std::sync::OnceLock;
 
-const API: &str = "https://restcountries.com/v3.1/alpha/";
+const API: &str = "https://countries.dev/alpha/";
 
-/// ISO 639-3 -> ISO 639-1 (sorted by the first code); a language without a two-letter
-/// code keeps its three-letter one in locale.gen ("gsw_CH", "fil_PH")
-const ISO639: &[(&str, &str)] = &[
-    ("aar", "aa"), ("abk", "ab"), ("afr", "af"), ("aka", "ak"), ("amh", "am"), ("ara", "ar"),
-    ("arg", "an"), ("asm", "as"), ("ava", "av"), ("ave", "ae"), ("aym", "ay"), ("aze", "az"),
-    ("bak", "ba"), ("bam", "bm"), ("bel", "be"), ("ben", "bn"), ("bis", "bi"), ("bod", "bo"),
-    ("bos", "bs"), ("bre", "br"), ("bul", "bg"), ("cat", "ca"), ("ces", "cs"), ("cha", "ch"),
-    ("che", "ce"), ("chu", "cu"), ("chv", "cv"), ("cor", "kw"), ("cos", "co"), ("cre", "cr"),
-    ("cym", "cy"), ("dan", "da"), ("deu", "de"), ("div", "dv"), ("dzo", "dz"), ("ell", "el"),
-    ("eng", "en"), ("epo", "eo"), ("est", "et"), ("eus", "eu"), ("ewe", "ee"), ("fao", "fo"),
-    ("fas", "fa"), ("fij", "fj"), ("fin", "fi"), ("fra", "fr"), ("fry", "fy"), ("ful", "ff"),
-    ("gla", "gd"), ("gle", "ga"), ("glg", "gl"), ("glv", "gv"), ("grn", "gn"), ("guj", "gu"),
-    ("hat", "ht"), ("hau", "ha"), ("hbs", "sh"), ("heb", "he"), ("her", "hz"), ("hin", "hi"),
-    ("hmo", "ho"), ("hrv", "hr"), ("hun", "hu"), ("hye", "hy"), ("ibo", "ig"), ("ido", "io"),
-    ("iii", "ii"), ("iku", "iu"), ("ile", "ie"), ("ina", "ia"), ("ind", "id"), ("ipk", "ik"),
-    ("isl", "is"), ("ita", "it"), ("jav", "jv"), ("jpn", "ja"), ("kal", "kl"), ("kan", "kn"),
-    ("kas", "ks"), ("kat", "ka"), ("kau", "kr"), ("kaz", "kk"), ("khm", "km"), ("kik", "ki"),
-    ("kin", "rw"), ("kir", "ky"), ("kom", "kv"), ("kon", "kg"), ("kor", "ko"), ("kua", "kj"),
-    ("kur", "ku"), ("lao", "lo"), ("lat", "la"), ("lav", "lv"), ("lim", "li"), ("lin", "ln"),
-    ("lit", "lt"), ("ltz", "lb"), ("lub", "lu"), ("lug", "lg"), ("mah", "mh"), ("mal", "ml"),
-    ("mar", "mr"), ("mkd", "mk"), ("mlg", "mg"), ("mlt", "mt"), ("mon", "mn"), ("mri", "mi"),
-    ("msa", "ms"), ("mya", "my"), ("nau", "na"), ("nav", "nv"), ("nbl", "nr"), ("nde", "nd"),
-    ("ndo", "ng"), ("nep", "ne"), ("nld", "nl"), ("nno", "nn"), ("nob", "nb"), ("nor", "no"),
-    ("nya", "ny"), ("oci", "oc"), ("oji", "oj"), ("ori", "or"), ("orm", "om"), ("oss", "os"),
-    ("pan", "pa"), ("pli", "pi"), ("pol", "pl"), ("por", "pt"), ("pus", "ps"), ("que", "qu"),
-    ("roh", "rm"), ("ron", "ro"), ("run", "rn"), ("rus", "ru"), ("sag", "sg"), ("san", "sa"),
-    ("sin", "si"), ("slk", "sk"), ("slv", "sl"), ("sme", "se"), ("smo", "sm"), ("sna", "sn"),
-    ("snd", "sd"), ("som", "so"), ("sot", "st"), ("spa", "es"), ("sqi", "sq"), ("srd", "sc"),
-    ("srp", "sr"), ("ssw", "ss"), ("sun", "su"), ("swa", "sw"), ("swe", "sv"), ("tah", "ty"),
-    ("tam", "ta"), ("tat", "tt"), ("tel", "te"), ("tgk", "tg"), ("tgl", "tl"), ("tha", "th"),
-    ("tir", "ti"), ("ton", "to"), ("tsn", "tn"), ("tso", "ts"), ("tuk", "tk"), ("tur", "tr"),
-    ("twi", "tw"), ("uig", "ug"), ("ukr", "uk"), ("urd", "ur"), ("uzb", "uz"), ("ven", "ve"),
-    ("vie", "vi"), ("vol", "vo"), ("wln", "wa"), ("wol", "wo"), ("xho", "xh"), ("yid", "yi"),
-    ("yor", "yo"), ("zha", "za"), ("zho", "zh"), ("zul", "zu"),
-];
+/// The main locale of each language ("en" -> "en_US", "sv" -> "sv_SE"), from libX11
+const LOCALE_ALIAS: &str = "/usr/share/X11/locale/locale.alias";
 
-fn iso639_1(code3: &str) -> Option<&'static str> {
-    ISO639.binary_search_by_key(&code3, |(a, _)| *a).ok().map(|i| ISO639[i].1)
-}
+/// A language of the answer: the tags to look for in locale.gen, best first ("fr", "fra")
+pub type Language = Vec<String>;
 
-/// The language tags to look for in locale.gen, best first. "nor" is "nb" or "nn" there
-fn tags(code3: &str) -> Vec<String> {
-    let mut tags: Vec<String> = match code3 {
-        "nor" => vec!["nb".into(), "nn".into()],
-        _ => iso639_1(code3).map(|c| vec![c.to_string()]).unwrap_or_default(),
-    };
-    tags.push(code3.to_string());
+/// The tags of a language of the API. Norwegian ("no") is "nb" or "nn" in locale.gen
+fn tags_of(code1: Option<&str>, code2: Option<&str>) -> Language {
+    let valid = |c: &&str| (2..=3).contains(&c.len()) && c.chars().all(|c| c.is_ascii_lowercase());
+    let mut tags: Language = Vec::new();
+    match code1.filter(valid) {
+        Some("no") => tags.extend(["nb".to_string(), "nn".to_string(), "no".to_string()]),
+        Some(c) => tags.push(c.to_string()),
+        None => {}
+    }
+    if let Some(c) = code2.filter(valid) {
+        if !tags.iter().any(|t| t == c) {
+            tags.push(c.to_string());
+        }
+    }
     tags
 }
 
-/// ISO 639-3 codes of the languages in the answer of the API. The answer is an object, or
-/// a list holding it
-pub fn parse_languages(json: &str) -> Option<Vec<String>> {
+/// The languages in the answer of the API: `{"languages":[{"iso639_1":"fr",
+/// "iso639_2":"fra",...},...]}`. `None`: not such an answer (an error page, a redirection)
+pub fn parse_languages(json: &str) -> Option<Vec<Language>> {
     let value: serde_json::Value = serde_json::from_str(json).ok()?;
-    let country = match &value {
-        serde_json::Value::Array(list) => list.first()?,
-        other => other,
-    };
-    let object = country.as_object()?;
-    if object.contains_key("status") || object.contains_key("message") {
-        return None;
-    }
+    let list = value.as_object()?.get("languages")?.as_array()?;
     Some(
-        object
-            .get("languages")
-            .and_then(|l| l.as_object())
-            .map(|l| l.keys().cloned().collect())
-            .unwrap_or_default(),
+        list.iter()
+            .filter_map(|l| l.as_object())
+            .map(|l| {
+                tags_of(
+                    l.get("iso639_1").and_then(|c| c.as_str()),
+                    l.get("iso639_2").and_then(|c| c.as_str()),
+                )
+            })
+            .filter(|tags| !tags.is_empty())
+            .collect(),
     )
 }
 
 /// Asks the API for the languages of a country (ISO 3166-1 alpha-2). `None`: no network,
 /// no `curl`, a refusal or an answer that is not understood: an expected failure, the
 /// caller falls back to `fallback`
-pub fn fetch_languages(country: &str) -> Option<Vec<String>> {
+pub fn fetch_languages(country: &str) -> Option<Vec<Language>> {
     if country.len() != 2 || !country.chars().all(|c| c.is_ascii_uppercase()) {
         return None;
     }
     let url = format!("{API}{country}?fields=languages");
     let out = Command::new("curl")
-        .args(["-fsS", "-m", "4", "-H", "Accept: application/json", url.as_str()])
+        .args(["-fsS", "--proto", "=https", "-m", "4", "-H", "Accept: application/json", url.as_str()])
         .output()
         .ok()
         .filter(|o| o.status.success())?;
     parse_languages(&String::from_utf8_lossy(&out.stdout))
 }
 
-/// The locale of locale.gen for a language of a country: "fra" + CH -> "fr_CH". Without
-/// the country's own, the language's main one ("fr_FR"), else the first of the language
-fn locale_for(code3: &str, country: &str, available: &[String]) -> Option<String> {
+/// Language -> main locale of locale.alias ("en: en_US.ISO8859-1"), first one wins
+fn parse_locale_alias(content: &str) -> HashMap<String, String> {
+    let mut out = HashMap::new();
+    for line in content.lines() {
+        let mut fields = line.split_whitespace();
+        let (Some(name), Some(locale)) = (fields.next(), fields.next()) else { continue };
+        let name = name.trim_end_matches(':');
+        if !(2..=3).contains(&name.len()) || !name.chars().all(|c| c.is_ascii_lowercase()) {
+            continue;
+        }
+        let locale = locale.split(['.', '@']).next().unwrap_or("");
+        if locale.starts_with(&format!("{name}_")) {
+            out.entry(name.to_string()).or_insert_with(|| locale.to_string());
+        }
+    }
+    out
+}
+
+/// The main locale of a language on this system ("en" -> "en_US"), if libX11 names one
+fn main_locale(tag: &str) -> Option<String> {
+    static ALIAS: OnceLock<HashMap<String, String>> = OnceLock::new();
+    ALIAS
+        .get_or_init(|| std::fs::read_to_string(LOCALE_ALIAS).map(|c| parse_locale_alias(&c)).unwrap_or_default())
+        .get(tag)
+        .cloned()
+}
+
+/// The locale of locale.gen for a language of a country: ["fr", "fra"] + CH -> "fr_CH".
+/// Without the country's own, the language's main one (locale.alias: "en_US"; else
+/// "fr_FR"), else the first of the language
+fn locale_for(tags: &[String], country: &str, available: &[String], main: &dyn Fn(&str) -> Option<String>) -> Option<String> {
     let plain = |c: &&String| !c.contains('@');
     let language = |c: &String| c.split('_').next().unwrap_or("").to_string();
-    let tags = tags(code3);
-    for tag in &tags {
+    for tag in tags {
         let exact = format!("{tag}_{country}");
         if available.iter().any(|c| *c == exact) {
             return Some(exact);
         }
     }
-    for tag in &tags {
+    for tag in tags {
+        if let Some(home) = main(tag).filter(|m| available.contains(m)) {
+            return Some(home);
+        }
         let home = format!("{tag}_{}", tag.to_uppercase());
         if available.iter().any(|c| *c == home) {
             return Some(home);
@@ -130,10 +133,20 @@ fn rank(code: &str, order: &[String]) -> usize {
 
 /// Locales to offer for the languages of the API: the ones locale.gen can generate,
 /// without doubles, main language first
-pub fn proposals(country: &str, api: &[String], available: &[String], order: &[String]) -> Vec<String> {
+pub fn proposals(country: &str, api: &[Language], available: &[String], order: &[String]) -> Vec<String> {
+    proposals_with(country, api, available, order, &main_locale)
+}
+
+fn proposals_with(
+    country: &str,
+    api: &[Language],
+    available: &[String],
+    order: &[String],
+    main: &dyn Fn(&str) -> Option<String>,
+) -> Vec<String> {
     let mut found: Vec<String> = Vec::new();
-    for code3 in api {
-        if let Some(locale) = locale_for(code3, country, available) {
+    for tags in api {
+        if let Some(locale) = locale_for(tags, country, available, main) {
             if !found.contains(&locale) {
                 found.push(locale);
             }
@@ -160,45 +173,71 @@ mod tests {
         codes.iter().map(|c| c.to_string()).collect()
     }
 
+    /// locale.alias as libX11 has it, for the tests
+    fn alias(tag: &str) -> Option<String> {
+        parse_locale_alias("en: en_US.ISO8859-1\nenglish en_US.ISO8859-1\nsv\tsv_SE.ISO8859-1\nar: ar_AA.ISO8859-6\n")
+            .get(tag)
+            .cloned()
+    }
+
     #[test]
     fn reads_the_answer_of_the_api() {
-        let one = r#"[{"languages":{"fra":"French","gsw":"Swiss German","ita":"Italian"}}]"#;
-        assert_eq!(parse_languages(one).unwrap(), list(&["fra", "gsw", "ita"]));
-        let object = r#"{"languages":{"eng":"English"}}"#;
-        assert_eq!(parse_languages(object).unwrap(), list(&["eng"]));
-        // A country without languages (Antarctica): a valid answer, nothing in it
-        assert_eq!(parse_languages(r#"[{}]"#).unwrap(), Vec::<String>::new());
-        assert!(parse_languages(r#"{"status":404,"message":"Not Found"}"#).is_none());
-        assert!(parse_languages("<html>").is_none());
+        let ch = r#"{"languages":[{"name":"German","iso639_1":"de","iso639_2":"deu","nativeName":"Deutsch"},
+            {"name":"French","iso639_1":"fr","iso639_2":"fra"},{"name":"Romansh","iso639_2":"roh"}]}"#;
+        assert_eq!(
+            parse_languages(ch).unwrap(),
+            vec![list(&["de", "deu"]), list(&["fr", "fra"]), list(&["roh"])]
+        );
+        // Norwegian: Bokmål or Nynorsk in locale.gen
+        let no = r#"{"languages":[{"iso639_1":"no","iso639_2":"nor"}]}"#;
+        assert_eq!(parse_languages(no).unwrap(), vec![list(&["nb", "nn", "no", "nor"])]);
+        // A country without languages: a valid answer, nothing in it
+        assert_eq!(parse_languages(r#"{"languages":[]}"#).unwrap(), Vec::<Language>::new());
+        // Not an answer of the API: no cache of an empty list
+        assert!(parse_languages("Country not found").is_none());
+        assert!(parse_languages(r#"{"success":false,"errors":[{"message":"deprecated"}]}"#).is_none());
+        assert!(parse_languages("<html><title>301 Moved Permanently</title></html>").is_none());
     }
 
     #[test]
     fn switzerland_offers_its_languages() {
         let available = list(&["de_CH", "fr_CH", "it_CH", "gsw_CH", "de_DE", "fr_FR", "en_US"]);
         let order = list(&["de_CH", "fr_CH", "it_CH", "gsw_CH"]);
-        let api = list(&["deu", "fra", "gsw", "ita", "roh"]);
-        assert_eq!(proposals("CH", &api, &available, &order), list(&["de_CH", "fr_CH", "it_CH", "gsw_CH"]));
+        let api = vec![list(&["de", "deu"]), list(&["fr", "fra"]), list(&["it", "ita"]), list(&["roh"])];
+        assert_eq!(proposals_with("CH", &api, &available, &order, &alias), list(&["de_CH", "fr_CH", "it_CH"]));
     }
 
     #[test]
     fn a_language_without_a_locale_of_the_country_takes_its_main_one() {
-        let available = list(&["fr_FR", "fr_CA", "en_US", "en_GB", "lb_LU", "de_DE"]);
-        assert_eq!(locale_for("fra", "LU", &available).unwrap(), "fr_FR");
-        assert_eq!(locale_for("ltz", "LU", &available).unwrap(), "lb_LU");
-        assert_eq!(locale_for("eng", "LU", &available).unwrap(), "en_US");
-        assert!(locale_for("roh", "CH", &available).is_none());
+        let available = list(&["en_AG", "en_GB", "en_US", "fr_CA", "fr_FR", "lb_LU", "de_DE", "ar_AE", "sv_FI", "sv_SE"]);
+        assert_eq!(locale_for(&list(&["fr", "fra"]), "LU", &available, &alias).unwrap(), "fr_FR");
+        assert_eq!(locale_for(&list(&["lb", "ltz"]), "LU", &available, &alias).unwrap(), "lb_LU");
+        // en_EN does not exist: the main one of locale.alias, not the first (en_AG)
+        assert_eq!(locale_for(&list(&["en", "eng"]), "RW", &available, &alias).unwrap(), "en_US");
+        assert_eq!(locale_for(&list(&["sv", "swe"]), "AX", &available, &alias).unwrap(), "sv_SE");
+        // A main one that locale.gen does not have (ar_AA): the first of the language
+        assert_eq!(locale_for(&list(&["ar", "ara"]), "TD", &available, &alias).unwrap(), "ar_AE");
+        assert!(locale_for(&list(&["roh"]), "CH", &available, &alias).is_none());
     }
 
     #[test]
     fn norwegian_is_bokmal_or_nynorsk() {
         let available = list(&["nb_NO", "nn_NO"]);
-        assert_eq!(locale_for("nor", "NO", &available).unwrap(), "nb_NO");
+        assert_eq!(locale_for(&list(&["nb", "nn", "no", "nor"]), "NO", &available, &alias).unwrap(), "nb_NO");
     }
 
     #[test]
     fn variants_are_never_a_fallback() {
         let available = list(&["ca_ES@valencia", "es_ES"]);
-        assert!(locale_for("cat", "AD", &available).is_none());
+        assert!(locale_for(&list(&["ca", "cat"]), "AD", &available, &alias).is_none());
+    }
+
+    #[test]
+    fn locale_alias_gives_the_main_locale_of_a_language() {
+        let map = parse_locale_alias("# comment\nen: en_US.ISO8859-1\nen_US en_US.ISO8859-1\nja: ja_JP.eucJP\nja: ja_JP.SJIS\nenglish: en_US.ISO8859-1\nC C\n");
+        assert_eq!(map.get("en").unwrap(), "en_US");
+        assert_eq!(map.get("ja").unwrap(), "ja_JP");
+        assert_eq!(map.len(), 2);
     }
 
     #[test]

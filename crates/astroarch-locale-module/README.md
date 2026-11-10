@@ -28,7 +28,7 @@ src/locale_gen.rs         locale.gen, language/country names, persist_locale (us
 src/keyboard.rs           XKB layouts, live testing (setxkbmap on X11; kxkbrc + D-Bus on Wayland), localectl (for persistence)
 src/geolocation.rs        Country detection via IP (geoip.kde.org); cargo feature `geoip`
                           (default; reqwest), off in the AstroArch Control Center
-src/countries.rs          Languages of a country: request to https://restcountries.com (curl), matched
+src/countries.rs          Languages of a country: request to https://countries.dev (curl), matched
                           with the locales of locale.gen; without network, the locales of locale.gen
 qml/                      Main, LanguagePage, LocationPage, KeyboardPage, WorldMapView
 translations/qml_<langue>.ts   fr, it, es, de + en
@@ -45,14 +45,15 @@ To add a language: create a `translations/qml_xx.ts` file (by copying an existin
 
 ## Proposals and application of choices
 
-Three steps, each one a **proposal** the user confirms or changes. Nothing is decided
-automatically from a table.
+Three steps, each one a **proposal** the user confirms or changes; nothing is applied before
+"Finish".
 
 1. **Country**: proposed from the IP address (`geolocation.rs`) when a network is available;
    the user keeps it or picks another one (list or map).
-2. **Language**: the languages of the country are asked of `https://restcountries.com`
-   (`countries.rs`, only the country code is sent) and matched with the locales `locale.gen`
-   can generate. A single language is selected; with several, the user chooses; "Another
+2. **Language**: the languages of the country are asked of `https://countries.dev` (no key,
+   `countries.rs`, only the country code is sent) and matched with the locales `locale.gen`
+   can generate. A language with no locale for the country gets its main one, from
+   `/usr/share/X11/locale/locale.alias` (English: `en_US`). A single language is selected; with several, the user chooses; "Another
    language…" gives the whole list (a foreigner, a language that is not the country's). Without
    a network, the proposals are the locales `locale.gen` has for the country.
 3. **Keyboard**: layouts proposed from the country and the language (`keyboard.rs`, `suggest`):
