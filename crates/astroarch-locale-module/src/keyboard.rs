@@ -23,9 +23,19 @@ pub struct KeyboardVariant {
 
 const XKB_BASE_LST: &str = "/usr/share/X11/xkb/rules/base.lst";
 
+/// base.lst, read once: the proposals and their names look it up at every change
+fn base_lst() -> std::io::Result<&'static str> {
+    static CONTENT: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    if let Some(content) = CONTENT.get() {
+        return Ok(content);
+    }
+    let content = std::fs::read_to_string(XKB_BASE_LST)?;
+    Ok(CONTENT.get_or_init(|| content))
+}
+
 /// Parses the “! layout” section of base.lst
 pub fn list_layouts() -> std::io::Result<Vec<KeyboardLayout>> {
-    parse_section(XKB_BASE_LST, "! layout").map(|rows| {
+    parse_section(base_lst()?, "! layout").map(|rows| {
         rows.into_iter()
             .map(|(code, description)| KeyboardLayout { code, description })
             .collect()
@@ -35,7 +45,7 @@ pub fn list_layouts() -> std::io::Result<Vec<KeyboardLayout>> {
 /// Parses the “! variant” section of base.lst, filtered by a given layout.
 /// The line format is: “variant  layout: description”
 pub fn list_variants(layout: &str) -> std::io::Result<Vec<KeyboardVariant>> {
-    let content = std::fs::read_to_string(XKB_BASE_LST)?;
+    let content = base_lst()?;
     let mut in_section = false;
     let mut variants = Vec::new();
 
@@ -66,8 +76,7 @@ pub fn list_variants(layout: &str) -> std::io::Result<Vec<KeyboardVariant>> {
     Ok(variants)
 }
 
-fn parse_section(path: &str, section_header: &str) -> std::io::Result<Vec<(String, String)>> {
-    let content = std::fs::read_to_string(path)?;
+fn parse_section(content: &str, section_header: &str) -> std::io::Result<Vec<(String, String)>> {
     let mut in_section = false;
     let mut out = Vec::new();
 
