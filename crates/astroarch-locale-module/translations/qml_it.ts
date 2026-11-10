@@ -36,7 +36,7 @@
     <message>
         <location filename="../qml/KeyboardPage.qml" line="0"/>
         <source>Proposed for your country and language.</source>
-        <translation>Proposte per il vostro paese e la vostra lingua.</translation>
+        <translation>Proposte per il tuo paese e la tua lingua.</translation>
     </message>
     <message>
         <location filename="../qml/KeyboardPage.qml" line="0"/>
@@ -69,7 +69,7 @@
     <message>
         <location filename="../qml/LanguagePage.qml" line="0"/>
         <source>Languages of %1: choose yours.</source>
-        <translation>Lingue di %1: scegliete la vostra.</translation>
+        <translation>Lingue di %1: scegli la tua.</translation>
     </message>
     <message>
         <location filename="../qml/LanguagePage.qml" line="0"/>

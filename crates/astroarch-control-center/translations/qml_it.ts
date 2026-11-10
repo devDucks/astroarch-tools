@@ -972,12 +972,12 @@
     <message>
         <location filename="../qml/LanguageView.qml" line="199"/>
         <source>The country of your network is proposed. Its languages and keyboards are proposed in the next steps.</source>
-        <translation>Il paese della vostra rete è proposto. Le sue lingue e le sue tastiere sono proposte nei passaggi successivi.</translation>
+        <translation>È proposto il paese della tua rete: le sue lingue e tastiere te le proponiamo nei prossimi passi.</translation>
     </message>
     <message>
         <location filename="../qml/LanguageView.qml" line="200"/>
         <source>Choose your country: its languages and keyboards are proposed in the next steps. You can also skip this step.</source>
-        <translation>Scegliete il vostro paese: le sue lingue e le sue tastiere sono proposte nei passaggi successivi. Potete anche saltare questo passaggio.</translation>
+        <translation>Scegli il tuo paese: le sue lingue e tastiere te le proponiamo nei prossimi passi. Puoi anche saltare questo passo.</translation>
     </message>
     <message>
         <location filename="../qml/LanguageView.qml" line="210"/>
@@ -1064,7 +1064,7 @@
     <message>
         <location filename="../qml/LanguageView.qml" line="0"/>
         <source>Languages of %1: choose yours.</source>
-        <translation>Lingue di %1: scegliete la vostra.</translation>
+        <translation>Lingue di %1: scegli la tua.</translation>
     </message>
     <message>
         <location filename="../qml/LanguageView.qml" line="0"/>
@@ -1084,7 +1084,7 @@
     <message>
         <location filename="../qml/LanguageView.qml" line="0"/>
         <source>Proposed for your country and language.</source>
-        <translation>Proposte per il vostro paese e la vostra lingua.</translation>
+        <translation>Proposte per il tuo paese e la tua lingua.</translation>
     </message>
     <message>
         <location filename="../qml/LanguageView.qml" line="0"/>
