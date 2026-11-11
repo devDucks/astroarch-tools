@@ -971,13 +971,13 @@
     </message>
     <message>
         <location filename="../qml/LanguageView.qml" line="199"/>
-        <source>The country of your network is chosen. Language and keyboard follow the country: you check them in the next steps.</source>
-        <translation>Está elegido el país de su red. El idioma y el teclado siguen al país: los revisa en los pasos siguientes.</translation>
+        <source>The country of your network is proposed. Its languages and keyboards are proposed in the next steps.</source>
+        <translation>Se propone el país de su red. Sus idiomas y teclados se proponen en los pasos siguientes.</translation>
     </message>
     <message>
         <location filename="../qml/LanguageView.qml" line="200"/>
-        <source>Choose your country: language and keyboard follow it, and you check them in the next steps. You can also skip this step.</source>
-        <translation>Elija su país: el idioma y el teclado lo siguen, y los revisa en los pasos siguientes. También puede saltar este paso.</translation>
+        <source>Choose your country: its languages and keyboards are proposed in the next steps. You can also skip this step.</source>
+        <translation>Elija su país: sus idiomas y teclados se proponen en los pasos siguientes. También puede omitir este paso.</translation>
     </message>
     <message>
         <location filename="../qml/LanguageView.qml" line="210"/>
@@ -1055,6 +1055,46 @@
         <location filename="../qml/LanguageView.qml" line="412"/>
         <source>Next</source>
         <translation>Siguiente</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Looking up the languages of %1…</source>
+        <translation>Buscando los idiomas de %1…</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Languages of %1: choose yours.</source>
+        <translation>Idiomas de %1: elija el suyo.</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>No connection: these are the languages installed for %1.</source>
+        <translation>Sin conexión: estos son los idiomas instalados para %1.</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Another language…</source>
+        <translation>Otro idioma…</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Back to the languages of %1</source>
+        <translation>Volver a los idiomas de %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Proposed for your country and language.</source>
+        <translation>Propuestos para su país y su idioma.</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Another keyboard…</source>
+        <translation>Otro teclado…</translation>
+    </message>
+    <message>
+        <location filename="../qml/LanguageView.qml" line="0"/>
+        <source>Back to the proposed keyboards</source>
+        <translation>Volver a los teclados propuestos</translation>
     </message>
 </context>
 <context>

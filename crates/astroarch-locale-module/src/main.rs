@@ -2,6 +2,7 @@
 use cxx_qt_lib::{QGuiApplication, QQmlApplicationEngine, QString, QUrl};
 
 mod bridge;
+mod countries;
 mod geolocation;
 mod keyboard;
 mod locale_gen;

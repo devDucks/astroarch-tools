@@ -6,7 +6,6 @@
 //! `localectl set-x11-keymap` (+ kxkbrc under Wayland); the console configuration (vconsole.conf) is
 //! generated separately using `localectl set-keymap` if necessary
 
-use std::collections::HashMap;
 use std::process::{Command, Stdio};
 use std::sync::Mutex;
 
@@ -24,9 +23,19 @@ pub struct KeyboardVariant {
 
 const XKB_BASE_LST: &str = "/usr/share/X11/xkb/rules/base.lst";
 
+/// base.lst, read once: the proposals and their names look it up at every change
+fn base_lst() -> std::io::Result<&'static str> {
+    static CONTENT: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    if let Some(content) = CONTENT.get() {
+        return Ok(content);
+    }
+    let content = std::fs::read_to_string(XKB_BASE_LST)?;
+    Ok(CONTENT.get_or_init(|| content))
+}
+
 /// Parses the “! layout” section of base.lst
 pub fn list_layouts() -> std::io::Result<Vec<KeyboardLayout>> {
-    parse_section(XKB_BASE_LST, "! layout").map(|rows| {
+    parse_section(base_lst()?, "! layout").map(|rows| {
         rows.into_iter()
             .map(|(code, description)| KeyboardLayout { code, description })
             .collect()
@@ -36,7 +45,7 @@ pub fn list_layouts() -> std::io::Result<Vec<KeyboardLayout>> {
 /// Parses the “! variant” section of base.lst, filtered by a given layout.
 /// The line format is: “variant  layout: description”
 pub fn list_variants(layout: &str) -> std::io::Result<Vec<KeyboardVariant>> {
-    let content = std::fs::read_to_string(XKB_BASE_LST)?;
+    let content = base_lst()?;
     let mut in_section = false;
     let mut variants = Vec::new();
 
@@ -67,8 +76,7 @@ pub fn list_variants(layout: &str) -> std::io::Result<Vec<KeyboardVariant>> {
     Ok(variants)
 }
 
-fn parse_section(path: &str, section_header: &str) -> std::io::Result<Vec<(String, String)>> {
-    let content = std::fs::read_to_string(path)?;
+fn parse_section(content: &str, section_header: &str) -> std::io::Result<Vec<(String, String)>> {
     let mut in_section = false;
     let mut out = Vec::new();
 
@@ -89,26 +97,128 @@ fn parse_section(path: &str, section_header: &str) -> std::io::Result<Vec<(Strin
     Ok(out)
 }
 
-/// Mapping table: country code (ISO 3166-1 alpha-2) → code
-/// Default XKB layout. Covers common cases; otherwise, it
-/// falls back to “us”.
-pub fn default_layout_for_country(country_code: &str) -> &'static str {
-    let map: HashMap<&str, &str> = HashMap::from([
-        ("FR", "fr"), ("BE", "be"), ("CH", "ch"), ("DE", "de"),
-        ("AT", "at"), ("IT", "it"), ("ES", "es"), ("PT", "pt"),
-        ("GB", "gb"), ("US", "us"), ("CA", "ca"), ("NL", "nl"),
-        ("PL", "pl"), ("CZ", "cz"), ("SK", "sk"), ("HU", "hu"),
-        ("RO", "ro"), ("BG", "bg"), ("GR", "gr"), ("SE", "se"),
-        ("NO", "no"), ("DK", "dk"), ("FI", "fi"), ("IS", "is"),
-        ("IE", "ie"), ("RU", "ru"), ("UA", "ua"), ("TR", "tr"),
-        ("JP", "jp"), ("KR", "kr"), ("CN", "cn"), ("BR", "br"),
-        ("MX", "latam"), ("AR", "latam"), ("CL", "latam"),
-        ("MA", "ma"), ("DZ", "dz"), ("TN", "tn"), ("IL", "il"),
-        ("SA", "sa"), ("IN", "in"), ("ZA", "za"), ("AU", "au"),
-        ("NZ", "us"), ("LU", "lu"), ("SI", "si"), ("HR", "hr"),
-        ("RS", "rs"), ("EE", "ee"), ("LV", "lv"), ("LT", "lt"),
-    ]);
-    map.get(country_code).copied().unwrap_or("us")
+/// Countries whose XKB layout is not their lowercase code (or has none of that name)
+const COUNTRY_LAYOUTS: &[(&str, &str)] = &[
+    ("GB", "gb"), ("AU", "us"), ("NZ", "us"), ("HK", "us"), ("SG", "us"), ("ID", "us"),
+    ("SA", "ara"), ("EG", "ara"), ("AE", "ara"), ("QA", "ara"), ("KW", "ara"), ("BH", "ara"),
+    ("OM", "ara"), ("JO", "ara"), ("LB", "ara"), ("LY", "ara"), ("SD", "ara"), ("YE", "ara"),
+    ("MX", "latam"), ("AR", "latam"), ("CL", "latam"), ("CO", "latam"), ("PE", "latam"),
+    ("VE", "latam"), ("UY", "latam"), ("EC", "latam"), ("BO", "latam"), ("PY", "latam"),
+    ("CR", "latam"), ("GT", "latam"), ("PA", "latam"), ("DO", "latam"), ("HN", "latam"),
+    ("SV", "latam"), ("NI", "latam"), ("CU", "latam"),
+    ("CZ", "cz"), ("DK", "dk"), ("EE", "ee"), ("GR", "gr"), ("IR", "ir"), ("JP", "jp"),
+    ("KR", "kr"), ("SE", "se"), ("SI", "si"), ("UA", "ua"), ("VN", "vn"),
+];
+
+/// Languages without a layout of their own country to follow, to the layout of their
+/// country of origin (the language of a locale without a layout, "fr_LU", "en_CH")
+const LANGUAGE_LAYOUTS: &[(&str, &str)] = &[
+    ("en", "us"), ("fr", "fr"), ("de", "de"), ("es", "es"), ("it", "it"), ("pt", "pt"),
+    ("nl", "nl"), ("ru", "ru"), ("ja", "jp"), ("ko", "kr"), ("zh", "cn"), ("ar", "ara"),
+    ("he", "il"), ("el", "gr"), ("uk", "ua"), ("pl", "pl"), ("cs", "cz"), ("sv", "se"),
+    ("da", "dk"), ("nb", "no"), ("nn", "no"), ("fi", "fi"), ("tr", "tr"), ("hu", "hu"),
+    ("ro", "ro"), ("bg", "bg"), ("sk", "sk"), ("sl", "si"), ("hr", "hr"), ("sr", "rs"),
+    ("et", "ee"), ("lv", "lv"), ("lt", "lt"), ("is", "is"), ("ga", "ie"), ("hi", "in"),
+    ("th", "th"), ("vi", "vn"), ("fa", "ir"), ("gsw", "ch"),
+];
+
+/// A layout and its variant (empty for the default one)
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct KeyboardChoice {
+    pub layout: String,
+    pub variant: String,
+}
+
+/// The XKB layout of a country: its lowercase code ("it", "ch") unless COUNTRY_LAYOUTS says
+/// otherwise. `layouts`: the layouts base.lst has (empty: not checked)
+fn country_layout(country: &str, layouts: &[String]) -> Option<String> {
+    let layout = COUNTRY_LAYOUTS
+        .iter()
+        .find(|(c, _)| *c == country)
+        .map(|(_, l)| l.to_string())
+        .unwrap_or_else(|| country.to_lowercase());
+    (layouts.is_empty() || layouts.contains(&layout)).then_some(layout)
+}
+
+/// The variant of a layout that is made for a language: the one named like it ("fr" of
+/// "ch"), or one set here ("eng" of "ca"). `variants`: the variants of the layout
+fn language_variant(layout: &str, language: &str, variants: &[String]) -> Option<String> {
+    let wanted = match (layout, language) {
+        ("ca", "en") => "eng",
+        _ => language,
+    };
+    variants.iter().find(|v| *v == wanted).cloned()
+}
+
+/// Keyboards to propose for a country and a language (a locale, "fr_CH"), best first:
+/// - what the language is typed on in its own country ("en_GB": gb), then the country's
+///   when the language is a foreign one in this country, the country's first when it
+///   is one of its own (the user's keyboard may come from another country);
+/// - the country's default layout, when its variant for the language is proposed.
+/// `layouts`: the layouts of base.lst; `variants_of`: the variants of a layout
+pub fn suggest(
+    country: &str,
+    locale: &str,
+    layouts: &[String],
+    variants_of: &dyn Fn(&str) -> Vec<String>,
+) -> Vec<KeyboardChoice> {
+    let base = locale.split('@').next().unwrap_or(locale);
+    let base = base.split('.').next().unwrap_or(base);
+    let (language, home) = base.split_once('_').unwrap_or((base, ""));
+    // No country chosen yet (the keyboard page alone): the language's own
+    let country = if country.is_empty() { home } else { country };
+
+    let build = |from: &str| -> Option<KeyboardChoice> {
+        let layout = country_layout(from, layouts)?;
+        let variant = language_variant(&layout, language, &variants_of(&layout)).unwrap_or_default();
+        Some(KeyboardChoice { layout, variant })
+    };
+    let own = build(country);
+    let origin = build(home).or_else(|| {
+        let layout = LANGUAGE_LAYOUTS.iter().find(|(l, _)| *l == language).map(|(_, l)| l.to_string())?;
+        (layouts.is_empty() || layouts.contains(&layout)).then(|| KeyboardChoice { layout, variant: String::new() })
+    });
+
+    let native = home == country;
+    let mut out: Vec<KeyboardChoice> = Vec::new();
+    let mut push = |c: Option<KeyboardChoice>| {
+        if let Some(c) = c {
+            if !out.contains(&c) {
+                out.push(c);
+            }
+        }
+    };
+    if native {
+        push(own.clone());
+        push(origin);
+    } else {
+        push(origin);
+        push(own.clone());
+    }
+    // The default layout of the country, when its variant for the language comes first
+    if let Some(c) = own {
+        push(Some(KeyboardChoice { layout: c.layout, variant: String::new() }));
+    }
+    out
+}
+
+/// Readable name of a layout and its variant, from base.lst ("French (Switzerland) ·
+/// French"); the codes when base.lst does not name them
+pub fn describe(layout: &str, variant: &str) -> String {
+    let name = list_layouts()
+        .ok()
+        .and_then(|l| l.into_iter().find(|l| l.code == layout))
+        .map(|l| l.description)
+        .unwrap_or_else(|| layout.to_string());
+    if variant.is_empty() {
+        return name;
+    }
+    let variant_name = list_variants(layout)
+        .ok()
+        .and_then(|v| v.into_iter().find(|v| v.code == variant))
+        .map(|v| v.description)
+        .unwrap_or_else(|| variant.to_string());
+    format!("{name} · {variant_name}")
 }
 
 /// `true` in a Wayland session (Plasma/KWin). There, `setxkbmap` only reaches the
@@ -478,4 +588,63 @@ mod tests {
         }
         assert!(parse_x11_query("rules: evdev\nmodel: pc105\n").is_none());
     }
+
+    fn layouts(codes: &[&str]) -> Vec<String> {
+        codes.iter().map(|c| c.to_string()).collect()
+    }
+
+    fn pair(layout: &str, variant: &str) -> KeyboardChoice {
+        KeyboardChoice { layout: layout.into(), variant: variant.into() }
+    }
+
+    fn variants(layout: &str) -> Vec<String> {
+        match layout {
+            "ch" => layouts(&["de_nodeadkeys", "fr", "fr_mac"]),
+            "ca" => layouts(&["fr-legacy", "eng", "multix"]),
+            _ => Vec::new(),
+        }
+    }
+
+    #[test]
+    fn swiss_french_gets_the_french_variant_of_the_swiss_layout() {
+        let all = layouts(&["ch", "fr", "de", "us", "gb"]);
+        assert_eq!(suggest("CH", "fr_CH", &all, &variants), vec![pair("ch", "fr"), pair("ch", "")]);
+        assert_eq!(suggest("CH", "de_CH", &all, &variants), vec![pair("ch", "")]);
+    }
+
+    #[test]
+    fn a_foreign_language_proposes_its_own_keyboard_first() {
+        let all = layouts(&["ch", "fr", "de", "us", "gb"]);
+        assert_eq!(suggest("CH", "en_GB", &all, &variants), vec![pair("gb", ""), pair("ch", "")]);
+        assert_eq!(suggest("FR", "en_US", &all, &variants), vec![pair("us", ""), pair("fr", "")]);
+    }
+
+    #[test]
+    fn canada_has_a_variant_per_language() {
+        let all = layouts(&["ca", "us"]);
+        assert_eq!(suggest("CA", "en_CA", &all, &variants), vec![pair("ca", "eng"), pair("ca", "")]);
+        assert_eq!(suggest("CA", "fr_CA", &all, &variants), vec![pair("ca", "")]);
+    }
+
+    #[test]
+    fn a_locale_without_a_layout_follows_its_language() {
+        let all = layouts(&["fr", "de", "us"]);
+        // fr_LU: no "lu" layout, the French one
+        assert_eq!(suggest("LU", "fr_LU", &all, &variants), vec![pair("fr", "")]);
+    }
+
+    #[test]
+    fn without_a_country_the_language_decides() {
+        let all = layouts(&["ch", "us"]);
+        assert_eq!(suggest("", "fr_CH", &all, &variants), vec![pair("ch", "fr"), pair("ch", "")]);
+    }
+
+    #[test]
+    fn the_layouts_of_country_codes_exist_or_are_dropped() {
+        let all = layouts(&["gb", "latam", "us"]);
+        assert_eq!(country_layout("GB", &all).unwrap(), "gb");
+        assert_eq!(country_layout("MX", &all).unwrap(), "latam");
+        assert!(country_layout("LU", &all).is_none());
+    }
 }
+

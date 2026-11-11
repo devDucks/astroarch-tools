@@ -1,12 +1,12 @@
-//! Detection of approximate location via public IP address.
-//! Used only to PRE-FILL options; the user must
-//! always explicitly confirm (see UX guidelines).
+//! Detection of the country of the public IP address.
+//! Used only to PROPOSE the country: the user must always confirm it, and the language
+//! and the keyboard are proposed from the country afterwards (countries.rs, keyboard.rs).
 //!
 //! If no network connection is available (timeout / DNS error /
-//! HTTP error), the system falls back to English with no country preselected
+//! HTTP error), no country is preselected
 //!
 //! The service is KDE's geoip, over https (the one Calamares used). Its "ubiquity"
-//! answer is a short XML document: <CountryCode>IT</CountryCode>…<TimeZone>Europe/Rome</TimeZone>
+//! answer is a short XML document: <CountryCode>IT</CountryCode>…
 
 // Without the "geoip" feature (reqwest) only the parsing is compiled
 #![cfg_attr(not(feature = "geoip"), allow(dead_code))]
@@ -16,7 +16,6 @@ use std::time::Duration;
 #[derive(Debug, Clone)]
 pub struct GeoInfo {
     pub country_code: String,
-    pub timezone: String,
 }
 
 const GEO_API_URL: &str = "https://geoip.kde.org/v1/ubiquity";
@@ -35,10 +34,7 @@ fn parse(xml: &str) -> Option<GeoInfo> {
         return None;
     }
     let country_code = element(xml, "CountryCode").filter(|c| c.len() == 2)?;
-    Some(GeoInfo {
-        country_code: country_code.to_string(),
-        timezone: element(xml, "TimeZone").unwrap_or_default().to_string(),
-    })
+    Some(GeoInfo { country_code: country_code.to_string() })
 }
 
 /// Attempts IP detection. Returns `None` if there is no network connection or an error occurs —
@@ -82,13 +78,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn reads_country_and_zone() {
+    fn reads_the_country() {
         let xml = "<Response><Ip>5.95.1.1</Ip><Status>OK</Status><CountryCode>IT</CountryCode>\
                    <CountryCode3></CountryCode3><CountryName>Italy</CountryName>\
                    <TimeZone>Europe/Rome</TimeZone></Response>";
         let geo = parse(xml).unwrap();
         assert_eq!(geo.country_code, "IT");
-        assert_eq!(geo.timezone, "Europe/Rome");
     }
 
     #[test]

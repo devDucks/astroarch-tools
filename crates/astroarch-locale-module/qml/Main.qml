@@ -57,6 +57,14 @@ ApplicationWindow {
         }
     }
 
+    // The languages of the country come from restcountries.com: read when they are there
+    Timer {
+        interval: 200
+        repeat: true
+        running: bridge.languages_source === "loading"
+        onTriggered: bridge.poll_country_languages()
+    }
+
     Component.onCompleted: {
         bridge.initialize(window.startPage === 0)
     }
@@ -99,6 +107,7 @@ ApplicationWindow {
             }
 
             LanguagePage {
+                id: languagePage
                 bridge: bridge
                 guessing: window.startPage === 0
                 onLanguageChosen: window.followLanguage()
@@ -123,8 +132,13 @@ ApplicationWindow {
             Button {
                 text: stackLayout.currentIndex === 2 ? qsTr("Finish") : qsTr("Next")
                 highlighted: true
+                // With the country's languages shown, one of them has to be chosen
+                enabled: stackLayout.currentIndex !== 1 || languagePage.picked
                 onClicked: {
                     if (stackLayout.currentIndex < 2) {
+                        // The chosen language is the one of the interface from here on
+                        if (stackLayout.currentIndex === 1)
+                            window.followLanguage()
                         stackLayout.currentIndex++
                     } else {
                         if (bridge.persist_configuration()) {
