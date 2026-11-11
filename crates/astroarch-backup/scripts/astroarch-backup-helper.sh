@@ -1493,8 +1493,12 @@ cmd_nas_add() {
         fail 12 "cannot connect to $src: $(oneline "$out")"
     fi
     umount -- "$mnt" || umount -l -- "$mnt"
-    # A space in fstab is written \040
-    printf '%s %s\n%s %s %s %s,nofail,_netdev,x-systemd.automount,x-systemd.mount-timeout=20,x-systemd.idle-timeout=600 0 0\n' \
+    # A space in fstab is written \040.
+    # x-systemd.before=remote-fs.target: unmounted at shutdown only after the user sessions
+    # (and a backup still running in them) are stopped. An automount share has no such order
+    # by default: the unmount then fails ("device is busy"), the network goes down and the
+    # shutdown waits for the server forever
+    printf '%s %s\n%s %s %s %s,nofail,_netdev,x-systemd.automount,x-systemd.before=remote-fs.target,x-systemd.mount-timeout=20,x-systemd.idle-timeout=600 0 0\n' \
         "$NAS_MARK" "$id" "${src// /\\040}" "$mnt" "$fstype" "$opts" >> /etc/fstab
     systemctl daemon-reload
     systemctl start "$(systemd-escape -p --suffix=automount -- "$mnt")" || warn "automount not started"
