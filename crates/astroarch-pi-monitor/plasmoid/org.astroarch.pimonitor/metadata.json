@@ -1,0 +1,26 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "AstroArch"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "Raspberry Pi temperature, voltage and alerts",
+        "Description[de]": "Temperatur, Spannung und Warnungen des Raspberry Pi",
+        "Description[es]": "Temperatura, tensión y alertas de la Raspberry Pi",
+        "Description[fr]": "Température, tension et alertes du Raspberry Pi",
+        "Description[it]": "Temperatura, tensione e avvisi del Raspberry Pi",
+        "Icon": "temperature-normal",
+        "Id": "org.astroarch.pimonitor",
+        "License": "MIT",
+        "Name": "AstroArch Pi Monitor",
+        "Name[de]": "AstroArch Pi-Monitor",
+        "Name[es]": "Monitor Pi de AstroArch",
+        "Name[fr]": "Moniteur Pi AstroArch",
+        "Name[it]": "Monitor Pi AstroArch",
+        "Version": "0.2.0"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
