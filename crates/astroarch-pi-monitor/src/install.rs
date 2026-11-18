@@ -39,10 +39,18 @@ const PLASMOID_FILES: [(&str, &str); 6] = [
 ];
 const UNIT: &str = include_str!("../systemd/astroarch-pi-monitor.service");
 
+/// The alert icons (widget and notifications), in the hicolor theme
+const ICONS: [(&str, &str); 2] = [
+    ("org.astroarch.pimonitor-warning.svg", include_str!("../icons/org.astroarch.pimonitor-warning.svg")),
+    ("org.astroarch.pimonitor-critical.svg", include_str!("../icons/org.astroarch.pimonitor-critical.svg")),
+];
+
 struct Paths {
     bin: PathBuf,
     plasmoid: PathBuf,
     unit: PathBuf,
+    /// hicolor/scalable/status, where the alert icons go
+    icons: PathBuf,
     /// A user install: the home, where the first version left files
     home: Option<PathBuf>,
 }
@@ -53,6 +61,7 @@ fn paths(system: bool) -> Result<Paths, String> {
             bin: PathBuf::from("/usr/local/bin").join(BIN_NAME),
             plasmoid: PathBuf::from("/usr/share/plasma/plasmoids").join(PLASMOID_ID),
             unit: PathBuf::from("/etc/systemd/user").join(SERVICE),
+            icons: PathBuf::from("/usr/share/icons/hicolor/scalable/status"),
             home: None,
         });
     }
@@ -67,6 +76,7 @@ fn paths(system: bool) -> Result<Paths, String> {
         bin: home.join(".local/bin").join(BIN_NAME),
         plasmoid: abs("XDG_DATA_HOME", ".local/share").join("plasma/plasmoids").join(PLASMOID_ID),
         unit: abs("XDG_CONFIG_HOME", ".config").join("systemd/user").join(SERVICE),
+        icons: abs("XDG_DATA_HOME", ".local/share").join("icons/hicolor/scalable/status"),
         home: Some(home),
     })
 }
@@ -162,6 +172,10 @@ pub fn install(system: bool) -> Result<(), String> {
     println!("binary    {}", p.bin.display());
     write_plasmoid(&p.plasmoid, &p.bin)?;
     println!("widget    {}", p.plasmoid.display());
+    for (name, content) in ICONS {
+        write_file(&p.icons.join(name), content)?;
+    }
+    println!("icons     {}", p.icons.display());
     write_file(&p.unit, &render_unit(&p.bin))?;
     println!("service   {}", p.unit.display());
     remove_old_user_files(&p)?;
@@ -194,7 +208,8 @@ pub fn uninstall(system: bool) -> Result<(), String> {
     } else {
         systemctl(&["--user", "disable", "--now", SERVICE]);
     }
-    for path in [&p.unit, &p.bin] {
+    let icons: Vec<PathBuf> = ICONS.iter().map(|(name, _)| p.icons.join(name)).collect();
+    for path in [&p.unit, &p.bin].into_iter().chain(&icons) {
         if path.exists() {
             io(fs::remove_file(path), path)?;
             println!("removed   {}", path.display());
@@ -240,6 +255,18 @@ mod tests {
         let backend = PLASMOID_FILES.iter().find(|(n, _)| n.ends_with("Backend.qml")).unwrap().1;
         assert!(backend.contains("import org.kde.plasma.workspace.dbus"));
         assert!(!backend.contains("import org.astroarch.pimonitor"));
+    }
+
+    #[test]
+    fn the_alert_icons_are_the_ones_the_widget_and_the_daemon_use() {
+        let main = PLASMOID_FILES.iter().find(|(n, _)| n.ends_with("main.qml")).unwrap().1;
+        let daemon = include_str!("daemon.rs");
+        for (file, svg) in ICONS {
+            let name = file.trim_end_matches(".svg");
+            assert!(main.contains(name), "main.qml does not use {name}");
+            assert!(daemon.contains(name), "daemon.rs does not use {name}");
+            assert!(svg.contains("<svg"));
+        }
     }
 
     #[test]

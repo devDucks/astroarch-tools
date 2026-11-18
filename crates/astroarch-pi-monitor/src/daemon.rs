@@ -141,7 +141,8 @@ async fn notify(
         .notify(
             "AstroArch Pi Monitor",
             replaces,
-            if critical { "dialog-error" } else { "dialog-warning" },
+            // The widget's thermometers, orange and red (icons/ of this crate)
+            if critical { "org.astroarch.pimonitor-critical" } else { "org.astroarch.pimonitor-warning" },
             title,
             body,
             &[],

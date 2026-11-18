@@ -47,7 +47,12 @@ PlasmoidItem {
         return (v === undefined || v === null) ? "--" : v.toFixed(2) + " V";
     }
 
-    Plasmoid.icon: level >= 2 ? "dialog-error" : level === 1 ? "dialog-warning" : "temperature-normal"
+    // A thermometer: orange for a warning, red when critical (icons of this package)
+    function alertIcon(lvl) {
+        return lvl >= 2 ? "org.astroarch.pimonitor-critical" : "org.astroarch.pimonitor-warning";
+    }
+
+    Plasmoid.icon: level > 0 ? alertIcon(level) : "temperature-normal"
     Plasmoid.status: level > 0 ? PlasmaCore.Types.NeedsAttentionStatus : PlasmaCore.Types.ActiveStatus
 
     toolTipMainText: status.model ? status.model : i18n("Raspberry Pi")
@@ -90,7 +95,9 @@ PlasmoidItem {
 
     fullRepresentation: ColumnLayout {
         Layout.minimumWidth: Kirigami.Units.gridUnit * 16
-        Layout.minimumHeight: Kirigami.Units.gridUnit * 9
+        // As tall as what it shows, no empty space under it
+        Layout.minimumHeight: implicitHeight
+        Layout.maximumHeight: implicitHeight
         spacing: Kirigami.Units.largeSpacing
 
         Kirigami.Heading {
@@ -142,7 +149,7 @@ PlasmoidItem {
                 required property string modelData
                 Layout.fillWidth: true
                 Kirigami.Icon {
-                    source: root.level >= 2 ? "dialog-error" : "dialog-warning"
+                    source: root.alertIcon(root.level)
                     implicitWidth: Kirigami.Units.iconSizes.small
                     implicitHeight: Kirigami.Units.iconSizes.small
                 }
@@ -179,7 +186,5 @@ PlasmoidItem {
             text: i18n("The monitor does not answer")
             color: Kirigami.Theme.negativeTextColor
         }
-
-        Item { Layout.fillHeight: true }
     }
 }
