@@ -30,6 +30,10 @@ pub const BUS_NAME: &str = "org.astroarch.PiMonitor";
 pub const OBJECT_PATH: &str = "/org/astroarch/PiMonitor";
 pub const INTERFACE: &str = "org.astroarch.PiMonitor1";
 
+/// How long a call to the notification server may take. The bus never times out a call by
+/// itself: a frozen Plasma shell would otherwise stop the sampling loop for good
+const NOTIFY_TIMEOUT: Duration = Duration::from_secs(5);
+
 struct State {
     config: Config,
     status: Status,
@@ -133,7 +137,7 @@ async fn notify(
     let urgency = Value::U8(if critical { 2 } else { 1 });
     let entry = Value::from("org.astroarch.pimonitor");
     let hints = HashMap::from([("urgency", &urgency), ("desktop-entry", &entry)]);
-    proxy
+    let call = proxy
         .notify(
             "AstroArch Pi Monitor",
             replaces,
@@ -144,8 +148,10 @@ async fn notify(
             hints,
             // A critical alert stays until it is closed; a warning goes away by itself
             if critical { 0 } else { 15_000 },
-        )
+        );
+    tokio::time::timeout(NOTIFY_TIMEOUT, call)
         .await
+        .map_err(|_| zbus::Error::Failure("the notification server does not answer".into()))?
 }
 
 pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
@@ -220,7 +226,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         if eval.alerts.is_empty() {
             // Back to normal: the stale notification goes away
             if notification_id != 0 {
-                let _ = notifications.close_notification(notification_id).await;
+                let _ = tokio::time::timeout(NOTIFY_TIMEOUT, notifications.close_notification(notification_id)).await;
                 notification_id = 0;
             }
             policy.due(&eval.alerts, now, repeat);
