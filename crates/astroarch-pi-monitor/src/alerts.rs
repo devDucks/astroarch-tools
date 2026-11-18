@@ -3,7 +3,7 @@
 
 use crate::sensors::{Reading, VoltageKind};
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 /// A temperature alert ends once the value is this much under its threshold (degrees)
@@ -87,17 +87,21 @@ impl Alert {
         }
     }
 
-    /// What identifies an alert for "is it a new one?": its kind and its level (the value
-    /// changes at every sample)
-    pub fn key(&self) -> (u8, Level) {
-        let kind = match self {
+    /// The kind of alert, whatever its level and value
+    pub fn kind(&self) -> u8 {
+        match self {
             Alert::Temperature { .. } => 0,
             Alert::Voltage { .. } => 1,
             Alert::Undervoltage => 2,
             Alert::Throttled => 3,
             Alert::FanStalled => 4,
-        };
-        (kind, self.level())
+        }
+    }
+
+    /// What identifies an alert for "did it change?": its kind and its level (the value
+    /// changes at every sample)
+    pub fn key(&self) -> (u8, Level) {
+        (self.kind(), self.level())
     }
 }
 
@@ -203,19 +207,20 @@ impl Evaluator {
 
 /// Decides when a notification is sent: when an alert appears or gets worse, and again
 /// every `repeat` while something is critical. Nothing is sent for an alert that was
-/// already notified and has not changed
+/// already notified at that level or higher (a critical alert going back to a warning is
+/// not news)
 #[derive(Debug, Default)]
 pub struct NotifyPolicy {
-    known: HashSet<(u8, Level)>,
+    /// The highest level notified for each kind of alert, while it stays active
+    known: HashMap<u8, Level>,
     last: Option<Instant>,
     retry_at: Option<Instant>,
 }
 
 impl NotifyPolicy {
     pub fn due(&mut self, alerts: &[Alert], now: Instant, repeat: Option<Duration>) -> bool {
-        let current: HashSet<_> = alerts.iter().map(Alert::key).collect();
         // An alert that is gone will be notified again if it comes back
-        self.known.retain(|k| current.contains(k));
+        self.known.retain(|kind, _| alerts.iter().any(|a| a.kind() == *kind));
         if alerts.is_empty() {
             self.last = None;
             self.retry_at = None;
@@ -224,7 +229,7 @@ impl NotifyPolicy {
         if self.retry_at.is_some_and(|t| now < t) {
             return false;
         }
-        let is_new = current.iter().any(|k| !self.known.contains(k));
+        let is_new = alerts.iter().any(|a| self.known.get(&a.kind()).is_none_or(|known| a.level() > *known));
         let repeat_due = alerts.iter().any(|a| a.level() == Level::Critical)
             && repeat
                 .zip(self.last)
@@ -234,7 +239,10 @@ impl NotifyPolicy {
 
     /// The notification was delivered
     pub fn sent(&mut self, alerts: &[Alert], now: Instant) {
-        self.known = alerts.iter().map(Alert::key).collect();
+        for a in alerts {
+            let known = self.known.entry(a.kind()).or_insert(a.level());
+            *known = (*known).max(a.level());
+        }
         self.last = Some(now);
         self.retry_at = None;
     }
@@ -408,6 +416,23 @@ mod tests {
         p.sent(&worse, t0 + Duration::from_secs(4));
         // A second, different alert appears
         let two = [temp_alert(Level::Critical), Alert::Undervoltage];
+        assert!(p.due(&two, t0 + Duration::from_secs(6), None));
+    }
+
+    #[test]
+    fn an_alert_that_gets_better_is_not_notified() {
+        let mut p = NotifyPolicy::default();
+        let t0 = Instant::now();
+        let crit = [temp_alert(Level::Critical)];
+        assert!(p.due(&crit, t0, None));
+        p.sent(&crit, t0);
+        // Critical -> warning: not news
+        let warn = [temp_alert(Level::Warning)];
+        assert!(!p.due(&warn, t0 + Duration::from_secs(2), None));
+        // And back to critical while it never went away: already notified
+        assert!(!p.due(&crit, t0 + Duration::from_secs(4), None));
+        // Another kind of alert at the warning level is new
+        let two = [temp_alert(Level::Warning), Alert::FanStalled];
         assert!(p.due(&two, t0 + Duration::from_secs(6), None));
     }
 
