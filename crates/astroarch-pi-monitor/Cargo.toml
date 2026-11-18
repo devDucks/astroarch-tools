@@ -1,0 +1,23 @@
+[package]
+name = "astroarch-pi-monitor"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+description = "Raspberry Pi temperature and voltage monitor for AstroArch: D-Bus daemon, alerts and Plasma widget"
+
+[lib]
+name = "astroarch_pi_monitor"
+path = "src/lib.rs"
+
+[[bin]]
+name = "astroarch-pi-monitor"
+path = "src/main.rs"
+
+[dependencies]
+# D-Bus: the daemon's interface, the client, and the freedesktop notifications
+zbus = { workspace = true }
+# One thread is enough for a sensor poll every few seconds
+tokio = { workspace = true, features = ["rt", "macros", "time", "signal", "sync", "process"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = "0.8"
