@@ -78,19 +78,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "astroarch-pi-monitor-qml"
-version = "0.2.0"
-dependencies = [
- "astroarch-pi-monitor",
- "cxx",
- "cxx-qt",
- "cxx-qt-build",
- "cxx-qt-lib",
- "tokio",
- "zbus",
-]
-
-[[package]]
 name = "astroarch-software-installer"
 version = "0.2.0"
 dependencies = [

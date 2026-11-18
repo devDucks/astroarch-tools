@@ -1,40 +1,35 @@
 # astroarch-pi-monitor
 
 Temperature, voltage and fan of the Raspberry Pi (4 and 5), alerts when a threshold is
-exceeded, and a Plasma 6 widget to see it all. Rust (zbus, tokio) for the service and
-for the QML plugin (cxx-qt), QML (Qt 6, Kirigami) for the widget, no hand-written C++.
+exceeded, and a Plasma 6 widget to see it all. Rust (zbus, tokio) for the service, QML
+(Qt 6, Kirigami) for the widget.
 
 ```
  sensors ──► astroarch-pi-monitor daemon ──► notifications (org.freedesktop.Notifications)
  (sysfs,        │  org.astroarch.PiMonitor
   vcgencmd)     │  on the session bus
                 ▼
-   astroarch-pi-monitor status --json  ◄─┐
-   astroarch-pi-monitor set ...        ◄─┤ Plasma widget, through the QML plugin
-   QML plugin org.astroarch.pimonitor  ◄─┘ (crate astroarch-pi-monitor-qml) or, without it, the command
+   Plasma widget (Plasma's D-Bus module)
+   astroarch-pi-monitor status --json / set ...  (the widget's fallback without the service)
 ```
 
 ## Install
 
-    cargo build --release -p astroarch-pi-monitor -p astroarch-pi-monitor-qml
+    cargo build --release -p astroarch-pi-monitor
     target/release/astroarch-pi-monitor install
 
-(the plugin needs the Qt 6 development files and `lld`: `sudo pacman -S lld`; without the
-plugin, `cargo build --release -p astroarch-pi-monitor` is enough and the widget uses the
-command). That is all: it copies the binary to `~/.local/bin`, puts the widget in
-`~/.local/share/plasma/plasmoids/org.astroarch.pimonitor`, the QML plugin in
-`~/.local/lib/qt6/qml/org/astroarch/pimonitor`, writes the systemd user service and starts
-it. Then right-click the desktop or a panel → *Add Widgets…* →
+That is all: it copies the binary to `~/.local/bin`, puts the widget in
+`~/.local/share/plasma/plasmoids/org.astroarch.pimonitor`, writes the systemd user service
+and starts it. Then right-click the desktop or a panel → *Add Widgets…* →
 *AstroArch Pi Monitor* (restart the Plasma shell if it is not listed yet:
 `systemctl --user restart plasma-plasmashell`).
 
 `install --system` (as root) puts the binary in `/usr/local/bin`, the widget in
-`/usr/share/plasma/plasmoids`, the plugin in `/usr/lib/qt6/qml/org/astroarch/pimonitor` and
-the service in `/etc/systemd/user`, enabled for every user from their next login. This is
-the install to prefer for the plugin: it is found as soon as the Plasma shell restarts. `uninstall [--system]` removes it all (the settings are kept).
+`/usr/share/plasma/plasmoids` and the service in `/etc/systemd/user`, enabled for every
+user from their next login. `uninstall [--system]` removes it all (the settings are kept).
 The widget and the unit are embedded in the binary; for a package, the same files are in
-`plasmoid/` and `systemd/` (replace `@BIN@` by the binary's path in the three files that
-have it).
+`plasmoid/` and `systemd/` (replace `@BIN@` by the binary's path in the two files that
+have it: `contents/ui/Backend.qml` and the unit).
 
 ## What is monitored
 
@@ -122,54 +117,22 @@ Another AstroArch tool can read them, e.g.
 shows the temperature and the voltage in the panel (red or orange from the thresholds), with
 the details and the active alerts when opened. Its settings page edits the thresholds. A
 plasmoid is a QML package that plasmashell loads, so it cannot be Rust itself; the Rust
-service and the Rust plugin are what it displays.
+service is what it displays.
 
-`Backend.qml` is how it reaches the monitor, and it chooses by itself:
+`Backend.qml` is how it reaches the monitor: it calls `GetStatus` (and `SetConfig`) on the
+session bus with Plasma's own D-Bus module, `org.kde.plasma.workspace.dbus`
+(`SessionBus.asyncCall`). Nothing of ours is loaded into the Plasma shell, no process is
+started, and nothing needs a rebuild after a Qt update. When the service is not running,
+it runs `astroarch-pi-monitor status --json` instead (a direct reading of the sensors), and
+`set` writes the settings to the file.
 
-- **the QML plugin** (`BackendPlugin.qml`): the `PiMonitor` object, with typed properties,
-  one D-Bus connection kept open, no process started;
-- **the command** (`BackendExec.qml`), when the plugin is not installed or not in the Plasma
-  shell's QML import path: every 2 s it runs `astroarch-pi-monitor status --json`
-  (Plasma5Support's `executable` engine).
-
-So the widget works right after `install`, and uses the plugin from the moment the shell
-finds it. A *user* install puts the plugin in `~/.local/lib/qt6/qml` and a script in
-`~/.config/plasma-workspace/env/` that adds it to `QML_IMPORT_PATH`: the shell reads that at
-the start of the session, so the plugin is used from the next login.
-
-## The QML plugin
-
-`crates/astroarch-pi-monitor-qml`, a cxx-qt dynamic plugin (`org.astroarch.pimonitor`),
-usable by any QML, e.g. another AstroArch tool:
-
-    import org.astroarch.pimonitor
-    PiMonitor {
-        Component.onCompleted: start(2)      // seconds between two readings
-        // properties: temperature, voltage (NaN if unknown), voltageKind, fanRpm and
-        // fanPercent (-1 if there is no fan sensor), level, alerts,
-        // undervoltageNow, undervoltagePast, throttled, softTempLimit, model, daemonRunning,
-        // ready, tempWarn, tempCrit, voltWarn, voltCrit, notifications
-        // invokables: setInterval(secs), applyThresholds(tw, tc, vw, vc, notifications)
-        // signal: applied(ok, message)
-    }
-
-A thread of the host (plasmashell) asks the service for its status and hands it to the Qt
-thread; without the service, the sensors are read directly (`daemonRunning` is false). The
-plugin is loaded *into plasmashell*: a crash in it takes the panel down, which is why it
-does nothing but this.
-
-Building a dynamic plugin from Cargo alone needs two things the crate handles in `build.rs`:
-the library is named after the module (`liborg_astroarch_pimonitor.so`), and the linker must
-be lld (a second version script exports `qt_plugin_instance` and
-`qt_plugin_query_metadata_v2`, which a Rust `cdylib` would otherwise hide; GNU ld and gold
-refuse a second script). Without `ld.lld`, the build warns and the plugin does not load.
-It is built for one Qt: rebuild it after a Qt upgrade.
+One catch of that module (Plasma 6.8): a call given a `signature` is sent without its
+arguments. `Backend.qml` passes typed values (`DBus.double`, `DBus.bool`) and no signature.
 
 ## Tests
 
     cargo test -p astroarch-pi-monitor
 
 The alert levels, the hysteresis, the fan alert, the notification policy, the parsing of the sensors, the
-settings and the installer's files are unit tested. The plugin and the widget's QML are not
-covered by `cargo test`: the plugin was loaded in Qt's `qml` runner against a running daemon,
-and the widget needs a Plasma session.
+settings and the installer's files are unit tested. The widget's QML is not covered by
+`cargo test`: it needs a Plasma session.

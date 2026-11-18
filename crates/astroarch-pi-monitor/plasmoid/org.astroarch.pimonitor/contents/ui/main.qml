@@ -8,7 +8,7 @@ import org.kde.plasma.plasmoid
 // AstroArch Pi Monitor: shows what the astroarch-pi-monitor daemon reports.
 // The widget only displays: the thresholds and the notifications are the daemon's
 // (settings page of this widget, or `astroarch-pi-monitor set`). Backend.qml reads the
-// daemon, through the QML plugin when it is there, else through the command.
+// daemon through Plasma's D-Bus module, or through the command without the daemon.
 PlasmoidItem {
     id: root
 

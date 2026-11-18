@@ -1,5 +1,5 @@
-//! The library behind `astroarch-pi-monitor` (the binary) and the QML plugin
-//! (`astroarch-pi-monitor-qml`): sensors, alerts, settings, the D-Bus daemon and client.
+//! The library behind `astroarch-pi-monitor`: sensors, alerts, settings, the D-Bus daemon
+//! and client.
 
 pub mod alerts;
 pub mod client;
