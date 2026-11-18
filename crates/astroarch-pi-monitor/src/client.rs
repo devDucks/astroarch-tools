@@ -6,7 +6,7 @@ use crate::alerts::Evaluator;
 use crate::config::Config;
 use crate::daemon::{BUS_NAME, INTERFACE, OBJECT_PATH};
 use crate::i18n::Lang;
-use crate::sensors::{board_model, Sensors};
+use crate::sensors::{board_model, Board, Sensors};
 use crate::status::Status;
 use std::path::Path;
 use std::time::Duration;
@@ -61,7 +61,7 @@ pub async fn direct_status() -> Status {
     let cfg = Config::load();
     let reading = Sensors::default().read().await;
     let eval = Evaluator::default().evaluate(&reading, &cfg.thresholds);
-    Status::build(&board_model(Path::new("/")), &reading, &eval, &cfg, Lang::detect(), false)
+    Status::build(Board::this(), &board_model(Path::new("/")), &reading, &eval, &cfg, Lang::detect(), false)
 }
 
 pub async fn status() -> Status {

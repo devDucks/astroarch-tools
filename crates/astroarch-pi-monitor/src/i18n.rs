@@ -3,6 +3,7 @@
 //! (`LC_ALL`, `LC_MESSAGES`, `LANGUAGE`, `LANG`, then `/etc/locale.conf`).
 
 use crate::alerts::{Alert, Level};
+use crate::sensors::Board;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Lang {
@@ -107,21 +108,26 @@ pub fn alert_text(lang: Lang, alert: &Alert) -> String {
     }
 }
 
-/// The notification's title
-pub fn title(lang: Lang, level: Level) -> &'static str {
+/// The notification's title: "Raspberry Pi: warning", or "AstroArch: warning" on another
+/// computer
+pub fn title(lang: Lang, level: Level, board: Board) -> String {
     use Lang::*;
-    match (lang, level == Level::Critical) {
-        (En, false) => "Raspberry Pi: warning",
-        (En, true) => "Raspberry Pi: critical alert",
-        (Fr, false) => "Raspberry Pi : attention",
-        (Fr, true) => "Raspberry Pi : alerte critique",
-        (De, false) => "Raspberry Pi: Warnung",
-        (De, true) => "Raspberry Pi: Kritischer Alarm",
-        (It, false) => "Raspberry Pi: attenzione",
-        (It, true) => "Raspberry Pi: allarme critico",
-        (Es, false) => "Raspberry Pi: aviso",
-        (Es, true) => "Raspberry Pi: alerta crítica",
-    }
+    let what = match (lang, level == Level::Critical) {
+        (En, false) => "warning",
+        (En, true) => "critical alert",
+        (Fr, false) => "attention",
+        (Fr, true) => "alerte critique",
+        (De, false) => "Warnung",
+        (De, true) => "Kritischer Alarm",
+        (It, false) => "attenzione",
+        (It, true) => "allarme critico",
+        (Es, false) => "aviso",
+        (Es, true) => "alerta crítica",
+    };
+    let who = if board.is_pi() { "Raspberry Pi" } else { "AstroArch" };
+    // French puts a space before the colon
+    let sep = if lang == Fr { " : " } else { ": " };
+    format!("{who}{sep}{what}")
 }
 
 #[cfg(test)]
@@ -137,6 +143,13 @@ mod tests {
         assert_eq!(Lang::from_tag("fr:en"), Lang::Fr);
         assert_eq!(Lang::from_tag("C.UTF-8"), Lang::En);
         assert_eq!(Lang::from_tag(""), Lang::En);
+    }
+
+    #[test]
+    fn the_title_names_the_machine() {
+        assert_eq!(title(Lang::En, Level::Critical, Board::Pi5), "Raspberry Pi: critical alert");
+        assert_eq!(title(Lang::Fr, Level::Warning, Board::Pi4), "Raspberry Pi : attention");
+        assert_eq!(title(Lang::It, Level::Warning, Board::Generic), "AstroArch: attenzione");
     }
 
     #[test]

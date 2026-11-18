@@ -33,26 +33,33 @@ have it: `contents/ui/Backend.qml` and the unit).
 
 ## What is monitored
 
-| | Raspberry Pi 5 | Raspberry Pi 4 |
-|---|---|---|
-| SoC temperature | `/sys/class/thermal/thermal_zone0/temp` | same |
-| Voltage | the 5 V input, `vcgencmd pmic_read_adc EXT5V_V` | no input sensor: the core voltage is shown, for information |
-| Fan | `pwmfan` hwmon device (the Active Cooler on the fan connector): speed in rpm, and the duty cycle the system asks for | no sensor: nothing is shown |
-| Under-voltage now / since boot, throttling | `vcgencmd get_throttled`, and the kernel's `rpi_volt` hwmon device | same |
+| | Raspberry Pi 5 | Raspberry Pi 4 | PC (x86) |
+|---|---|---|---|
+| CPU temperature | `cpu_thermal` hwmon device (= `thermal_zone0`) | same | `coretemp` (Intel, *Package id 0*), `k10temp` / `zenpower` (AMD, *Tdie*, else *Tctl*), else the `x86_pkg_temp` thermal zone |
+| Voltage | the 5 V input, `vcgencmd pmic_read_adc EXT5V_V` | no input sensor: the core voltage is shown, for information | none |
+| Fan | `pwmfan` hwmon device (the Active Cooler on the fan connector): speed in rpm, and the duty cycle the system asks for | no sensor: nothing is shown | the first hwmon fan that turns, speed only |
+| Under-voltage now / since boot, throttling | `vcgencmd get_throttled`, and the kernel's `rpi_volt` hwmon device | same | none |
+
+The board is told by the device tree (`brcm,bcm2712`: Pi 5, 500, CM5; `brcm,bcm2711`: Pi 4,
+400, CM4). `vcgencmd` is only run on a Raspberry Pi; it comes with the package
+`raspberrypi-utils`, whose udev rule also lets the `video` group (the desktop user) use
+`/dev/vcio`. Without it, a Pi shows the temperature and the fan only.
 
 Alerts, each with a hysteresis so a value hovering around a threshold does not flap
 (2 °C, 0.05 V):
 
 | Alert | Level | Default |
 |---|---|---|
-| Temperature | warning / critical | from 70 °C / from 80 °C |
+| Temperature | warning / critical | from 70 °C / from 80 °C (PC: 90 °C / 98 °C) |
 | 5 V input voltage (Pi 5) | warning / critical | under 4.75 V / under 4.63 V |
 | Under-voltage reported by the firmware | critical | |
 | CPU throttled by the firmware | warning | |
 | Fan not turning: asked to turn (duty cycle above 0) and 0 rpm for 5 samples in a row (10 s) | warning | |
 
 The Raspberry Pi firmware throttles from 80 °C and flags an under-voltage under about
-4.63 V; the warnings come before. On a Pi 4 only the firmware's under-voltage flag raises a
+4.63 V; the warnings come before. An x86 CPU runs much hotter under load (87 °C for a
+Ryzen 7 8845HS mini PC during a compile) and throttles itself at 100 °C, hence its own
+defaults. On a Pi 4 only the firmware's under-voltage flag raises a
 voltage alert.
 
 ## Notifications
@@ -69,8 +76,8 @@ and Spanish, after the session's language.
 `~/.config/astroarch/pi-monitor.toml` (created by `install`):
 
     [thresholds]
-    temp_warn = 70.0
-    temp_crit = 80.0
+    temp_warn = 70.0        # 90.0 on a PC
+    temp_crit = 80.0        # 98.0 on a PC
     volt_warn = 4.75
     volt_crit = 4.63
 

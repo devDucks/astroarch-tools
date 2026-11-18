@@ -1,7 +1,7 @@
 //! Thresholds, alert levels (with hysteresis) and when a notification is due.
 //! Pure logic, no I/O: everything here is unit tested.
 
-use crate::sensors::{Reading, VoltageKind};
+use crate::sensors::{Board, Reading, VoltageKind};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
@@ -25,9 +25,10 @@ pub enum Level {
 }
 
 /// The defaults follow the Raspberry Pi firmware: it throttles from 80 °C, and flags
-/// under-voltage when the 5 V input drops under about 4.63 V
+/// under-voltage when the 5 V input drops under about 4.63 V. A missing value in the
+/// settings file gets this machine's default (see `for_board`)
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-#[serde(default)]
+#[serde(default = "Thresholds::for_this_board")]
 pub struct Thresholds {
     /// °C
     pub temp_warn: f64,
@@ -44,6 +45,21 @@ impl Default for Thresholds {
 }
 
 impl Thresholds {
+    /// The defaults of a kind of machine. An x86 CPU runs hot under load (a Ryzen 7 8845HS
+    /// mini PC: 87 °C during a compile) and throttles itself at 100 °C: the Raspberry Pi's
+    /// 70/80 °C would warn all the time
+    pub fn for_board(board: Board) -> Thresholds {
+        match board {
+            Board::Generic => Thresholds { temp_warn: 90.0, temp_crit: 98.0, ..Thresholds::default() },
+            _ => Thresholds::default(),
+        }
+    }
+
+    /// The defaults of this machine
+    pub fn for_this_board() -> Thresholds {
+        Thresholds::for_board(Board::this())
+    }
+
     pub fn validate(&self) -> Result<(), String> {
         let all = [self.temp_warn, self.temp_crit, self.volt_warn, self.volt_crit];
         if all.iter().any(|v| !v.is_finite()) {
@@ -269,6 +285,15 @@ mod tests {
     #[test]
     fn default_thresholds_are_valid() {
         assert!(Thresholds::default().validate().is_ok());
+    }
+
+    #[test]
+    fn a_pc_gets_higher_temperature_defaults() {
+        assert_eq!(Thresholds::for_board(Board::Pi5), Thresholds::default());
+        assert_eq!(Thresholds::for_board(Board::Pi4), Thresholds::default());
+        let pc = Thresholds::for_board(Board::Generic);
+        assert_eq!((pc.temp_warn, pc.temp_crit), (90.0, 98.0));
+        assert!(pc.validate().is_ok());
     }
 
     #[test]

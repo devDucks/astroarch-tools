@@ -4,7 +4,7 @@
 use crate::alerts::{Evaluation, Thresholds};
 use crate::config::Config;
 use crate::i18n::{self, Lang};
-use crate::sensors::Reading;
+use crate::sensors::{Board, Reading};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -12,6 +12,8 @@ use serde::{Deserialize, Serialize};
 pub struct Status {
     /// "Raspberry Pi 5 Model B Rev 1.0", or empty
     pub model: String,
+    /// "pi5", "pi4", "pi" (an older Raspberry Pi) or "generic" (x86...)
+    pub board: String,
     /// °C, null if it could not be read
     pub temperature: Option<f64>,
     /// V, null if it could not be read
@@ -39,6 +41,7 @@ pub struct Status {
 
 impl Status {
     pub fn build(
+        board: Board,
         model: &str,
         r: &Reading,
         eval: &Evaluation,
@@ -48,6 +51,7 @@ impl Status {
     ) -> Status {
         Status {
             model: model.to_string(),
+            board: board.as_str().to_string(),
             temperature: r.temperature,
             voltage: r.voltage,
             voltage_kind: r.voltage_kind.as_str().to_string(),
@@ -83,7 +87,11 @@ impl Status {
         if !self.model.is_empty() {
             out.push_str(&format!("{}\n", self.model));
         }
-        out.push_str(&format!("temperature  {t}\n{what:<12} {v}\n"));
+        out.push_str(&format!("temperature  {t}\n"));
+        // A PC has no supply voltage to show
+        if self.board != "generic" {
+            out.push_str(&format!("{what:<12} {v}\n"));
+        }
         if let Some(rpm) = self.fan_rpm {
             let pct = self.fan_percent.map_or(String::new(), |p| format!(" ({p} %)"));
             out.push_str(&format!("fan          {rpm} rpm{pct}\n"));

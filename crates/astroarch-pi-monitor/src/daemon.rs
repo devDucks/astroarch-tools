@@ -15,7 +15,7 @@
 use crate::alerts::{Alert, Evaluator, Level, NotifyPolicy, Thresholds};
 use crate::config::Config;
 use crate::i18n::{self, Lang};
-use crate::sensors::{board_model, Sensors};
+use crate::sensors::{board_model, Board, Sensors};
 use crate::status::Status;
 use std::collections::HashMap;
 use std::path::Path;
@@ -185,7 +185,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         let (cfg, lang) = (state.read().unwrap().config.clone(), Lang::detect());
         let reading = sensors.read().await;
         let eval = evaluator.evaluate(&reading, &cfg.thresholds);
-        let status = Status::build(&model, &reading, &eval, &cfg, lang, true);
+        let status = Status::build(Board::this(), &model, &reading, &eval, &cfg, lang, true);
         state.write().unwrap().status = status.clone();
 
         // D-Bus: properties and signal, only for what changed
@@ -237,7 +237,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
             policy.due(&eval.alerts, now, repeat);
         } else if cfg.notifications.enabled && policy.due(&eval.alerts, now, repeat) {
             let body = status.alerts.join("\n");
-            match notify(&notifications, notification_id, eval.level, i18n::title(lang, eval.level), &body).await {
+            match notify(&notifications, notification_id, eval.level, &i18n::title(lang, eval.level, Board::this()), &body).await {
                 Ok(id) => {
                     notification_id = id;
                     policy.sent(&eval.alerts, now);

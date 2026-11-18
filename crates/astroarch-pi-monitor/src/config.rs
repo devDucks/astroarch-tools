@@ -11,7 +11,8 @@ const HEADER: &str = "\
 # a change made by hand is read at the next start of the daemon.
 #
 # thresholds: temperature in °C; voltage in V, on the 5 V input (Raspberry Pi 5 only).
-#   The Raspberry Pi firmware throttles from 80 °C and flags an under-voltage under ~4.63 V.
+#   The Raspberry Pi firmware throttles from 80 °C and flags an under-voltage under ~4.63 V;
+#   on a PC (x86) the defaults are 90 and 98 °C.
 # notifications: repeat_critical_minutes = 0 sends each notification only once.
 ";
 
@@ -42,12 +43,23 @@ impl Default for Monitor {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Config {
     pub thresholds: Thresholds,
     pub notifications: Notifications,
     pub monitor: Monitor,
+}
+
+/// The defaults of this machine (its thresholds depend on it, see `Thresholds::for_board`)
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            thresholds: Thresholds::for_this_board(),
+            notifications: Notifications::default(),
+            monitor: Monitor::default(),
+        }
+    }
 }
 
 pub fn config_path() -> PathBuf {
@@ -127,13 +139,14 @@ mod tests {
     fn a_partial_file_gets_the_defaults_for_the_rest() {
         let c = Config::from_toml("[thresholds]\ntemp_warn = 65.0\n").unwrap();
         assert_eq!(c.thresholds.temp_warn, 65.0);
-        assert_eq!(c.thresholds.temp_crit, Thresholds::default().temp_crit);
+        assert_eq!(c.thresholds.temp_crit, Thresholds::for_this_board().temp_crit);
         assert_eq!(c.notifications, Notifications::default());
     }
 
     #[test]
     fn invalid_files_are_rejected() {
-        assert!(Config::from_toml("[thresholds]\ntemp_warn = 90.0\n").is_err());
+        // Over the critical default of a Pi (80) and of a PC (98)
+        assert!(Config::from_toml("[thresholds]\ntemp_warn = 99.0\n").is_err());
         assert!(Config::from_toml("[monitor]\ninterval_secs = 0\n").is_err());
         assert!(Config::from_toml("not toml at all [").is_err());
     }
