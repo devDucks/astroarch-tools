@@ -106,7 +106,7 @@ interface `org.astroarch.PiMonitor1`:
   `PropertiesChanged`
 - `GetStatus() → s`: the JSON of `status --json`
 - `SetConfig(d tempWarn, d tempCrit, d voltWarn, d voltCrit, b notifications)`
-- signal `AlertChanged(u level, s message)`
+- signal `AlertChanged(u level, s message)`, when an alert appears, goes or changes level
 
 Another AstroArch tool can read them, e.g.
 `busctl --user get-property org.astroarch.PiMonitor /org/astroarch/PiMonitor org.astroarch.PiMonitor1 Level`.

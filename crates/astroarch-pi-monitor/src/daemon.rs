@@ -12,7 +12,7 @@
 //!                SetConfig(d tempWarn, d tempCrit, d voltWarn, d voltCrit, b notifications)
 //!   signal       AlertChanged(u level, s message)
 
-use crate::alerts::{Evaluator, Level, NotifyPolicy, Thresholds};
+use crate::alerts::{Alert, Evaluator, Level, NotifyPolicy, Thresholds};
 use crate::config::Config;
 use crate::i18n::{self, Lang};
 use crate::sensors::{board_model, Sensors};
@@ -176,6 +176,8 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut notification_id = 0u32;
     let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())?;
     let mut previous: Option<Status> = None;
+    // The alerts' kinds and levels at the previous sample (their values change all the time)
+    let mut previous_alerts: Option<Vec<(u8, Level)>> = None;
 
     eprintln!("astroarch-pi-monitor: started ({})", if model.is_empty() { "unknown board" } else { &model });
 
@@ -211,8 +213,11 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 eprintln!("astroarch-pi-monitor: cannot emit the property changes: {e}");
             }
         }
-        if previous.as_ref().is_none_or(|p| p.level != status.level || p.alerts != status.alerts) {
-            if previous.is_some() || status.level > 0 {
+        // The journal and AlertChanged: only when an alert appears, goes, or changes level,
+        // not at every new value (one line every 2 s for a whole hot night otherwise)
+        let alerts: Vec<_> = eval.alerts.iter().map(Alert::key).collect();
+        if previous_alerts.as_ref() != Some(&alerts) {
+            if previous_alerts.is_some() || status.level > 0 {
                 let what = if status.alerts.is_empty() { "back to normal".to_string() } else { status.alerts.join(" | ") };
                 eprintln!("astroarch-pi-monitor: level {}: {what}", status.level);
             }
@@ -245,6 +250,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         previous = Some(status);
+        previous_alerts = Some(alerts);
 
         tokio::select! {
             _ = tokio::time::sleep(Duration::from_secs(cfg.monitor.interval_secs)) => {}
